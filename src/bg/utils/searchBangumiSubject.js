@@ -66,7 +66,12 @@ function fetchBangumiDataBySearch(subjectInfo, typeNumber) {
     startDate = subjectInfo.startDate;
   }
   typeNumber = typeNumber || 'all';
-  const url = `https://bgm.tv/subject_search/${encodeURIComponent(subjectInfo.subjectName)}?cat=${typeNumber}`;
+  var query = subjectInfo.subjectName;
+  if (subjectInfo.isbn) {
+    query = query + ' ' + subjectInfo.isbn;
+  }
+  const url = `https://bgm.tv/subject_search/${encodeURIComponent(query)}?cat=${typeNumber}`;
+  console.info('seach bangumi subject URL: ', url);
   return gmFetch(url).then((info) => {
     var [rawInfoList, numOfPage] = dealRawHTML(info);
     return filterResults(rawInfoList, subjectInfo.subjectName, {

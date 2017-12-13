@@ -21,6 +21,9 @@ function getQueryInfo(items) {
     if (item.category === 'date') {
       info.startDate = item.data;
     }
+    if (item.category === 'ISBN') {
+      info.isbn = item.data;
+    }
   });
   if (info.subjectName) {
     return info;
@@ -130,10 +133,16 @@ function contains(selector, text, $parent) {
 }
 
 function init() {
+  var whiteList = ['amazon', 'getchu'];
+  if (!window.location.host.match(new RegExp(whiteList.join('|')))) {
+    console.info('domain is not in whitelist');
+    return;
+  }
   browser.storage.local.get()
     .then(obj => {
       let config = obj.configModel[obj.currentConfig];
       var subjectInfoList = config.itemList.map(i => getWikiItem(i));
+      console.info('fetch info: ', subjectInfoList);
       var queryInfo = getQueryInfo(subjectInfoList);
       var coverInfo = getCoverURL(config.cover);
       if (queryInfo) {

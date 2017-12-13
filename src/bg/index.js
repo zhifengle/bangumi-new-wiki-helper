@@ -10,7 +10,7 @@ browser.storage.local.get().then(obj => {
     browser.storage.local.set(models);
     browser.storage.local.set({
       currentConfig: 'amazon_jp_book',
-      searchSubject: true,
+      searchSubject: false,
       newSubjectType: 1,
       bangumiDomain: 'bgm.tv'
     });
@@ -26,6 +26,7 @@ function handleMessage(request, sender, sendResponse) {
       var coverInfo = request.coverInfo;
       if (coverInfo && coverInfo.coverURL) {
         gmFetchBinary(coverInfo.coverURL).then(function(myBlob) {
+          console.info('cover pic: ', myBlob);
           browser.storage.local.set({
             subjectCover: myBlob
           });
@@ -39,10 +40,12 @@ function handleMessage(request, sender, sendResponse) {
           });
         });
       } else {
-        var url =  `https://bgm.tv/new_subject/${newSubjectType}`;
-        browser.tabs.create({
-          url: changeDomain(url, obj.bangumiDomain)
-        });
+        /*
+         * var url =  `https://bgm.tv/new_subject/${newSubjectType}`;
+         * browser.tabs.create({
+         *   url: changeDomain(url, obj.bangumiDomain)
+         * });
+         */
       }
     })
     .catch((r) => {

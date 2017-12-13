@@ -20,7 +20,8 @@ amazonSubjectModel.itemList.push(
     name: 'ISBN',
     selector: '#detail_bullets_id .bucket .content',
     subSelector: 'li',
-    keyWord: 'ISBN-10:'
+    keyWord: 'ISBN-10:',
+    category: 'ISBN'
   },
   {
     name: '发售日',
