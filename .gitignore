@@ -1,0 +1,7 @@
+# Ignore build artifacts and other files.
+.DS_Store
+yarn.lock
+extension/dist
+node_modules
+extension.crx
+extension.pem

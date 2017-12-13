@@ -1,0 +1,31 @@
+{
+  "manifest_version": 2,
+  "name": "bangumi new wiki helper",
+  "description": "辅助创建 Bangumi WIKI 条目",
+  "version": "0.1.1",
+
+  "browser_action": {
+    "browser_style": true,
+    "default_icon": {
+      "48": "images/Watermelon-48.png",
+      "96": "images/Watermelon-96.png"
+    },
+    "default_title": "Setting",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "48": "images/Watermelon-48.png",
+    "96": "images/Watermelon-96.png"
+  },
+  "background": {
+    "scripts": ["dist/background.js"]
+  },
+  "permissions": [
+    "tabs",
+    "notifications",
+    "storage",
+    "webRequest",
+    "<all_urls>",
+    "contextMenus"
+  ]
+}
