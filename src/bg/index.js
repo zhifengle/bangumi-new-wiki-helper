@@ -40,12 +40,29 @@ function handleMessage(request, sender, sendResponse) {
           });
         });
       } else {
-        /*
-         * var url =  `https://bgm.tv/new_subject/${newSubjectType}`;
-         * browser.tabs.create({
-         *   url: changeDomain(url, obj.bangumiDomain)
-         * });
-         */
+        var url =  `https://bgm.tv/new_subject/${newSubjectType}`;
+        url = changeDomain(url, obj.bangumiDomain);
+        browser.tabs.query({
+          url: '*://*/new_subject/*',
+          title: '添加新条目'
+        }).then((tabs) => {
+          if (tabs && tabs.length) {
+            let tabId = tabs[0].id;
+            browser.tabs.executeScript(tabId, {
+              file: '/dist/bangumi.js'
+            });
+          } else {
+            browser.tabs.create({
+              url: changeDomain(url, obj.bangumiDomain)
+            }).then((tab) => {
+              if (tab.status === 'complete') {
+                browser.tabs.executeScript(tab.id, {
+                  file: '/dist/bangumi.js'
+                });
+              }
+            });
+          }
+        })
       }
     })
     .catch((r) => {
