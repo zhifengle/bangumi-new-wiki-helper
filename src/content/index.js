@@ -1,4 +1,5 @@
 import browser from 'webextension-polyfill';
+import models from '../models';
 
 function handleResponse(message) {
   console.log(`Message from the background script:  ${message.response}`);
@@ -53,25 +54,31 @@ function getCoverURL(coverConfig) {
  * @TODO
  */
 function getWikiItem(itemConfig) {
-  var item = {
-    category: itemConfig.category
-  };
-  if (itemConfig.selector && !itemConfig.subSelector) {
-    var $d = $(itemConfig.selector);
-    if ($d) {
-      item = {
-        name: itemConfig.name,
-        data: dealRawText($d.innerText, [], itemConfig),
-        ...item
-      };
-    }
-  } else if (itemConfig.keyWord) {
-    item = {
-      ...getItemByKeyWord(itemConfig),
-      ...item
+  var data = getItemData(itemConfig);
+  if (data) {
+    return {
+      name: itemConfig.name,
+      data,
+      category: itemConfig.category
     };
   }
-  return item;
+  return {};
+}
+/**
+ * 生成wiki的项目数据
+ * @param {Object} itemConfig 
+ * @returns {string}
+ */
+function getItemData(itemConfig) {
+  var $t;
+  if (itemConfig.selector && !itemConfig.subSelector) {
+    $t = $(itemConfig.selector);
+  } else if (itemConfig.keyWord) {  // 使用关键字搜索节点
+    $t = getDOMByKeyWord(itemConfig);
+  }
+  if ($t) {
+    return dealRawText($t.innerText, [itemConfig.keyWord], itemConfig);
+  }
 }
 /**
  * 处理无关字符
@@ -82,38 +89,39 @@ function dealRawText(str, filterArray = [], itemConfig) {
   if (itemConfig && itemConfig.category === 'subject_summary') {
     return str;
   }
-  const textList = [':', '：', '\\(.*\\)', '（.*）', ...filterArray];
+  if (itemConfig && itemConfig.separator) {
+    str = splitText(str, itemConfig);
+  }
+  const textList = ['\\(.*\\)', '（.*）', ...filterArray];
   return str.replace(new RegExp(textList.join('|'), 'g'), '').trim();
 }
 /**
- * 通过关键字提取信息
+ * 通过关键字查找DOM
  * @param {Object} itemConfig 
- * @returns {Object}
- * @TODO
+ * @returns {Object[]}
  */
-function getItemByKeyWord(itemConfig) {
-  // var $t = $(`${itemConfig.tagName}:contains(${itemConfig.keyWord})`)
-
-  var targets;
+function getDOMByKeyWord(itemConfig) {
+  let targets;
+  // 有父节点, 基于二级选择器
   if (itemConfig.selector) {
     targets = contains(itemConfig.subSelector, itemConfig.keyWord, $(itemConfig.selector));
   } else {
     targets = contains(itemConfig.subSelector, itemConfig.keyWord);
   }
-  if (targets && targets.length) {
-    if (itemConfig.sibling) {
-      return {
-        name: itemConfig.name,
-        data: dealRawText(targets[targets.length - 1].nextElementSibling.innerText, [], itemConfig)
-      };
-    }
-    return {
-      name: itemConfig.name,
-      data: dealRawText(targets[targets.length - 1].innerText, [itemConfig.keyWord], itemConfig)
-    };
-  } else {
-    return {};
+  var $t = targets[targets.length - 1];
+  // 相邻节点
+  if (itemConfig.sibling) {
+    $t = targets[targets.length - 1].nextElementSibling;
   }
+  return $t;
+}
+function splitText(text, itemConfig) {
+  const s = {
+    ':': ':|：',
+    ',': ',|，'
+  };
+  var t = text.split(new RegExp(s[itemConfig.separator]));
+  return t[t.length - 1].trim();
 }
 /**
  * 查找包含文本的标签
@@ -140,7 +148,7 @@ function init() {
   }
   browser.storage.local.get()
     .then(obj => {
-      let config = obj.configModel[obj.currentConfig];
+      let config = models.configModel[obj.currentConfig];
       var subjectInfoList = config.itemList.map(i => getWikiItem(i));
       console.info('fetch info: ', subjectInfoList);
       var queryInfo = getQueryInfo(subjectInfoList);

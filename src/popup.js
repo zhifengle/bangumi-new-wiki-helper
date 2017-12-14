@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import browser from 'webextension-polyfill';
+import models from './models';
 import './css/index.less';
 
 import CheckList from './CheckList';
@@ -38,7 +39,7 @@ class Popup extends React.Component {
     this.handleSelectChange = this.handleSelectChange.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.state = {
-      configs: null,
+      configs: models.configModel,
       currentConfig: null,
       searchSubject: true,
       newSubjectType: 1,
@@ -102,7 +103,6 @@ class Popup extends React.Component {
         //   }
         // }
         this.setState({
-          configs: obj.configModel,
           currentConfig: obj.currentConfig,
           searchSubject: obj.searchSubject,
           newSubjectType: obj.newSubjectType,

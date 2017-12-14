@@ -20,14 +20,16 @@ amazonSubjectModel.itemList.push(
     name: 'ISBN',
     selector: '#detail_bullets_id .bucket .content',
     subSelector: 'li',
-    keyWord: 'ISBN-10:',
+    keyWord: 'ISBN-10',
+    separator: ':',
     category: 'ISBN'
   },
   {
     name: '发售日',
     selector: '#detail_bullets_id .bucket .content',
     subSelector: 'li',
-    keyWord: '発売日：',
+    keyWord: '発売日',
+    separator: ':',
     category: 'date'
   },
   {
@@ -38,13 +40,15 @@ amazonSubjectModel.itemList.push(
     name: '出版社',
     selector: '#detail_bullets_id .bucket .content',
     subSelector: 'li',
+    separator: ':',
     keyWord: '出版社'
   },
   {
     name: '页数',
     selector: '#detail_bullets_id .bucket .content',
     subSelector: 'li',
-    keyWord: 'コミック:'
+    separator: ':',
+    keyWord: 'ページ'
   },
   {
     name: '价格',

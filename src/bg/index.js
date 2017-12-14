@@ -1,22 +1,22 @@
 import browser from 'webextension-polyfill';
 import models from '../models';
 import { fetchBangumiDataBySearch } from './utils/searchBangumiSubject';
-import { gmFetchBinary } from './utils/gmFetch';
+import { gmFetchBinary, gmFetch } from './utils/gmFetch';
 
+const VERSION = require('../../extension/manifest.json').version;
 // browser.storage.local.clear()
 // 初始化设置
 browser.storage.local.get().then(obj => {
-  if (obj && !obj.currentConfig) {
-    browser.storage.local.set(models);
+  if (obj && !obj.version || obj.version !== VERSION) {
     browser.storage.local.set({
       currentConfig: 'amazon_jp_book',
       searchSubject: false,
       newSubjectType: 1,
-      bangumiDomain: 'bgm.tv'
+      bangumiDomain: 'bgm.tv',
+      version: VERSION
     });
   }
 });
-
 
 function handleMessage(request, sender, sendResponse) {
 
@@ -34,7 +34,7 @@ function handleMessage(request, sender, sendResponse) {
       }
       if (obj.searchSubject) {
         fetchBangumiDataBySearch(request.queryInfo, newSubjectType).then((d) => {
-          console.log('ddddddd', d);
+          console.info('search result of bangumi: ', d);
           browser.tabs.create({
             url: changeDomain(d.subjectURL, obj.bangumiDomain)
           });
