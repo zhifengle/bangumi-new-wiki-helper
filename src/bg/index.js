@@ -94,6 +94,9 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
           var file = '/dist/content.js';
           if (url.match(/bgm\.tv|bangumi\.tv|chii\.in/)) {
             file = '/dist/bangumi.js';
+            browser.tabs.insertCSS({
+              file: '/dist/bangumi.css'
+            });
           }
           return browser.tabs.executeScript({
             file: file

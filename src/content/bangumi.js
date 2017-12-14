@@ -1,4 +1,6 @@
 import browser from 'webextension-polyfill';
+import dealImageWidget from './upload_img';
+import '../css/bangumi.less'
 
 
 /**
@@ -215,10 +217,11 @@ function init() {
             }
             break;
           case 'upload_img':
-            if (obj.subjectCover) {
-              previewImage(obj.subjectCover, document.querySelector('#columnInSubjectA'));
-              // console.log(genImageName(obj.subjectCover.type));
-            }
+            dealImageWidget($('form[name=img_upload]'));
+            // if (obj.subjectCover) {
+            //   previewImage(obj.subjectCover, document.querySelector('#columnInSubjectA'));
+            //   // console.log(genImageName(obj.subjectCover.type));
+            // }
             break;
         }
       })
