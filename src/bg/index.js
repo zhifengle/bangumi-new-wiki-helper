@@ -13,61 +13,87 @@ browser.storage.local.get().then(obj => {
       searchSubject: false,
       newSubjectType: 1,
       bangumiDomain: 'bgm.tv',
+      activeOpen: true,
       version: VERSION
     });
   }
 });
 
-function handleMessage(request, sender, sendResponse) {
-
-  browser.storage.local.get()
-    .then(obj => {
-      var newSubjectType = obj.newSubjectType;
-      var coverInfo = request.coverInfo;
-      if (coverInfo && coverInfo.coverURL) {
-        gmFetchBinary(coverInfo.coverURL).then(function(myBlob) {
-          console.info('cover pic: ', myBlob);
-          browser.storage.local.set({
-            subjectCover: myBlob
-          });
-        });
-      }
-      if (obj.searchSubject) {
-        fetchBangumiDataBySearch(request.queryInfo, newSubjectType).then((d) => {
-          console.info('search result of bangumi: ', d);
-          browser.tabs.create({
-            url: changeDomain(d.subjectURL, obj.bangumiDomain)
-          });
-        });
-      } else {
-        var url =  `https://bgm.tv/new_subject/${newSubjectType}`;
-        url = changeDomain(url, obj.bangumiDomain);
-        browser.tabs.query({
-          url: '*://*/new_subject/*',
-          title: '添加新条目'
-        }).then((tabs) => {
-          if (tabs && tabs.length) {
-            let tabId = tabs[0].id;
-            browser.tabs.executeScript(tabId, {
-              file: '/dist/bangumi.js'
-            });
-          } else {
-            browser.tabs.create({
-              url: changeDomain(url, obj.bangumiDomain)
-            }).then((tab) => {
-              if (tab.status === 'complete') {
-                browser.tabs.executeScript(tab.id, {
-                  file: '/dist/bangumi.js'
-                });
-              }
-            });
-          }
-        })
-      }
-    })
-    .catch((r) => {
-      console.log('err:', r, r.message);
+function createTab (url, active) {
+  return new Promise(resolve => {
+    chrome.tabs.create({url, active}, async tab => {
+      chrome.tabs.onUpdated.addListener(function listener (tabId, info) {
+        if (info.status === 'complete' && tabId === tab.id) {
+          chrome.tabs.onUpdated.removeListener(listener);
+          resolve(tab);
+        }
+      });
     });
+  });
+}
+
+async function checkSubjectExist(queryInfo, newSubjectType) {
+  let searchResult = await fetchBangumiDataBySearch(queryInfo, newSubjectType);
+  console.info('First: search result of bangumi: ', searchResult);
+  if (searchResult && searchResult.subjectURL) {
+    return searchResult;
+  } 
+  if (queryInfo.isbn) {
+    queryInfo.isbn = undefined;
+    searchResult = await fetchBangumiDataBySearch(queryInfo, newSubjectType);
+    console.info('Second: search result of bangumi: ', searchResult);
+    return searchResult;
+  }
+}
+async function createNewSubjectTab(newSubjectType, bangumiDomain, activeOpen) {
+  var url =  `https://bgm.tv/new_subject/${newSubjectType}`;
+  url = changeDomain(url, bangumiDomain);
+  // 检查标签是否存在
+  let tabs = await browser.tabs.query({
+    url: '*://*/new_subject/*',
+    title: '添加新条目'
+  });
+  if (tabs && tabs.length) {
+    let tabId = tabs[0].id;
+    browser.tabs.executeScript(tabId, {
+      file: '/dist/bangumi.js'
+    });
+  } else {
+    let tab = await createTab(url, activeOpen);
+    browser.tabs.executeScript(tab.id, {
+      file: '/dist/bangumi.js'
+    });
+  }
+}
+
+async function handleMessage(request, sender, sendResponse) {
+  var obj = await browser.storage.local.get();
+  var newSubjectType = obj.newSubjectType;
+  var coverInfo = request.coverInfo;
+
+  if (coverInfo && coverInfo.coverURL) {
+    let myBlob = await gmFetchBinary(coverInfo.coverURL);
+    console.info('cover pic: ', myBlob);
+    browser.storage.local.set({
+      subjectCover: myBlob
+    });
+  }
+  try {
+    if (obj.searchSubject) {
+      var result = await checkSubjectExist(request.queryInfo, newSubjectType);
+      if (result && result.subjectURL) {
+        browser.tabs.create({
+          url: changeDomain(result.subjectURL, obj.bangumiDomain),
+          active: obj.activeOpen
+        });
+      } 
+    } else {
+      createNewSubjectTab(obj.newSubjectType, obj.bangumiDomain, obj.activeOpen);
+    }
+  } catch (e) {
+    /* handle error */
+    console.log('err:', e, e.message);
+  }
   var response = {
     response: "Response from background script"
   };

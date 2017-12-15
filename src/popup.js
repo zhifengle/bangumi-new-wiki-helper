@@ -43,44 +43,29 @@ class Popup extends React.Component {
       currentConfig: null,
       searchSubject: true,
       newSubjectType: 1,
-      bangumiDomain: 'bgm.tv'
+      bangumiDomain: 'bgm.tv',
+      activeOpen: false
     };
   }
 
   handleInputChange(e) {
-    if (e.target.id === "search-subject") {
+    if (e.target.id) {
       browser.storage.local.set({
-        searchSubject: e.target.checked
+        [e.target.id]: e.target.checked
       });
       this.setState({
-        searchSubject: e.target.checked
+        [e.target.id]: e.target.checked
       });
     }
   }
   // @TODO: 统一保存设置，当popup 失去焦点
   handleSelectChange(e) {
-    if (e.target.id === "model-config") {
+    if (e.target.id) {
       browser.storage.local.set({
-        currentConfig: e.target.value
+        [e.target.id]: e.target.value
       });
       this.setState({
-        currentConfig: e.target.value
-      });
-    }
-    if (e.target.id === "type-config") {
-      browser.storage.local.set({
-        newSubjectType: e.target.value
-      });
-      this.setState({
-        newSubjectType: e.target.value
-      });
-    }
-    if (e.target.id === "domain-config") {
-      browser.storage.local.set({
-        bangumiDomain: e.target.value
-      });
-      this.setState({
-        bangumiDomain: e.target.value
+        [e.target.id]: e.target.value
       });
     }
   }
@@ -90,11 +75,14 @@ class Popup extends React.Component {
       subjectCover: null,
       subjectInfoList: null,
     });
-    console.log('clear storage success!');
+    console.info('clear storage success!');
   }
 
   componentDidMount() {
-    browser.storage.local.get()
+    browser.storage.local.get([
+      'currentConfig',
+      'bangumiDomain', 'activeOpen', 'newSubjectType',
+      'searchSubject'])
       .then(obj => {
         // var configs = {};
         // for (const prop in obj) {
@@ -102,11 +90,9 @@ class Popup extends React.Component {
         //     configs[prop] = obj[prop];
         //   }
         // }
+        console.log('obj: ', obj);
         this.setState({
-          currentConfig: obj.currentConfig,
-          searchSubject: obj.searchSubject,
-          newSubjectType: obj.newSubjectType,
-          bangumiDomain: obj.bangumiDomain
+          ...obj
         });
       });
   }
@@ -142,13 +128,19 @@ class Popup extends React.Component {
           <ul>
             <CheckList
               onChange={(e) => this.handleInputChange(e)}
-              pageId="search-subject"
+              pageId="searchSubject"
               name="检测条目是否存在"
               checked={this.state.searchSubject}
             />
+            <CheckList
+              onChange={(e) => this.handleInputChange(e)}
+              pageId="activeOpen"
+              name="前台打开标签"
+              checked={this.state.activeOpen}
+            />
             <SelectItem
               name="选择配置"
-              selectId="model-config"
+              selectId="currentConfig"
               value={currentConfig}
               onChange={this.handleSelectChange}
               items={configs}
@@ -158,13 +150,13 @@ class Popup extends React.Component {
               items={typeItems}
               value={this.state.newSubjectType}
               onChange={this.handleSelectChange}
-              selectId="type-config" />
+              selectId="newSubjectType" />
             <SelectItem
               name="Bangumi域名"
               items={domainItems}
               value={this.state.bangumiDomain}
               onChange={this.handleSelectChange}
-              selectId="domain-config" />
+              selectId="bangumiDomain" />
             <li>
               <input
                 onClick={this.handleClick}
