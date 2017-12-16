@@ -10,7 +10,7 @@ browser.storage.local.get().then(obj => {
   if (obj && !obj.version || obj.version !== VERSION) {
     browser.storage.local.set({
       currentConfig: 'amazon_jp_book',
-      searchSubject: false,
+      searchSubject: true,
       newSubjectType: 1,
       bangumiDomain: 'bgm.tv',
       activeOpen: true,
