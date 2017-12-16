@@ -180,6 +180,16 @@ function fillSubjectInfo(info) {
   
 }
 
+function dealDate(dataStr) {
+  let l = dataStr.split('/');
+  return l.map((i) => {
+    if (i.length === 1){
+      return `0${i}`;
+    }
+    return i;
+  }).join('-');
+}
+
 function fillInfoBox(infoArray) {
   var $infobox = $('#subject_infobox');
   var arr = $infobox.value.split('\n');
@@ -189,7 +199,11 @@ function fillInfoBox(infoArray) {
     for (var i = 0, len = arr.length; i < len; i++) {
       let n = arr[i].replace(/\||=.*/g, '');
       if (n === info.name) {
-        arr[i] = arr[i].replace(/=[^{[]+/, '=') + info.data;
+        let d = info.data;
+        if (info.category === 'date') {
+          d = dealDate(d);
+        }
+        arr[i] = arr[i].replace(/=[^{[]+/, '=') + d;
         isDefault = true;
         break;
       }
@@ -206,7 +220,7 @@ function init() {
   var re = new RegExp(['new_subject', 'upload_img'].join('|'));
   var page = document.location.href.match(re);
   if (page) {
-    browser.storage.local.get(['subjectInfoList', 'subjectCover'])
+    browser.storage.local.get()
       .then((obj) => {
         switch (page[0]) {
           case 'new_subject':
@@ -217,11 +231,7 @@ function init() {
             }
             break;
           case 'upload_img':
-            dealImageWidget($('form[name=img_upload]'));
-            // if (obj.subjectCover) {
-            //   previewImage(obj.subjectCover, document.querySelector('#columnInSubjectA'));
-            //   // console.log(genImageName(obj.subjectCover.type));
-            // }
+            dealImageWidget($('form[name=img_upload]'), obj.subjectCover);
             break;
         }
       })

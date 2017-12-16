@@ -66,7 +66,7 @@ async function createNewSubjectTab(newSubjectType, bangumiDomain, activeOpen) {
   }
 }
 
-async function handleMessage(request, sender, sendResponse) {
+async function handleMessage(request) {
   var obj = await browser.storage.local.get();
   var newSubjectType = obj.newSubjectType;
   var coverInfo = request.coverInfo;
@@ -74,9 +74,16 @@ async function handleMessage(request, sender, sendResponse) {
   if (coverInfo && coverInfo.coverURL) {
     let myBlob = await gmFetchBinary(coverInfo.coverURL);
     console.info('cover pic: ', myBlob);
-    browser.storage.local.set({
-      subjectCover: myBlob
-    });
+    if (myBlob) {
+      var reader = new window.FileReader();
+      reader.readAsDataURL(myBlob);
+      reader.onloadend = function() {
+        var base64Data = reader.result;
+        browser.storage.local.set({
+          subjectCover: base64Data
+        });
+      };
+    }
   }
   try {
     if (obj.searchSubject) {
@@ -86,6 +93,8 @@ async function handleMessage(request, sender, sendResponse) {
           url: changeDomain(result.subjectURL, obj.bangumiDomain),
           active: obj.activeOpen
         });
+      } else {
+        createNewSubjectTab(obj.newSubjectType, obj.bangumiDomain, obj.activeOpen);
       } 
     } else {
       createNewSubjectTab(obj.newSubjectType, obj.bangumiDomain, obj.activeOpen);
@@ -94,15 +103,10 @@ async function handleMessage(request, sender, sendResponse) {
     /* handle error */
     console.log('err:', e, e.message);
   }
-  var response = {
-    response: "Response from background script"
-  };
-  sendResponse(response);
 }
 
-
 // 使用browser时，会报错
-chrome.runtime.onMessage.addListener(handleMessage);
+browser.runtime.onMessage.addListener(handleMessage);
 
 browser.contextMenus.create({
   id: "bangumi-new-wiki",

@@ -2,7 +2,7 @@ import browser from 'webextension-polyfill';
 import models from '../models';
 
 function handleResponse(message) {
-  console.log(`Message from the background script:  ${message.response}`);
+  console.log(`Message from the background script:  ${message}`);
 }
 
 function handleError(error) {
@@ -25,6 +25,9 @@ function getQueryInfo(items) {
     if (item.category === 'ISBN') {
       info.isbn = item.data;
     }
+    if (item.category === 'ISBN-13') {
+      info.isbn13 = item.data;
+    }
   });
   if (info.subjectName) {
     return info;
@@ -41,11 +44,13 @@ function $(selector) {
 function getCoverURL(coverConfig) {
   if (!coverConfig) return;
   var $cover = $(coverConfig.selector);
-  return {
-    coverURL: $cover.src,
-    height: $cover.height,
-    width: $cover.width
-  };
+  if ($cover) {
+    return {
+      coverURL: $cover.src,
+      height: $cover.height,
+      width: $cover.width
+    };
+  }
 }
 /**
  * 生成wiki的项目
@@ -108,12 +113,14 @@ function getDOMByKeyWord(itemConfig) {
   } else {
     targets = contains(itemConfig.subSelector, itemConfig.keyWord);
   }
-  var $t = targets[targets.length - 1];
-  // 相邻节点
-  if (itemConfig.sibling) {
-    $t = targets[targets.length - 1].nextElementSibling;
+  if (targets && targets.length) {
+    var $t = targets[targets.length - 1];
+    // 相邻节点
+    if (itemConfig.sibling) {
+      $t = targets[targets.length - 1].nextElementSibling;
+    }
+    return $t;
   }
-  return $t;
 }
 function splitText(text, itemConfig) {
   const s = {
@@ -134,6 +141,9 @@ function contains(selector, text, $parent) {
     elements = $parent.querySelectorAll(selector);
   } else {
     elements = document.querySelectorAll(selector);
+  }
+  if (Array.isArray(text)) {
+    text = text.join('|');
   }
   return [].filter.call(elements, function (element) {
     return new RegExp(text).test(element.innerText);

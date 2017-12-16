@@ -7,6 +7,7 @@ var amazonSubjectModel = new SubjectConfigModel({
   targetURL: 'xxx',
   cover: {
     selector: 'img#imgBlkFront'
+    // selector: 'img#igImage'
   }
 })
 amazonSubjectModel.itemList.push(
@@ -23,6 +24,14 @@ amazonSubjectModel.itemList.push(
     keyWord: 'ISBN-10',
     separator: ':',
     category: 'ISBN'
+  },
+  {
+    name: 'ISBN-13',
+    selector: '#detail_bullets_id .bucket .content',
+    subSelector: 'li',
+    keyWord: 'ISBN-13',
+    separator: ':',
+    category: 'ISBN-13'
   },
   {
     name: '发售日',
@@ -56,7 +65,10 @@ amazonSubjectModel.itemList.push(
   },
   {
     name: '内容简介',
-    selector: '#productDescription p',
+    selector: '#productDescription',
+    subSelector: 'h3',
+    sibling: true,
+    keyWord: ['内容紹介', '内容'],
     category: 'subject_summary'
   }
 )

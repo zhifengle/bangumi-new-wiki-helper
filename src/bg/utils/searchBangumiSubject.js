@@ -6,19 +6,25 @@ function dealDate(dateStr) {
   return dateStr.replace(/年|月|日/g, '/').replace(/\/$/, '');
 }
 
+function htmlToElement(html) {
+  var template = document.createElement('template');
+  template.innerHTML = html;
+  return template.content.firstChild;
+}
 /**
  * @return {array}
  */
 function dealRawHTML(info) {
   var rawInfoList = [];
   let $doc = (new DOMParser()).parseFromString(info, "text/html");
+  
   let items = $doc.querySelectorAll('#browserItemList>li>div.inner');
   // get number of page
   let numOfPage = 1;
   let pList = $doc.querySelectorAll('.page_inner>.p');
   if (pList && pList.length) {
-    let tempNum = parseInt(pList[pList.length - 2].href.match(/page=(\d*)/)[1]);
-    numOfPage = parseInt(pList[pList.length - 1].href.match(/page=(\d*)/)[1]);
+    let tempNum = parseInt(pList[pList.length - 2].getAttribute('href').match(/page=(\d*)/)[1]);
+    numOfPage = parseInt(pList[pList.length - 1].getAttribute('href').match(/page=(\d*)/)[1]);
     numOfPage = numOfPage > tempNum ? numOfPage : tempNum;
   }
   if (items && items.length) {
@@ -67,9 +73,10 @@ function fetchBangumiDataBySearch(subjectInfo, typeNumber) {
   }
   typeNumber = typeNumber || 'all';
   var query = subjectInfo.subjectName;
-  if (subjectInfo.isbn13) {
-    query = subjectInfo.isbn13;
-  }
+  console.log(subjectInfo);
+  // if (subjectInfo.isbn13) {
+  //   query = subjectInfo.isbn13;
+  // }
   if (subjectInfo.isbn) {
     query = subjectInfo.isbn;
   }

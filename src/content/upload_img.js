@@ -2,7 +2,7 @@ import StackBlur from "stackblur-canvas";
 
 function insertBlurInfo($target) {
   const rawHTML = `
-    <input style="vertical-align: top;" class="inputBtn" value="上传抓取图片" name="submit" type="button">
+    <input style="vertical-align: top;" class="inputBtn" value="上传处理后的图片" name="submit" type="button">
     <canvas id="e-wiki-cover-preview" width="8" height="10"></canvas>
     <br>
     <label for="e-wiki-cover-amount">Blur width and radius:</label>
@@ -10,16 +10,26 @@ function insertBlurInfo($target) {
     <br>
     <input id="e-wiki-cover-slider-width" type="range" value="20" name="width" min="1" max="100"><canvas></canvas>
     <br>
-    <input id="e-wiki-cover-slider-radius" type="range" value="10" name="radius" min="1" max="100">
+    <input id="e-wiki-cover-slider-radius" type="range" value="20" name="radius" min="1" max="100">
     <br>
-    <a href="#" class="e-wiki-cover-reset">reset</a>
-    <img src="" alt="">
+    <a href="javascript:void(0)" id="e-wiki-cover-reset">reset</a>
+    <img src="" alt="" style="display:none;">
   `;
   var $info = document.createElement('div');
   $info.classList.add('e-wiki-cover-container');
   $info.innerHTML = rawHTML;
   $target.parentElement.insertBefore($info, $target.nextElementSibling);
-  drawRec(document.querySelector('#e-wiki-cover-slider-width'));
+  var $width = document.querySelector('#e-wiki-cover-slider-width');
+  var $radius = document.querySelector('#e-wiki-cover-slider-radius');
+  drawRec($width);
+  changeInfo($width, $radius);
+  $width.addEventListener('change', (e) => {
+    drawRec($width);
+    changeInfo($width, $radius);
+  });
+  $radius.addEventListener('change', (e) =>{
+    changeInfo($width, $radius);
+  })
 }
 
 function drawRec($width) {
@@ -33,9 +43,9 @@ function drawRec($width) {
   window.dispatchEvent(new Event('resize'));
 }
 
-function previewSelectedImage($file, $canvas, $img) {
+function previewSelectedImage($file, $canvas, $img = new Image()) {
   var ctx = $canvas.getContext('2d');
-  var $img = new Image();
+  // var $img = new Image();
   $img.addEventListener('load', function () {
     $canvas.width = $img.width;
     $canvas.height = $img.height;
@@ -55,7 +65,7 @@ function previewSelectedImage($file, $canvas, $img) {
   $file.addEventListener('change', loadImgData, false);
 }
 
-function blur(el, w, r) {
+function blur(el, $width, $radius) {
   var isDrawing;
   var ctx = el.getContext('2d');
   el.onmousedown = function (e) {
@@ -67,8 +77,8 @@ function blur(el, w, r) {
     if (isDrawing) {
       //ctx.lineTo(e.layerX, e.layerY);
       //ctx.stroke();
-      var width = w;
-      var radius = r;
+      var width = Number($width.value);
+      var radius = Number($radius.value);
       var pos = getMousePos(el, e);
       StackBlur.canvasRGBA(el, pos.x - width / 2, pos.y - width / 2, width, width, radius);
     }
@@ -87,32 +97,104 @@ function getMousePos(canvas, evt) {
 }
 
 function changeInfo($width, $radius) {
-  var $info = document.querySelector('#amount');
+  var $info = document.querySelector('#e-wiki-cover-amount');
   var radius = $radius.value;
   var width = $width.value;
   $info.value = width + ', ' + radius;
+}
+
+function sendFormDataPic($form, dataURL) {
+  var genString = Array.apply(null, Array(5)).map(function(){
+    return (function(charset){
+      return charset.charAt(Math.floor(Math.random()*charset.length));
+    }('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'));
+  }).join('');
+  function dataURItoBlob(dataURI) {
+    // convert base64/URLEncoded data component to raw binary data held in a string
+    var byteString;
+    if (dataURI.split(',')[0].indexOf('base64') >= 0)
+      byteString = atob(dataURI.split(',')[1]);
+    else
+      byteString = decodeURI(dataURI.split(',')[1]);  // instead of unescape
+    // separate out the mime component
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    // write the bytes of the string to a typed array
+    var ia = new Uint8Array(byteString.length);
+    for (var i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ia], {type:mimeString});
+  }
+  function dataURLtoFile(dataurl, filename) {
+    var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+    while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type:mime});
+  }
+  // loading
+  var $submit = $form.querySelector('[type=submit]');
+  $submit.style.display = 'none';
+  var $loading = document.createElement('div');
+  $loading.style = 'width: 208px; height: 13px; background-image: url("/img/loadingAnimation.gif");';
+  $form.appendChild($loading);
+
+  // ajax
+  var fd = new FormData($form);
+  var $file = $form.querySelector('input[type=file]');
+  var inputFileName = $file.name ? $file.name : 'picfile';
+  fd.set(inputFileName, dataURItoBlob(dataURL), genString + '.jpg');
+  if ($submit && $submit.name && $submit.value) {
+    fd.set($submit.name, $submit.value)
+  }
+  console.info('pic file: ', fd.get(inputFileName));
+  var xhr = new XMLHttpRequest();
+  xhr.open($form.method.toLowerCase(), $form.action, true);
+  xhr.onreadystatechange = function () {
+    var _location;
+    if(xhr.readyState === 2 && xhr.status === 200){
+      _location = xhr.responseURL;
+      $loading.remove();
+      $submit.style.display = '';
+      if(_location) {
+        location.assign(_location);
+      }
+    }
+  };
+  xhr.send(fd);
 }
 
 
 function dealImageWidget($form, base64Data) {
   insertBlurInfo($form);
   var $canvas = document.querySelector('#e-wiki-cover-preview');
-  var $img = document.querySelector('#e-wiki-cover-container img');
+  var $img = document.querySelector('.e-wiki-cover-container img');
+  if (base64Data) {
+    $img.src = base64Data;
+  }
   var $file = $form.querySelector('input[type = file]');
   var $width = document.querySelector('#e-wiki-cover-slider-width');
   var $radius = document.querySelector('#e-wiki-cover-slider-radius');
-  previewSelectedImage($file, $canvas);
-  blur($canvas, $width.value, $radius.value);
+  previewSelectedImage($file, $canvas, $img);
+  blur($canvas, $width, $radius);
   document.querySelector('#e-wiki-cover-reset').addEventListener('click', (e) => {
-    e.preventDefault()
     var file = $file.files[0];
     var $fillForm = document.querySelector('.fill-form');
-    if (file) {
+    if (base64Data) {
+      $img.dispatchEvent(new Event('load'));
+    } else if (file) {
       $file.dispatchEvent(new Event('change'));
     } else if ($fillForm) {
       $fillForm.dispatchEvent(new Event('click'));
     }
-  })
+  }, false);
+  document.querySelector('.e-wiki-cover-container .inputBtn').addEventListener('click',(e) => {
+    e.preventDefault();
+    if ($canvas.width > 8 && $canvas.height > 10) {
+      sendFormDataPic($form, $canvas.toDataURL('image/jpg', 1))
+    }
+  }, false);
 }
 
 export default dealImageWidget;
