@@ -139,9 +139,73 @@ function fillInfoBox(infoArray) {
   arr.pop();
   $infobox.value = [...arr, ...newArr, '}}'].join('\n');
 }
+/**
+ * 创建搜索页面的条目项目
+ * @param {Objet} item
+ */
+function creatItem(item, key) {
+  var rawHTML = `
+<li class="item odd clearit">
+<a href="${item.href}" target="_blank" class="subjectCover cover ll">
+<span class="image">
+<img src="${item.base64Data}" class="cover e-wiki-search-cover">
+</span>
+<span class="overlay"></span>
+</a>
+<div class="inner">
+
+<div id="collectBlock_217414" class="collectBlock tip_i">
+<ul class="collectMenu">
+<li>
+<a href="javascript:void(0)" key="${key}" title="text" class="collect_btn chiiBtn thickbox e-wiki-add-btn"><span>添加条目</span></a>
+</li>
+</ul>
+</div>
+<h3>
+<span class="ico_subject_type subject_type_1 ll"></span>
+<a href="${item.href}" target="_blank" class="l">${item.title}</a> <small class="grey"></small>
+</h3>
+<p class="info tip">
+${item.info}
+</p>
+</div>
+</li>
+  `
+  return rawHTML;
+}
+
+function insertItemList(infoArray) {
+  var $ul = $('#browserItemList');
+  var raw = '';
+  infoArray.forEach((item, i) => {
+    raw += creatItem(item, i);
+  });
+  $ul.innerHTML = raw;
+  $ul.addEventListener('click', (e) => {
+    console.log(e.target);
+    if (e.target.classList.contains('e-wiki-add-btn')) {
+      let key = e.target.getAttribute('key');
+      let sending = browser.runtime.sendMessage({
+        action: 'fetch_amazon',
+        url: infoArray[key].href
+      });
+    }
+  }, false);
+}
+
+function handleResponse(message) {
+  if (message.action === 'search_amazon') {
+    console.log('infoArray: ', message.infoArray);
+    insertItemList(message.infoArray);
+  }
+}
+
+function handleError(error) {
+  console.log(`Error: ${error.message}`);
+}
 
 function init() {
-  var re = new RegExp(['new_subject', 'upload_img'].join('|'));
+  var re = new RegExp(['new_subject', 'upload_img', 'subject_search'].join('|'));
   var page = document.location.href.match(re);
   if (page) {
     browser.storage.local.get()
@@ -156,6 +220,17 @@ function init() {
             break;
           case 'upload_img':
             dealImageWidget($('form[name=img_upload]'), obj.subjectInfo.subjectCover);
+            break;
+          case 'subject_search':
+            let sending = browser.runtime.sendMessage({
+              action: 'search_amazon',
+              searchSubject: '哲学さんと詭弁くん'
+            });
+            var $ul = $('#browserItemList');
+            $ul.innerHTML = `
+            <div class="e-wiki-cover-blur-loading"></div>
+            `;
+            sending.then(handleResponse, handleError);
             break;
         }
       })

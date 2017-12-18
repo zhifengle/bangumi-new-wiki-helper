@@ -1,23 +1,10 @@
 import browser from 'webextension-polyfill';
-import models from '../models';
 import { fetchBangumiDataBySearch } from './utils/searchBangumiSubject';
-import { gmFetchBinary, gmFetch } from './utils/gmFetch';
+import { getImageDataByURL } from './utils/getImageBase64';
+import searchAmazonSubject from './utils/searchAmazonSubject';
+import { gmFetch } from './utils/gmFetch';
 
 const VERSION = require('../../extension/manifest.json').version;
-// 初始化设置
-browser.storage.local.get().then(obj => {
-  if (obj && !obj.version || obj.version !== VERSION) {
-    // browser.storage.local.clear();
-    browser.storage.local.set({
-      currentConfig: 'amazon_jp_book',
-      searchSubject: false,
-      newSubjectType: 1,
-      bangumiDomain: 'bgm.tv',
-      activeOpen: true,
-      version: VERSION
-    });
-  }
-});
 
 function createTab (url, active) {
   return new Promise(resolve => {
@@ -66,60 +53,96 @@ async function createNewSubjectTab(newSubjectType, bangumiDomain, activeOpen) {
   }
 }
 
-function blobToBase64(myBlob) {
-  return new Promise((resolve, reject) => {
-    var reader = new window.FileReader();
-    reader.readAsDataURL(myBlob);
-    reader.onloadend = function() {
-      resolve(reader.result);
-    };
-    reader.onerror = reject;
-  });
-}
-
-async function getImageDataByURL(url) {
-  let myBlob = await gmFetchBinary(url);
-  console.info('cover pic: ', myBlob);
-  return await blobToBase64(myBlob);
-}
 
 async function handleMessage(request) {
-  var obj = await browser.storage.local.get();
-  var newSubjectType = obj.newSubjectType;
-  var coverInfo = request.coverInfo;
-  try {
-    if (coverInfo && coverInfo.coverURL) {
-      let base64Data = await getImageDataByURL(coverInfo.coverURL);
-      let subjectInfo = { ...obj.subjectInfo, subjectCover: base64Data };
-      browser.storage.local.set({
-        subjectInfo
-      });
-    }
-  } catch (e) {
-    console.log('fetch cover err:', e, e.message);
-  }
+  switch (request.action) {
+    case 'search_bangumi':
+      var obj = await browser.storage.local.get();
+      var newSubjectType = obj.newSubjectType;
+      var coverInfo = request.coverInfo;
+      try {
+        if (coverInfo && coverInfo.coverURL) {
+          let base64Data = await getImageDataByURL(coverInfo.coverURL);
+          let subjectInfo = { ...obj.subjectInfo, subjectCover: base64Data };
+          browser.storage.local.set({
+            subjectInfo
+          });
+        }
+      } catch (e) {
+        console.log('fetch cover err:', e, e.message);
+      }
 
-  try {
-    if (obj.searchSubject) {
-      var result = await checkSubjectExist(request.queryInfo, newSubjectType);
-      if (result && result.subjectURL) {
-        browser.tabs.create({
-          url: changeDomain(result.subjectURL, obj.bangumiDomain),
-          active: obj.activeOpen
-        });
-      } else {
-        createNewSubjectTab(obj.newSubjectType, obj.bangumiDomain, obj.activeOpen);
-      } 
-    } else {
-      createNewSubjectTab(obj.newSubjectType, obj.bangumiDomain, obj.activeOpen);
-    }
-  } catch (e) {
-    /* handle error */
-    console.log('fetch info err:', e, e.message);
+      try {
+        if (obj.searchSubject) {
+          var result = await checkSubjectExist(request.queryInfo, newSubjectType);
+          if (result && result.subjectURL) {
+            browser.tabs.create({
+              url: changeDomain(result.subjectURL, obj.bangumiDomain),
+              active: obj.activeOpen
+            });
+          } else {
+            createNewSubjectTab(obj.newSubjectType, obj.bangumiDomain, obj.activeOpen);
+          } 
+        } else {
+          createNewSubjectTab(obj.newSubjectType, obj.bangumiDomain, obj.activeOpen);
+        }
+      } catch (e) {
+        /* handle error */
+        console.log('fetch info err:', e, e.message);
+      }
+      return Promise.resolve({action: request.action});
+      break;
+    case 'search_amazon':
+      let r = await searchAmazonSubject('哲学さんと詭弁くん');
+      let infoArray = await Promise.all(r);
+      return Promise.resolve({action: request.action, infoArray});
+      break;
+    case 'fetch_amazon':
+      console.log(request.url);
+      return Promise.resolve({action: request.action});
+      break;
   }
 }
 
-// 使用browser时，会报错
+
+
+// 变更url的域名
+function changeDomain(url, domain) {
+  if (url.match(domain)) return url;
+  if (domain === 'bangumi.tv') {
+    return url.replace('https', 'http').replace('bgm.tv', domain);
+  }
+}
+
+function onError(error) {
+  console.error(`Error: ${error}`);
+}
+
+function sendMessageToTab(tabId, info) {
+  browser.tabs.sendMessage(
+    tabId,
+    info
+  ).then(response => {
+    console.log("Response from content script:");
+    console.log(response.response);
+  }).catch(onError);
+}
+
+// 初始化设置
+browser.storage.local.get().then(obj => {
+  if (obj && !obj.version || obj.version !== VERSION) {
+    // browser.storage.local.clear();
+    browser.storage.local.set({
+      currentConfig: 'amazon_jp_book',
+      searchSubject: false,
+      newSubjectType: 1,
+      bangumiDomain: 'bgm.tv',
+      activeOpen: true,
+      version: VERSION
+    });
+  }
+});
+
 browser.runtime.onMessage.addListener(handleMessage);
 
 browser.contextMenus.create({
@@ -133,8 +156,9 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
   switch (info.menuItemId) {
     case "bangumi-new-wiki":
       browser.tabs.query({ 'active': true, 'lastFocusedWindow': true })
-        .then(tabs => tabs[0].url)
-        .then(url => {
+        .then(async tabs => {
+          let url = tabs[0].url;
+          let tabId = tabs[0].id;
           var file = '/dist/content.js';
           if (url.match(/bgm\.tv|bangumi\.tv|chii\.in/)) {
             file = '/dist/bangumi.js';
@@ -142,18 +166,10 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
               file: '/dist/bangumi.css'
             });
           }
-          return browser.tabs.executeScript({
+          await browser.tabs.executeScript({
             file: file
           });
         });
       break;
   }
 });
-
-// 变更url的域名
-function changeDomain(url, domain) {
-  if (url.match(domain)) return url;
-  if (domain === 'bangumi.tv') {
-    return url.replace('https', 'http').replace('bgm.tv', domain);
-  }
-}

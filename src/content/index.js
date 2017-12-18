@@ -39,7 +39,7 @@ function getQueryInfo(items) {
  * @param {string} selector 
  */
 function $(selector) {
-  return document.querySelector(selector);
+  return $doc.querySelector(selector);
 }
 function getCoverURL(coverConfig) {
   if (!coverConfig) return;
@@ -156,7 +156,7 @@ function contains(selector, text, $parent) {
   if ($parent) {
     elements = $parent.querySelectorAll(selector);
   } else {
-    elements = document.querySelectorAll(selector);
+    elements = $doc.querySelectorAll(selector);
   }
   if (Array.isArray(text)) {
     text = text.join('|');
@@ -166,11 +166,16 @@ function contains(selector, text, $parent) {
   });
 }
 
-function init() {
-  var whiteList = ['amazon', 'getchu'];
-  if (!window.location.host.match(new RegExp(whiteList.join('|')))) {
-    console.info('domain is not in whitelist');
-    return;
+function init($doc) {
+  if (!$doc) {
+    let whiteList = ['amazon', 'getchu'];
+    if (!window.location.host.match(new RegExp(whiteList.join('|')))) {
+      console.info('domain is not in whitelist');
+      return;
+    }
+    window.$doc = document;
+  } else {
+    window.$doc = $doc;
   }
   browser.storage.local.get()
     .then(obj => {
@@ -190,6 +195,7 @@ function init() {
         })
           .then(() => {
             let sending = browser.runtime.sendMessage({
+              action: 'search_bangumi',
               queryInfo,
               coverInfo
             });
@@ -199,3 +205,5 @@ function init() {
     });
 }
 init();
+
+export default init;
