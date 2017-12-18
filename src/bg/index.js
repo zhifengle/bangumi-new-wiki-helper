@@ -4,10 +4,10 @@ import { fetchBangumiDataBySearch } from './utils/searchBangumiSubject';
 import { gmFetchBinary, gmFetch } from './utils/gmFetch';
 
 const VERSION = require('../../extension/manifest.json').version;
-// browser.storage.local.clear()
 // 初始化设置
 browser.storage.local.get().then(obj => {
   if (obj && !obj.version || obj.version !== VERSION) {
+    // browser.storage.local.clear();
     browser.storage.local.set({
       currentConfig: 'amazon_jp_book',
       searchSubject: false,
@@ -66,25 +66,39 @@ async function createNewSubjectTab(newSubjectType, bangumiDomain, activeOpen) {
   }
 }
 
+function blobToBase64(myBlob) {
+  return new Promise((resolve, reject) => {
+    var reader = new window.FileReader();
+    reader.readAsDataURL(myBlob);
+    reader.onloadend = function() {
+      resolve(reader.result);
+    };
+    reader.onerror = reject;
+  });
+}
+
+async function getImageDataByURL(url) {
+  let myBlob = await gmFetchBinary(url);
+  console.info('cover pic: ', myBlob);
+  return await blobToBase64(myBlob);
+}
+
 async function handleMessage(request) {
   var obj = await browser.storage.local.get();
   var newSubjectType = obj.newSubjectType;
   var coverInfo = request.coverInfo;
-
-  if (coverInfo && coverInfo.coverURL) {
-    let myBlob = await gmFetchBinary(coverInfo.coverURL);
-    console.info('cover pic: ', myBlob);
-    if (myBlob) {
-      var reader = new window.FileReader();
-      reader.readAsDataURL(myBlob);
-      reader.onloadend = function() {
-        var base64Data = reader.result;
-        browser.storage.local.set({
-          subjectCover: base64Data
-        });
-      };
+  try {
+    if (coverInfo && coverInfo.coverURL) {
+      let base64Data = await getImageDataByURL(coverInfo.coverURL);
+      let subjectInfo = { ...obj.subjectInfo, subjectCover: base64Data };
+      browser.storage.local.set({
+        subjectInfo
+      });
     }
+  } catch (e) {
+    console.log('fetch cover err:', e, e.message);
   }
+
   try {
     if (obj.searchSubject) {
       var result = await checkSubjectExist(request.queryInfo, newSubjectType);
@@ -101,7 +115,7 @@ async function handleMessage(request) {
     }
   } catch (e) {
     /* handle error */
-    console.log('err:', e, e.message);
+    console.log('fetch info err:', e, e.message);
   }
 }
 

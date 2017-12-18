@@ -52,6 +52,22 @@ function getCoverURL(coverConfig) {
     };
   }
 }
+function getSubType(itemConfig) {
+  if (!itemConfig) return;
+  const dict = {
+    'コミック': 0
+  };
+  var $t;
+  if (itemConfig.selector && !itemConfig.subSelector) {
+    $t = $(itemConfig.selector);
+  } else if (itemConfig.keyWord) {  // 使用关键字搜索节点
+    $t = getDOMByKeyWord(itemConfig);
+  }
+  if ($t) {
+    let m = $t.innerText.match(new RegExp(Object.keys(dict).join('|')));
+    if (m) return dict[m[0]];
+  }
+}
 /**
  * 生成wiki的项目
  * @param {Object} itemConfig 
@@ -163,13 +179,18 @@ function init() {
       console.info('fetch info: ', subjectInfoList);
       var queryInfo = getQueryInfo(subjectInfoList);
       var coverInfo = getCoverURL(config.cover);
+      var subType = getSubType(config.subType);
+      console.log('subType', subType);
       if (queryInfo) {
         browser.storage.local.set({
-          subjectInfoList: subjectInfoList,
+          subjectInfo: {
+            subjectInfoList, 
+            subType
+          }
         })
           .then(() => {
             let sending = browser.runtime.sendMessage({
-              queryInfo: getQueryInfo(subjectInfoList),
+              queryInfo,
               coverInfo
             });
             sending.then(handleResponse, handleError);
