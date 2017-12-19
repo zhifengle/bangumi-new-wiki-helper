@@ -8,6 +8,12 @@ var amazonSubjectModel = new SubjectConfigModel({
   cover: {
     selector: 'img#imgBlkFront'
     // selector: 'img#igImage'
+  },
+  subType: {
+    selector: '#detail_bullets_id .bucket .content',
+    subSelector: 'li',
+    separator: ':',
+    keyWord: 'ページ'
   }
 })
 amazonSubjectModel.itemList.push(

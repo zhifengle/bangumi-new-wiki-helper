@@ -72,8 +72,9 @@ class Popup extends React.Component {
 
   handleClick(e) {
     browser.storage.local.set({
-      subjectCover: null,
-      subjectInfoList: null,
+      subjectInfo: null,
+      subjectCover: undefined,
+      subjectInfoList: null
     });
     console.info('clear storage success!');
   }

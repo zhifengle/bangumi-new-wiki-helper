@@ -39,7 +39,7 @@ function getQueryInfo(items) {
  * @param {string} selector 
  */
 function $(selector) {
-  return document.querySelector(selector);
+  return $doc.querySelector(selector);
 }
 function getCoverURL(coverConfig) {
   if (!coverConfig) return;
@@ -50,6 +50,22 @@ function getCoverURL(coverConfig) {
       height: $cover.height,
       width: $cover.width
     };
+  }
+}
+function getSubType(itemConfig) {
+  if (!itemConfig) return;
+  const dict = {
+    'コミック': 0
+  };
+  var $t;
+  if (itemConfig.selector && !itemConfig.subSelector) {
+    $t = $(itemConfig.selector);
+  } else if (itemConfig.keyWord) {  // 使用关键字搜索节点
+    $t = getDOMByKeyWord(itemConfig);
+  }
+  if ($t) {
+    let m = $t.innerText.match(new RegExp(Object.keys(dict).join('|')));
+    if (m) return dict[m[0]];
   }
 }
 /**
@@ -140,7 +156,7 @@ function contains(selector, text, $parent) {
   if ($parent) {
     elements = $parent.querySelectorAll(selector);
   } else {
-    elements = document.querySelectorAll(selector);
+    elements = $doc.querySelectorAll(selector);
   }
   if (Array.isArray(text)) {
     text = text.join('|');
@@ -150,31 +166,39 @@ function contains(selector, text, $parent) {
   });
 }
 
-function init() {
-  var whiteList = ['amazon', 'getchu'];
-  if (!window.location.host.match(new RegExp(whiteList.join('|')))) {
-    console.info('domain is not in whitelist');
-    return;
+async function init($doc) {
+  if (!$doc) {
+    let whiteList = ['amazon', 'getchu'];
+    if (!window.location.host.match(new RegExp(whiteList.join('|')))) {
+      console.info('domain is not in whitelist');
+      return;
+    }
+    window.$doc = document;
+  } else {
+    window.$doc = $doc;
   }
-  browser.storage.local.get()
-    .then(obj => {
-      let config = models.configModel[obj.currentConfig];
-      var subjectInfoList = config.itemList.map(i => getWikiItem(i));
-      console.info('fetch info: ', subjectInfoList);
-      var queryInfo = getQueryInfo(subjectInfoList);
-      var coverInfo = getCoverURL(config.cover);
-      if (queryInfo) {
-        browser.storage.local.set({
-          subjectInfoList: subjectInfoList,
-        })
-          .then(() => {
-            let sending = browser.runtime.sendMessage({
-              queryInfo: getQueryInfo(subjectInfoList),
-              coverInfo
-            });
-            sending.then(handleResponse, handleError);
-          });
-      }
-    });
+  var obj = await browser.storage.local.get();
+  let config = models.configModel[obj.currentConfig];
+  var subjectInfoList = config.itemList.map(i => getWikiItem(i));
+  console.info('fetch info: ', subjectInfoList);
+  var queryInfo = getQueryInfo(subjectInfoList);
+  var coverInfo = getCoverURL(config.cover);
+  var subType = getSubType(config.subType);
+  console.log('subType', subType);
+  await browser.runtime.sendMessage({
+    action: 'fetch_cover_store',
+    coverInfo,
+    subjectInfo: {
+      subjectInfoList, 
+      subType
+    }
+  });
+  browser.runtime.sendMessage({
+    action: 'search_bangumi',
+    queryInfo,
+    obj
+  });
 }
 init();
+
+export default init;

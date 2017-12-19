@@ -1,4 +1,5 @@
 import StackBlur from "stackblur-canvas";
+import { gmFetchBinary } from '../bg/utils/gmFetch';
 
 function insertBlurInfo($target) {
   const rawHTML = `
@@ -29,7 +30,7 @@ function insertBlurInfo($target) {
   });
   $radius.addEventListener('change', (e) =>{
     changeInfo($width, $radius);
-  })
+  });
 }
 
 function drawRec($width) {
@@ -146,7 +147,7 @@ function sendFormDataPic($form, dataURL) {
   var inputFileName = $file.name ? $file.name : 'picfile';
   fd.set(inputFileName, dataURItoBlob(dataURL), genString + '.jpg');
   if ($submit && $submit.name && $submit.value) {
-    fd.set($submit.name, $submit.value)
+    fd.set($submit.name, $submit.value);
   }
   console.info('pic file: ', fd.get(inputFileName));
   var xhr = new XMLHttpRequest();
@@ -165,12 +166,37 @@ function sendFormDataPic($form, dataURL) {
   xhr.send(fd);
 }
 
+function blobToBase64(myBlob) {
+  return new Promise((resolve, reject) => {
+    var reader = new window.FileReader();
+    reader.readAsDataURL(myBlob);
+    reader.onloadend = function() {
+      resolve(reader.result);
+    };
+    reader.onerror = reject;
+  });
+}
 
+async function getImageDataByURL(url) {
+  let myBlob = await gmFetchBinary(url);
+  console.info('Content: cover pic: ', myBlob);
+  return await blobToBase64(myBlob);
+}
+
+/**
+ * 初始化上传处理图片组件
+ * @param {Object} $form - 包含 input file 的 DOM
+ * @param {string} base64Data - 图片链接或者 base64 信息 
+ */
 function dealImageWidget($form, base64Data) {
+  if (document.querySelector('.e-wiki-cover-container')) return;
   insertBlurInfo($form);
   var $canvas = document.querySelector('#e-wiki-cover-preview');
   var $img = document.querySelector('.e-wiki-cover-container img');
   if (base64Data) {
+    if (base64Data.match(/^http/)) {
+      base64Data = getImageDataByURL(base64Data);
+    }
     $img.src = base64Data;
   }
   var $file = $form.querySelector('input[type = file]');
@@ -192,7 +218,7 @@ function dealImageWidget($form, base64Data) {
   document.querySelector('.e-wiki-cover-container .inputBtn').addEventListener('click',(e) => {
     e.preventDefault();
     if ($canvas.width > 8 && $canvas.height > 10) {
-      sendFormDataPic($form, $canvas.toDataURL('image/jpg', 1))
+      sendFormDataPic($form, $canvas.toDataURL('image/jpg', 1));
     }
   }, false);
 }

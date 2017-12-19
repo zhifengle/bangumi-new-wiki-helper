@@ -1,4 +1,4 @@
-const gmFetchBinary = require('./gmFetch.js').gmFetchBinary;
+import { gmFetchBinary } from './gmFetch';
 
 function getImageSuffix(url) {
   var m = url.match(/png|jpg|jpeg|gif|bmp/);
@@ -29,4 +29,25 @@ function getImageBase64(url) {
   });
 }
 
-module.exports = getImageBase64;
+function blobToBase64(myBlob) {
+  return new Promise((resolve, reject) => {
+    var reader = new window.FileReader();
+    reader.readAsDataURL(myBlob);
+    reader.onloadend = function() {
+      resolve(reader.result);
+    };
+    reader.onerror = reject;
+  });
+}
+
+function getImageDataByURL(url) {
+  return gmFetchBinary(url).then(myBlob => {
+    console.info('pic: ', myBlob);
+    return blobToBase64(myBlob);
+  });
+}
+
+export {
+  getImageDataByURL,
+  getImageBase64
+};

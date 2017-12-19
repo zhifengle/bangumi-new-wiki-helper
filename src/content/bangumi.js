@@ -1,6 +1,7 @@
 import browser from 'webextension-polyfill';
 import dealImageWidget from './upload_img';
 import '../css/bangumi.less'
+import { gmFetchBinary, gmFetch } from '../bg/utils/gmFetch';
 
 
 /**
@@ -52,105 +53,29 @@ function htmlToElement(html) {
   return template.content.firstChild;
 }
 
-/**
- * 提交上传图片表单
- * @param {Object} $form - form表单 DOM
- * @param {Object} picBlob - 图片Blob
- */
-function sendUploadForm($form, picBlob) {
-  var fd = new FormData($form);
-  var $file = $form.querySelector('input[type=file]');
-  var inputFileName = $file.name ? $file.name : 'picfile';
-  fd.set(inputFileName, picBlob, genImageName(picBlob.type));
-  var $submit = $form.querySelector('[name=submit]');
-  if ($submit && $submit.name && $submit.value) {
-    fd.set($submit.name, $submit.value);
-  }
-  // loading
-  $submit.style.display = 'none';
-  var $loading = document.createElement('div');
-  $loading.style = 'width: 208px; height: 13px; background-image: url("/img/loadingAnimation.gif");';
-  $form.appendChild($loading);
-  // setTimeout(() => {
-  //   $submit.style.display = '';
-  //   $loading.remove();
-  // }, 1000);
-  var xhr = new XMLHttpRequest();
-  xhr.open($form.method.toLowerCase(), $form.action, true);
-  xhr.onreadystatechange = function () {
-    var _location;
-    //console.log(xhr);
-    if(xhr.readyState === 2 && xhr.status === 200){
-      _location = xhr.responseURL;
-      $loading.remove();
-      $submit.style.display = '';
-      if(_location) {
-        location.assign(_location);
-      }
-    }
-  };
-  xhr.send(fd);
-}
-
-function previewImage(coverBlob, parentDOM) {
-  var reader = new window.FileReader();
-  reader.readAsDataURL(coverBlob);
-  reader.onloadend = function() {
-    var base64data = reader.result;
-
-    var rawHTML = `<div style="margin-top: 1rem;">
-<input style="vertical-align: top;" class="inputBtn" value="上传抓取图片" name="submit" type="button">
-<img id="e-wiki-cover-preview" src="${base64data}" alt="">
-</div>`;
-    var $i = document.querySelector('#e-wiki-cover-preview');
-    if ($i) {
-      $i.src = base64data;
-      $i.parentElement.style.display = '';
-    } else {
-      parentDOM.appendChild(htmlToElement(rawHTML));
-    }
-    var clickHandler = function (e) {
-      e.target.parentElement.style.display = 'none';
-      sendUploadForm(document.querySelector('#columnInSubjectA form'), coverBlob);
-      e.target.removeEventListener('click', clickHandler, false);
-    };
-    document.querySelector('#e-wiki-cover-preview').previousElementSibling.addEventListener('click', clickHandler, false);
-  };
-}
-function genImageName(mimeType) {
-  function getImageSuffix(mimeType) {
-    var m = mimeType.match(/png|jpg|jpeg|gif|bmp/);
-    if (m) {
-      switch (m[0]) {
-        case 'png':
-          return 'png';
-        case 'jpg':
-        case 'jpeg':
-          return 'jpg';
-        case 'gif':
-          return 'gif';
-        case 'bmp':
-          return 'bmp';
-      }
-    }
-    return '';
-  }
-  var genString = Array.apply(null, Array(5)).map(function(){
-    return (function(charset){
-      return charset.charAt(Math.floor(Math.random()*charset.length));
-    }('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'));
-  }).join('');
-  return `${genString}.${getImageSuffix(mimeType)}`;
+function sleep(t) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(t);
+    }, t);
+  });
 }
 
 /**
  * 填写条目信息
  * @param {Object[]} info
  */
-function fillSubjectInfo(info) {
+async function fillSubjectInfo(info, subType) {
 
   var infoArray = [];
-  // var $typeTD = $('table tr:nth-of-type(2) > td:nth-of-type(2)');
+  var $typeInput = document.querySelectorAll('table tr:nth-of-type(2) > td:nth-of-type(2) input');
+  if ($typeInput) {
+    $typeInput[0].click();
+    if (!isNaN(subType)) {
+      $typeInput[subType].click();
+    }
+  }
+  await sleep(100);
 
   var $wikiMode = $('table small a:nth-of-type(1)[href="javascript:void(0)"]');
   var $newbeeMode = $('table small a:nth-of-type(2)[href="javascript:void(0)"]');
@@ -171,12 +96,11 @@ function fillSubjectInfo(info) {
     }
   }
   $wikiMode.click();
-  setTimeout(() => {
+  setTimeout(async () => {
     fillInfoBox(infoArray);
-    setTimeout(() => {
-      $newbeeMode.click();
-    }, 500);
-  }, 500);
+    await sleep(300);
+    $newbeeMode.click();
+  }, 100);
   
 }
 
@@ -208,30 +132,120 @@ function fillInfoBox(infoArray) {
         break;
       }
     }
-    if (!isDefault && info.name && !info.category) {
+    if (!isDefault && info.name) {
       newArr.push(`|${info.name}=${info.data}`);
     }
   }
   arr.pop();
   $infobox.value = [...arr, ...newArr, '}}'].join('\n');
 }
+/**
+ * 创建搜索页面的条目项目
+ * @param {Objet} item
+ */
+function creatItem(item, key) {
+  var rawHTML = `
+<li class="item odd clearit">
+<a href="${item.href}" target="_blank" class="subjectCover cover ll">
+<span class="image">
+<img src="${item.base64Data}" class="cover e-wiki-search-cover">
+</span>
+<span class="overlay"></span>
+</a>
+<div class="inner">
+
+<div id="collectBlock_217414" class="collectBlock tip_i">
+<ul class="collectMenu">
+<li>
+<a href="javascript:void(0)" key="${key}" title="text" class="collect_btn chiiBtn thickbox e-wiki-add-btn"><span>添加条目</span></a>
+</li>
+</ul>
+</div>
+<h3>
+<span class="ico_subject_type subject_type_1 ll"></span>
+<a href="${item.href}" target="_blank" class="l">${item.title}</a> <small class="grey"></small>
+</h3>
+<p class="info tip">
+${item.info}
+</p>
+</div>
+</li>
+  `
+  return rawHTML;
+}
+
+function insertItemList(infoArray) {
+  var $ul = $('#browserItemList');
+  var raw = '';
+  infoArray.forEach((item, i) => {
+    raw += creatItem(item, i);
+  });
+  $ul.innerHTML = raw;
+  $ul.addEventListener('click', (e) => {
+    console.log(e.target);
+    if (e.target.classList.contains('e-wiki-add-btn')) {
+      let key = e.target.getAttribute('key');
+      let sending = browser.runtime.sendMessage({
+        action: 'fetch_amazon',
+        url: infoArray[key].href
+      });
+    }
+  }, false);
+}
+
+/**
+ * 获取搜索字符串
+ *
+ */
+function getSearchString() {
+  let val1 = $('#search_text').value;
+  let val2 = $('.searchInputL').value;
+  if (val2) return val2;
+  if (val1) return val1;
+}
+
+function handleResponse(message) {
+  if (message && message.action === 'search_amazon') {
+    console.log('infoArray: ', message.infoArray);
+    insertItemList(message.infoArray);
+  }
+}
+
+function handleError(error) {
+  console.log(`Error: ${error.message}`);
+}
 
 function init() {
-  var re = new RegExp(['new_subject', 'upload_img'].join('|'));
+  var re = new RegExp(['new_subject', 'upload_img', 'subject_search'].join('|'));
   var page = document.location.href.match(re);
   if (page) {
     browser.storage.local.get()
       .then((obj) => {
         switch (page[0]) {
           case 'new_subject':
-            if (obj.subjectInfoList) {
-              fillSubjectInfo(obj.subjectInfoList);
+            if (obj.subjectInfo && obj.subjectInfo.subjectInfoList) {
+              fillSubjectInfo(obj.subjectInfo.subjectInfoList, obj.subjectInfo.subType);
             } else {
               alert('条目信息为空');
             }
             break;
           case 'upload_img':
-            dealImageWidget($('form[name=img_upload]'), obj.subjectCover);
+            dealImageWidget($('form[name=img_upload]'), obj.subjectInfo.subjectCover);
+            break;
+          case 'subject_search':
+            let s = getSearchString();
+            if (s) {
+              var $ul = $('#browserItemList');
+              $('#multipage').innerHTML = '';
+              $ul.innerHTML = `
+              <div class="e-wiki-cover-blur-loading"></div>
+              `;
+              let sending = browser.runtime.sendMessage({
+                action: 'search_amazon',
+                searchSubject: s
+              });
+              sending.then(handleResponse, handleError);
+            }
             break;
         }
       })
