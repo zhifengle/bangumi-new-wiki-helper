@@ -193,8 +193,19 @@ function insertItemList(infoArray) {
   }, false);
 }
 
+/**
+ * 获取搜索字符串
+ *
+ */
+function getSearchString() {
+  let val1 = $('#search_text').value;
+  let val2 = $('.searchInputL').value;
+  if (val2) return val2;
+  if (val1) return val1;
+}
+
 function handleResponse(message) {
-  if (message.action === 'search_amazon') {
+  if (message && message.action === 'search_amazon') {
     console.log('infoArray: ', message.infoArray);
     insertItemList(message.infoArray);
   }
@@ -222,15 +233,19 @@ function init() {
             dealImageWidget($('form[name=img_upload]'), obj.subjectInfo.subjectCover);
             break;
           case 'subject_search':
-            let sending = browser.runtime.sendMessage({
-              action: 'search_amazon',
-              searchSubject: '哲学さんと詭弁くん'
-            });
-            var $ul = $('#browserItemList');
-            $ul.innerHTML = `
-            <div class="e-wiki-cover-blur-loading"></div>
-            `;
-            sending.then(handleResponse, handleError);
+            let s = getSearchString();
+            if (s) {
+              var $ul = $('#browserItemList');
+              $('#multipage').innerHTML = '';
+              $ul.innerHTML = `
+              <div class="e-wiki-cover-blur-loading"></div>
+              `;
+              let sending = browser.runtime.sendMessage({
+                action: 'search_amazon',
+                searchSubject: s
+              });
+              sending.then(handleResponse, handleError);
+            }
             break;
         }
       })

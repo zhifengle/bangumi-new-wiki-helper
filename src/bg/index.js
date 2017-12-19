@@ -53,28 +53,29 @@ async function createNewSubjectTab(newSubjectType, bangumiDomain, activeOpen) {
   }
 }
 
-
 async function handleMessage(request) {
   switch (request.action) {
-    case 'search_bangumi':
-      var obj = await browser.storage.local.get();
-      var newSubjectType = obj.newSubjectType;
-      var coverInfo = request.coverInfo;
+    case 'fetch_cover_store':
+      let { coverInfo, subjectInfo } = request;
       try {
         if (coverInfo && coverInfo.coverURL) {
           let base64Data = await getImageDataByURL(coverInfo.coverURL);
-          let subjectInfo = { ...obj.subjectInfo, subjectCover: base64Data };
-          browser.storage.local.set({
-            subjectInfo
-          });
+          subjectInfo = { ...subjectInfo, subjectCover: base64Data };
         }
+        browser.storage.local.set({
+          subjectInfo
+        });
       } catch (e) {
         console.log('fetch cover err:', e, e.message);
       }
+      break;
+    case 'search_bangumi':
+      var { obj, queryInfo } = request;
+      var newSubjectType = obj.newSubjectType;
 
       try {
         if (obj.searchSubject) {
-          var result = await checkSubjectExist(request.queryInfo, newSubjectType);
+          var result = await checkSubjectExist(queryInfo, newSubjectType);
           if (result && result.subjectURL) {
             browser.tabs.create({
               url: changeDomain(result.subjectURL, obj.bangumiDomain),
@@ -90,10 +91,9 @@ async function handleMessage(request) {
         /* handle error */
         console.log('fetch info err:', e, e.message);
       }
-      return Promise.resolve({action: request.action});
       break;
     case 'search_amazon':
-      let r = await searchAmazonSubject('哲学さんと詭弁くん');
+      let r = await searchAmazonSubject(request.searchSubject);
       let infoArray = await Promise.all(r);
       return Promise.resolve({action: request.action, infoArray});
       break;

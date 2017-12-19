@@ -4,13 +4,8 @@
     "react",
     ["env", {
       "targets": {
-        "uglify": true
+        "browsers": ["Chrome >= 60", "Firefox >= 57"]
       }
     }]
-  ],
-  "plugins": [
-    "transform-class-properties",
-    "transform-es2015-modules-commonjs",
-    "transform-runtime"
   ]
 }

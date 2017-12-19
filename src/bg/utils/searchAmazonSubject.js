@@ -28,6 +28,7 @@ async function searchAmazonSubject(q, page = 1) {
   };
   const SITE_URL = 'https://www.amazon.co.jp';
   const BASE_URL = `${SITE_URL}/s/ref=sr_qz_back?${toQueryStr(query)}`;
+  console.log('Amazon query URL: ', BASE_URL);
   let d = await gmFetch(BASE_URL);
   let $doc = (new DOMParser()).parseFromString(d, "text/html");
   return [...$doc.querySelectorAll('#s-results-list-atf li')].map(async (elem) => await getItemInfo(elem));
