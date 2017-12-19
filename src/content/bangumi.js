@@ -144,6 +144,7 @@ function fillInfoBox(infoArray) {
  * @param {Objet} item
  */
 function creatItem(item, key) {
+  if (!item) return '';
   var rawHTML = `
 <li class="item odd clearit">
 <a href="${item.href}" target="_blank" class="subjectCover cover ll">
@@ -157,7 +158,7 @@ function creatItem(item, key) {
 <div id="collectBlock_217414" class="collectBlock tip_i">
 <ul class="collectMenu">
 <li>
-<a href="javascript:void(0)" key="${key}" title="text" class="collect_btn chiiBtn thickbox e-wiki-add-btn"><span>添加条目</span></a>
+<a href="javascript:void(0)" key="${key}" title="text" class="collect_btn chiiBtn thickbox e-wiki-add-btn"><span style="pointer-events: none;">添加条目</span></a>
 </li>
 </ul>
 </div>
@@ -184,7 +185,8 @@ function insertItemList(infoArray) {
   $ul.addEventListener('click', (e) => {
     console.log(e.target);
     if (e.target.classList.contains('e-wiki-add-btn')) {
-      let key = e.target.getAttribute('key');
+      let $t = e.target;
+      let key = $t.getAttribute('key');
       let sending = browser.runtime.sendMessage({
         action: 'fetch_amazon',
         url: infoArray[key].href
