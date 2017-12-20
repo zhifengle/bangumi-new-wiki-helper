@@ -202,14 +202,15 @@ function dealImageWidget($form, base64Data) {
   var $file = $form.querySelector('input[type = file]');
   var $width = document.querySelector('#e-wiki-cover-slider-width');
   var $radius = document.querySelector('#e-wiki-cover-slider-radius');
-  previewSelectedImage($file, $canvas, $img);
+  if ($file) {
+    previewSelectedImage($file, $canvas, $img);
+  }
   blur($canvas, $width, $radius);
   document.querySelector('#e-wiki-cover-reset').addEventListener('click', (e) => {
-    var file = $file.files[0];
     var $fillForm = document.querySelector('.fill-form');
     if (base64Data) {
       $img.dispatchEvent(new Event('load'));
-    } else if (file) {
+    } else if ($file && $file.files[0]) {
       $file.dispatchEvent(new Event('change'));
     } else if ($fillForm) {
       $fillForm.dispatchEvent(new Event('click'));
