@@ -63,7 +63,9 @@ function previewSelectedImage($file, $canvas, $img = new Image()) {
       reader.readAsDataURL(file);
     }
   }
-  $file.addEventListener('change', loadImgData, false);
+  if ($file) {
+    $file.addEventListener('change', loadImgData, false);
+  }
 }
 
 function blur(el, $width, $radius) {
@@ -200,11 +202,10 @@ function dealImageWidget($form, base64Data) {
     $img.src = base64Data;
   }
   var $file = $form.querySelector('input[type = file]');
+  previewSelectedImage($file, $canvas, $img);
+
   var $width = document.querySelector('#e-wiki-cover-slider-width');
   var $radius = document.querySelector('#e-wiki-cover-slider-radius');
-  if ($file) {
-    previewSelectedImage($file, $canvas, $img);
-  }
   blur($canvas, $width, $radius);
   document.querySelector('#e-wiki-cover-reset').addEventListener('click', (e) => {
     var $fillForm = document.querySelector('.fill-form');
@@ -216,12 +217,17 @@ function dealImageWidget($form, base64Data) {
       $fillForm.dispatchEvent(new Event('click'));
     }
   }, false);
-  document.querySelector('.e-wiki-cover-container .inputBtn').addEventListener('click',(e) => {
-    e.preventDefault();
-    if ($canvas.width > 8 && $canvas.height > 10) {
-      sendFormDataPic($form, $canvas.toDataURL('image/jpg', 1));
-    }
-  }, false);
+  var $inputBtn = document.querySelector('.e-wiki-cover-container .inputBtn');
+  if ($file) {
+    $inputBtn.addEventListener('click',(e) => {
+      e.preventDefault();
+      if ($canvas.width > 8 && $canvas.height > 10) {
+        sendFormDataPic($form, $canvas.toDataURL('image/jpg', 1));
+      }
+    }, false);
+  } else {
+    $inputBtn.value = '处理图片';
+  }
 }
 
 export default dealImageWidget;

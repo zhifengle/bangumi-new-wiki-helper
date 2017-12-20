@@ -40,17 +40,19 @@ async function createNewSubjectTab(newSubjectType, bangumiDomain, activeOpen) {
     url: '*://*/new_subject/*',
     title: '添加新条目'
   });
+  var tabId = '';
   if (tabs && tabs.length) {
-    let tabId = tabs[0].id;
-    browser.tabs.executeScript(tabId, {
-      file: '/dist/bangumi.js'
-    });
+    tabId = tabs[0].id;
   } else {
     let tab = await createTab(url, activeOpen);
-    browser.tabs.executeScript(tab.id, {
-      file: '/dist/bangumi.js'
-    });
+    tabId = tab.id;
   }
+  browser.tabs.executeScript(tabId, {
+    file: '/dist/bangumi.js'
+  });
+  browser.tabs.insertCSS(tabId, {
+    file: '/dist/bangumi.css'
+  });
 }
 
 async function handleMessage(request) {

@@ -227,6 +227,7 @@ function init() {
           case 'new_subject':
             if (obj.subjectInfo && obj.subjectInfo.subjectInfoList) {
               fillSubjectInfo(obj.subjectInfo.subjectInfoList, obj.subjectInfo.subType);
+              // dealImageWidget($('form[name=create_subject]'), obj.subjectInfo.subjectCover);
             } else {
               alert('条目信息为空');
             }
