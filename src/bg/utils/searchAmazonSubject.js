@@ -39,7 +39,7 @@ async function searchAmazonSubject(q, page = 1) {
 }
 
 async function getItemInfo($li) {
-  if (!$li) return;
+  if (!$li || !/result/.test($li.getAttribute('id'))) return;
   let cover = $li.querySelector('img.s-access-image');
   let coverURL = '';
   if (cover) {
