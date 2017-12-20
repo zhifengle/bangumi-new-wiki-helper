@@ -46,7 +46,7 @@ function getCoverURL(coverConfig) {
   var $cover = $(coverConfig.selector);
   if ($cover) {
     return {
-      coverURL: $cover.src,
+      coverURL: $cover.getAttribute('src'),
       height: $cover.height,
       width: $cover.width
     };
@@ -109,6 +109,9 @@ function getItemData(itemConfig) {
 function dealRawText(str, filterArray = [], itemConfig) {
   if (itemConfig && itemConfig.category === 'subject_summary') {
     return str;
+  }
+  if (itemConfig && itemConfig.category === 'subject_title') {
+    return str.replace(/(?:(\d+))(\)|）).*$/, '$1$2');
   }
   if (itemConfig && itemConfig.separator) {
     str = splitText(str, itemConfig);
