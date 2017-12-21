@@ -1,8 +1,6 @@
 import browser from 'webextension-polyfill';
-import dealImageWidget from './upload_img';
+import dealImageWidget, { uploadTargetCover } from './upload_img';
 import '../css/bangumi.less'
-import { gmFetchBinary, gmFetch } from '../bg/utils/gmFetch';
-
 
 /**
  * dollar 选择符
@@ -215,6 +213,35 @@ function handleResponse(message) {
 
 function handleError(error) {
   console.log(`Error: ${error.message}`);
+}
+
+function sendFormPromise($form, TIMEOUT = 3000) {
+  return new Promise((resolve, reject) => {
+    var fd = new FormData($form);
+    var xhr = new XMLHttpRequest();
+    xhr.open($form.method.toLowerCase(), $form.action, true);
+    xhr.onreadystatechange = function () {
+      var _location;
+      if(xhr.readyState === 2 && xhr.status === 200){
+        _location = xhr.responseURL;
+        if(_location) {
+          resolve(_location);
+        }
+        reject('no location');
+      }
+    };
+    xhr.timeout = TIMEOUT;
+    xhr.ontimeout = reject();
+    xhr.send(fd);
+  });
+}
+
+async function submitAndUpload() {
+  var $form = $('form[name=create_subject]');
+  let l = await sendFormPromise($form, 5000);
+  console.log('response url: ', l);
+  let subjectId = l.match(/subject\/(\d+)/)
+  uploadTargetCover(subjectId[1])
 }
 
 function init() {

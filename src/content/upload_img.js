@@ -1,5 +1,5 @@
 import StackBlur from "stackblur-canvas";
-import { gmFetchBinary } from '../bg/utils/gmFetch';
+import { gmFetchBinary, gmFetch } from '../bg/utils/gmFetch';
 
 function insertBlurInfo($target) {
   const rawHTML = `
@@ -168,6 +168,19 @@ function sendFormDataPic($form, dataURL) {
   xhr.send(fd);
 }
 
+async function uploadTargetCover(subjectId) {
+  let d = await gmFetch(`/${subjectId}/upload_img`, 3000);
+  let $canvas = document.querySelector('#e-wiki-cover-preview');
+
+  let $doc = (new DOMParser()).parseFromString(d, "text/html");
+  let $form = $doc.querySelector('form[name=img_upload]');
+  if (!$form) return;
+
+  if ($canvas.width > 8 && $canvas.height > 10) {
+    sendFormDataPic($form, $canvas.toDataURL('image/jpg', 1));
+  }
+}
+
 function blobToBase64(myBlob) {
   return new Promise((resolve, reject) => {
     var reader = new window.FileReader();
@@ -231,3 +244,4 @@ function dealImageWidget($form, base64Data) {
 }
 
 export default dealImageWidget;
+export { uploadTargetCover };
