@@ -2,12 +2,12 @@ const Fuse = require('fuse.js');
 
 function filterResults(items, searchstring, opts) {
   if (!items) return;
-  let results = new Fuse(items, opts).search(searchstring);
+  let results = new Fuse(items, Object.assign({}, opts)).search(searchstring);
   if (!results.length) return;
-  if (opts.startdate) {
+  if (opts.startDate) {
     for (const result of results) {
-      if (result.startdate &&
-        new date(result.startdate) - new date(opts.startdate) === 0) {
+      if (result.startDate &&
+        new date(result.startDate) - new date(opts.startDate) === 0) {
         return result;
       }
     }

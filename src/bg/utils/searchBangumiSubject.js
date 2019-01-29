@@ -87,7 +87,11 @@ function fetchBangumiDataBySearch(subjectInfo, typeNumber) {
   const url = `https://bgm.tv/subject_search/${encodeURIComponent(query)}?cat=${typeNumber}`;
   console.info('seach bangumi subject URL: ', url);
   return gmFetch(url).then((info) => {
-    var [rawInfoList, numOfPage] = dealRawHTML(info);
+    var rawInfoList = dealRawHTML(info)[0] || [];
+    // 使用ISBN 搜索时, 并且结果只有一条时，不再使用名称过滤
+    if (subjectInfo.isbn && rawInfoList && rawInfoList.length === 1) {
+      return rawInfoList[0];
+    }
     return filterResults(rawInfoList, subjectInfo.subjectName, {
       keys: ['subjectTitle', 'subjectGreyTitle'],
       startDate: startDate

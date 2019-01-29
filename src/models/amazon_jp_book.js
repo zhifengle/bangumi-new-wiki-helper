@@ -24,7 +24,7 @@ amazonSubjectModel.itemList.push(
     category: 'subject_title'
   },
   {
-    name: 'ISBN',
+    name: 'ASIN',
     selector: '#detail_bullets_id .bucket .content',
     subSelector: 'li',
     keyWord: 'ISBN-10',
@@ -32,7 +32,7 @@ amazonSubjectModel.itemList.push(
     category: 'ISBN'
   },
   {
-    name: 'ISBN-13',
+    name: 'ISBN',
     selector: '#detail_bullets_id .bucket .content',
     subSelector: 'li',
     keyWord: 'ISBN-13',
