@@ -19,7 +19,7 @@ const SelectItem = (props) => {
     );
     });
   }
-  return <li>
+  return <li className="config-item">
     <span>{props.name}</span>
     <select
       className="select-list"
@@ -44,6 +44,7 @@ class Popup extends React.Component {
       searchSubject: true,
       newSubjectType: 1,
       bangumiDomain: 'bgm.tv',
+      useHttps: true,
       activeOpen: false
     };
   }
@@ -82,6 +83,7 @@ class Popup extends React.Component {
   componentDidMount() {
     browser.storage.local.get([
       'currentConfig',
+      'useHttps',
       'bangumiDomain', 'activeOpen', 'newSubjectType',
       'searchSubject'])
       .then(obj => {
@@ -138,6 +140,12 @@ class Popup extends React.Component {
               pageId="activeOpen"
               name="前台打开标签"
               checked={this.state.activeOpen}
+            />
+            <CheckList
+              onChange={(e) => this.handleInputChange(e)}
+              pageId="useHttps"
+              name="使用 https"
+              checked={this.state.useHttps}
             />
             <SelectItem
               name="选择配置"

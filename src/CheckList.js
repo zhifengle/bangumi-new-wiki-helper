@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 class CheckList extends Component {
   render() {
     return (
-      <li>
+      <li className="config-item check-item">
         <input
           onChange={(e) => this.props.onChange(e)}
           name="pageId" id={this.props.pageId}

@@ -5,6 +5,7 @@ import searchAmazonSubject from './utils/searchAmazonSubject';
 import { gmFetch } from './utils/gmFetch';
 
 const VERSION = require('../../extension/manifest.json').version;
+let USE_HTTPS = true;
 
 function createTab (url, active) {
   return new Promise(resolve => {
@@ -112,6 +113,9 @@ async function handleMessage(request) {
 function changeDomain(url, domain) {
   if (url.match(domain)) return url;
   if (domain === 'bangumi.tv') {
+    if (USE_HTTPS) {
+      return url.replace('bgm.tv', domain);
+    }
     return url.replace('https', 'http').replace('bgm.tv', domain);
   }
 }
@@ -140,6 +144,7 @@ browser.storage.local.get().then(obj => {
       newSubjectType: 1,
       bangumiDomain: 'bgm.tv',
       activeOpen: true,
+      useHttps: true,
       version: VERSION
     });
   }
@@ -147,11 +152,24 @@ browser.storage.local.get().then(obj => {
 
 browser.runtime.onMessage.addListener(handleMessage);
 
+// 监听配置修改的变化
+browser.storage.onChanged.addListener(function(changes, namespace) {
+  if (changes.useHttps) {
+    USE_HTTPS = changes.useHttps.newValue;
+  }
+});
+const showForPages = [
+"*://www.amazon.co.jp/*",
+"*://bgm.tv/*",
+"*://bangumi.tv/*"
+];
+
 browser.contextMenus.create({
   id: "bangumi-new-wiki",
   // shortcut: 'N',
   title: 'New subject(Bangumi)',
-  contexts: ["page"]
+  documentUrlPatterns: showForPages,
+  // contexts: ["page"]
 });
 
 browser.contextMenus.onClicked.addListener((info, tab) => {

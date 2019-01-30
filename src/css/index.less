@@ -4,7 +4,7 @@
 @circle-color: #3c92fe;
 
 body {
-  width: 250px;
+  min-width: 300px;
   padding: 1em;
 }
 
@@ -20,27 +20,28 @@ h1, h2 {
   margin-bottom: 30px;
   overflow: hidden;
 
-  ul {
-    li {
+  &>ul {
+    .config-item {
       font-size: 16px;
-      height: 20px;
-      line-height: 20px;
-      margin: 8px 0;
-      position: relative;
-      label {
-        display: inline-block;
-        width: 100%;
-      }
-      .select-list {
-        width: 50%;
-        overflow: hidden;
-        float: right;
-      }
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
 
       input[type='button'] {
         width: 46%;
+        cursor: pointer;
         text-align: center;
         /* border-radius: 3px; */
+      }
+    }
+    .config-item.check-item {
+      & > label {
+        width: 100%;
+        display: flex;
+        cursor: pointer;
+        justify-content: space-between;
+        align-items: center;
       }
     }
   }
@@ -60,7 +61,6 @@ h1, h2 {
     border-radius: 50%;
     position: relative;
     background-color: #ccc;
-    float: right;
   }
   .checkbox-circle:after{
     @tick-width: @checkbox-width/2;
