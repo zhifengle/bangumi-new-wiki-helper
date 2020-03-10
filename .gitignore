@@ -1,4 +1,5 @@
 # Ignore build artifacts and other files.
+.idea
 .DS_Store
 yarn.lock
 extension/dist

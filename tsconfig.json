@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "extension/dist",
+    "lib": ["es2017", "esnext.array", "dom", "es2015.iterable"],
+    "noImplicitAny": true,
+    "module": "es2015",
+    "target": "es6",
+    "jsx": "react",
+    "allowJs": true
+  },
+  "include": ["src"],
+  "exclude": ["./extension/dist", "./node_modules"]
+}
