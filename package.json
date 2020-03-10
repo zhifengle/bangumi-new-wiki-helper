@@ -1,0 +1,19 @@
+{
+  "name": "bangumi-new-wiki-helper",
+  "version": "0.2.3",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:watch": "webpack -w --progress",
+    "build": "webpack",
+    "start": "web-ext run --firefox-profile=default -s extension/"
+  },
+  "author": "22earth",
+  "license": "MPL-2.0",
+  "devDependencies": {
+    "ts-loader": "6.2.1",
+    "typescript": "3.8.3",
+    "webpack": "4.42.0",
+    "webpack-cli": "3.3.11"
+  }
+}
