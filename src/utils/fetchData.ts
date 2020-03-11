@@ -1,3 +1,5 @@
+// TODO: support GM_XMLHttpRequest
+
 export function fetchBinary(url: string, TIMEOUT = 10 * 1000): Promise<Blob> {
     return internalFetch(fetch(url, {
         method: 'GET',
