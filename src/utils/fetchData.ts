@@ -1,4 +1,4 @@
-export function fetchBinary(url: string, TIMEOUT = 10 * 1000): Promise<void | Blob> {
+export function fetchBinary(url: string, TIMEOUT = 10 * 1000): Promise<Blob> {
     return internalFetch(fetch(url, {
         method: 'GET',
         credentials: 'include',
@@ -9,7 +9,7 @@ export function fetchBinary(url: string, TIMEOUT = 10 * 1000): Promise<void | Bl
             err => console.log('fetch err: ', err))
 }
 
-export function fetchText(url: string, TIMEOUT = 10 * 1000): Promise<void | string> {
+export function fetchText(url: string, TIMEOUT = 10 * 1000): Promise<string> {
     return internalFetch(fetch(url, {
         method: 'GET',
         credentials: 'include',
