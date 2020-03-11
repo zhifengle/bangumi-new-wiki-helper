@@ -34,7 +34,7 @@ export function sendFormImg($form: HTMLFormElement, dataURL: string)
  */
 export function sendForm(
   $form: HTMLFormElement,
-  extraInfo: FormItem[],
+  extraInfo: FormItem[] = [],
   TIMEOUT = 3000
 ): Promise<any> {
   return new Promise((resolve, reject) => {
