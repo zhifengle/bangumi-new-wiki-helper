@@ -8,7 +8,7 @@ import base from './rollup.config.base'
 export default {
   ...base,
   output: {
-    name: name.replace(/-/g, '_').toUpperCase(),
+    name: name.replace(/-|\d+/g, '_').toUpperCase(),
     file: pathResolve(__dirname,`../dist/${name}.user.js`),
     format: 'iife',
     sourcemap: true

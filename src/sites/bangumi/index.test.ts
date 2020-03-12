@@ -1,4 +1,4 @@
-import {convertInfoValue} from "./bangumi";
+import {convertInfoValue} from "./index";
 
 describe('test bangumi sites function', () => {
   it('test convert info', () => {

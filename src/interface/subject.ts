@@ -1,21 +1,21 @@
 export interface Subject {
   name: string
-  releaseDate: Date | string
+  releaseDate?: string
 }
 
 export interface BookSubject extends Subject {
   isbn: string,
-  asin: string
+  asin?: string
 }
 
 export interface SearchResult extends Subject {
-  score: number | string
-  count: number | string
-  greyName?: string
   url: string
+  score?: number | string
+  count?: number | string
+  greyName?: string
 }
 
-export interface SubjectInfo {
+export interface SingleInfo {
   name: string,
   value: any,
   category?: string
@@ -24,5 +24,5 @@ export interface SubjectInfo {
 export interface SubjectWikiInfo {
   type: string,
   subtype?: string | number
-  infos: SubjectInfo[]
+  infos: SingleInfo[]
 }
