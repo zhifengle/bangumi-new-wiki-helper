@@ -4,7 +4,7 @@ export interface Subject {
 }
 
 export interface BookSubject extends Subject {
-  isbn: string,
+  isbn: string
   asin?: string
 }
 
@@ -16,13 +16,13 @@ export interface SearchResult extends Subject {
 }
 
 export interface SingleInfo {
-  name: string,
-  value: any,
+  name: string
+  value: any
   category?: string
 }
 
 export interface SubjectWikiInfo {
-  type: string,
+  type: string
   subtype?: string | number
   infos: SingleInfo[]
 }

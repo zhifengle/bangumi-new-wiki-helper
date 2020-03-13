@@ -1,15 +1,25 @@
 import {
   BookSubject,
   SearchResult,
-  SingleInfo, Subject,
+  SingleInfo,
+  Subject,
   SubjectWikiInfo
 } from '../../interface/subject'
 import {sleep} from "../../utils/async/sleep";
 import {$q, $qa} from "../../utils/domUtils";
 import {fetchText} from "../../utils/fetchData";
+import {SubjectTypeId} from "../../interface/wiki";
 
 const domain = 'bgm.tv';
 const protocol = 'https:'
+
+enum SubjectTypeEnum {
+  GAME = "game",
+  ANIME = "anime",
+  MUSIC = "music",
+  BOOK = "book",
+  REAL = "real"
+}
 
 function dealDate(dataStr: string): string {
   let l = dataStr.split('/');
@@ -165,7 +175,7 @@ function dealSearchResults(info: string): [SearchResult[], number] | [] {
 /**
  * 过滤搜索结果： 通过名称以及日期
  * @param items
- * @param searchStr
+ * @param subjectInfo
  * @param opts
  */
 function filterResults(items: SearchResult[], subjectInfo: Subject, opts: any) {
@@ -198,14 +208,20 @@ function filterResults(items: SearchResult[], subjectInfo: Subject, opts: any) {
   }
 }
 
+/**
+ * 搜索条目
+ * @param subjectInfo
+ * @param type
+ * @param queryStr
+ */
 export async function searchSubject(
   subjectInfo: Subject | BookSubject,
-  type: string | number, queryStr: string = '') {
+  type: SubjectTypeId = SubjectTypeId.all,
+  queryStr: string = '') {
   let releaseDate: string
   if (subjectInfo && subjectInfo.releaseDate) {
     releaseDate = subjectInfo.releaseDate;
   }
-  type = type || 'all';
   // 去掉末尾的括号加上引号搜索
   let query = (subjectInfo.name || '').trim()
     .replace(/（[^0-9]+?）|\([^0-9]+?\)$/, '');
@@ -235,11 +251,17 @@ export async function searchSubject(
   return filterResults(rawInfoList, subjectInfo, options);
 }
 
+/**
+ * 通过时间查找条目
+ * @param subjectInfo
+ * @param pageNumber
+ * @param type
+ */
 // @ts-ignore
 export async function findSubjectByDate(
-  subjectInfo: Subject | BookSubject,
+  subjectInfo: Subject,
   pageNumber: number = 1,
-  type: string = 'game'
+  type: SubjectTypeEnum = SubjectTypeEnum.GAME
 ) {
   if (!subjectInfo || !subjectInfo.releaseDate) throw 'no date info';
   const releaseDate = new Date(subjectInfo.releaseDate);
@@ -273,4 +295,24 @@ export async function findSubjectByDate(
     }
   }
   return result;
+}
+
+export async function checkBookSubjectExist(
+  subjectInfo: BookSubject,
+  type: SubjectTypeId
+) {
+  let searchResult = await searchSubject(subjectInfo, type, subjectInfo.isbn)
+  console.info(`First: search result of bangumi: `, searchResult);
+  if (searchResult && searchResult.url) {
+    return searchResult;
+  }
+  searchResult = await searchResult(subjectInfo, type, subjectInfo.asin);
+  console.info('Second: search result of bangumi: ', searchResult);
+  if (searchResult && searchResult.url) {
+    return searchResult;
+  }
+  // 默认使用名称搜索
+  searchResult = await searchResult(subjectInfo, type);
+  console.info('Third: search result of bangumi: ', searchResult);
+  return searchResult;
 }

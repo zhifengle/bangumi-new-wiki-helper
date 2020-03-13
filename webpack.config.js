@@ -26,11 +26,13 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ],
+    extensions: ['.tsx', '.ts', '.js'],
   },
-  plugins: [
-  ],
-  devtool: 'inline-source-map',
-  // devtool: 'cheap-module-source-map',
-  mode: 'development'
+  plugins: [],
+  // devtool: 'inline-source-map',
+  devtool: 'cheap-module-source-map',
+  mode: 'development',
+  optimization: {
+    usedExports: true,
+  }
 };
