@@ -96,8 +96,8 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
   }
   await sleep(100);
 
-  const $wikiMode = $q('table small a:nth-of-type(1)[href="javascript:void(0)"]');
-  const $newbieMode = $q('table small a:nth-of-type(2)[href="javascript:void(0)"]');
+  const $wikiMode = $q('table small a:nth-of-type(1)[href="javascript:void(0)"]') as HTMLElement;
+  const $newbieMode = $q('table small a:nth-of-type(2)[href="javascript:void(0)"]') as HTMLElement;
   for (let i = 0, len = infos.length; i < len; i++) {
     if (infos[i].category === 'subject_title') {
       let $title = $q('input[name=subject_title]') as HTMLInputElement;

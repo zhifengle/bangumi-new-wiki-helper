@@ -1,3 +1,5 @@
+import {SubjectTypeId} from "./wiki";
+
 export interface Subject {
   name: string
   releaseDate?: string
@@ -22,7 +24,7 @@ export interface SingleInfo {
 }
 
 export interface SubjectWikiInfo {
-  type: string
+  type: SubjectTypeId
   subtype?: string | number
   infos: SingleInfo[]
 }

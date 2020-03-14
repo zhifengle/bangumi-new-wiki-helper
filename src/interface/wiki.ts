@@ -2,6 +2,8 @@ export interface Selector {
   selector: string
   subSelector?: string
   keyWord?: string
+  sibling?: boolean
+  separator?: string
 }
 
 export enum SubjectTypeId {
@@ -12,9 +14,8 @@ export enum SubjectTypeId {
   real = 6,
   all = 'all'
 }
-export interface ResourceItem {
+export interface InfoConfig {
   name: string
   selector: Selector | Selector[]
   category?: string
-  separator?: string
 }
