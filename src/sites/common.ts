@@ -1,26 +1,71 @@
 import {InfoConfig, Selector} from "../interface/wiki";
 import {findElement, getText} from "../utils/domUtils";
-import {BookSubject, SingleInfo, Subject} from "../interface/subject";
+import {
+  AllSubject,
+  BookSubject,
+  SingleInfo, Subject
+} from "../interface/subject";
 
-export function dealText(
+/**
+ * 处理单项 wiki 信息
+ * @param str
+ * @param category
+ * @param keyWords
+ */
+export function dealItemText(
   str: string,
-  category: string,
-  filterArray?: string[]): string {
-  const separators = [':', '：', ',', '，']
-  if (category === 'subject_summary') {
+  category: string = '',
+  keyWords: string[] = []
+): string {
+  const separators = [':', '：']
+  if (['subject_summary', 'subject_title'].indexOf(category) !== -1) {
     return str;
   }
+  // TODO: game book title
   if (category === 'subject_title') {
-    return str.replace(/(?:(\d+))(\)|）).*$/, '$1$2');
+    return str.replace(/(?:(\d+))(\)|）).*$/, '$1$2').trim();
   }
-  const textList = ['\\(.*\\)', '（.*）', ...filterArray];
+  const textList = ['\\(.*?\\)', '（.*?）']; // 去掉多余的括号信息
+  // const keyStr = keyWords.sort((a, b) => b.length - a.length).join('|')
+  // `(${keyStr})(${separators.join('|')})?`
   return str.replace(new RegExp(textList.join('|'), 'g'), '')
-    .trim().replace(new RegExp(separators.join('|')), '');
+    .replace(new RegExp(keyWords.join('|')), '')
+    .replace(new RegExp(`^.*?${separators.join('|')}`), '')
+    .trim();
 }
 
+
 export function getWikiItem(infoConfig: InfoConfig): SingleInfo | void {
-  const $d = findElement(infoConfig.selector)
-  const val = dealText(getText($d as HTMLElement), infoConfig.category)
+  const sl = infoConfig.selector
+  let $d: Element;
+  let targetSelector: Selector
+  if (sl instanceof Array) {
+    let i = 0;
+    targetSelector = sl[i]
+    while (!($d = findElement(targetSelector)) && i < sl.length) {
+      targetSelector = sl[++i]
+    }
+  } else {
+    targetSelector = sl
+    $d = findElement(targetSelector)
+  }
+  if (!$d) return;
+  let keyWords: string[]
+  if (targetSelector.keyWord instanceof Array) {
+    keyWords = targetSelector.keyWord
+  } else {
+    keyWords = [targetSelector.keyWord]
+  }
+  let val: any;
+  if ('cover' === infoConfig.category) {
+    val = {
+      url: $d.getAttribute('src'),
+      height: $d.clientHeight,
+      width: $d.clientWidth,
+    }
+  } else {
+    val = dealItemText(getText($d as HTMLElement),infoConfig.category, keyWords)
+  }
   if (val) {
     return {
       name: infoConfig.name,
@@ -29,6 +74,7 @@ export function getWikiItem(infoConfig: InfoConfig): SingleInfo | void {
     } as SingleInfo
   }
 }
+
 
 export function getQueryInfo(items: SingleInfo[]) : Subject {
   let info = {} as Subject;

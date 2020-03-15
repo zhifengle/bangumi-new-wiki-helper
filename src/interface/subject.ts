@@ -1,16 +1,21 @@
 import {SubjectTypeId} from "./wiki";
 
-export interface Subject {
+interface BaseSubject {
   name: string
   releaseDate?: string
 }
 
-export interface BookSubject extends Subject {
+export interface Subject extends BaseSubject{
+  kind: 'subject'
+}
+
+export interface BookSubject extends BaseSubject {
+  kind: 'book'
   isbn: string
   asin?: string
 }
 
-export interface SearchResult extends Subject {
+export interface SearchResult extends BaseSubject {
   url: string
   score?: number | string
   count?: number | string
@@ -28,3 +33,5 @@ export interface SubjectWikiInfo {
   subtype?: string | number
   infos: SingleInfo[]
 }
+
+export type AllSubject = Subject | BookSubject

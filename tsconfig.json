@@ -10,7 +10,7 @@
     //定义类型定义文件的根目录
     "esModuleInterop": true,
     // 引入辅助函数集
-    "importHelpers": true,
+    "importHelpers": false,
     "moduleResolution": "node"
   },
   "include": ["src"],

@@ -11,6 +11,7 @@ export const addStyle = (style: string) => {
 };
 
 export function getText(elem: HTMLElement): string {
+  if (!elem) return ''
   return elem.textContent || elem.innerText || "";
 }
 
@@ -108,14 +109,9 @@ function findElementByKeyWord(selector: Selector): Element {
   }
   return res;
 }
-export function findElement(selector: Selector | Selector[]): Element | null {
+export function findElement(selector: Selector): Element | null {
   let r: Element | null = null;
-  if (selector instanceof Array) {
-    let i = 0;
-    while (!(r = findElement(selector[i])) && i < selector.length) {
-      i++;
-    }
-  } else {
+  if (selector) {
     if (!selector.subSelector) {
       r = $q(selector.selector);
     } else {

@@ -1,4 +1,5 @@
 import {
+  AllSubject,
   BookSubject,
   SearchResult,
   SingleInfo,
@@ -178,7 +179,7 @@ function dealSearchResults(info: string): [SearchResult[], number] | [] {
  * @param subjectInfo
  * @param opts
  */
-function filterResults(items: SearchResult[], subjectInfo: Subject, opts: any) {
+function filterResults(items: SearchResult[], subjectInfo: AllSubject, opts: any) {
   if (!items) return;
   let results = new Fuse(items, Object.assign({
     shouldSort: true,
@@ -212,12 +213,12 @@ function filterResults(items: SearchResult[], subjectInfo: Subject, opts: any) {
  * 搜索条目
  * @param subjectInfo
  * @param type
- * @param queryStr
+ * @param uniqueQueryStr
  */
 export async function searchSubject(
-  subjectInfo: Subject | BookSubject,
+  subjectInfo: AllSubject,
   type: SubjectTypeId = SubjectTypeId.all,
-  queryStr: string = '') {
+  uniqueQueryStr: string = '') {
   let releaseDate: string
   if (subjectInfo && subjectInfo.releaseDate) {
     releaseDate = subjectInfo.releaseDate;
@@ -226,8 +227,8 @@ export async function searchSubject(
   let query = (subjectInfo.name || '').trim()
     .replace(/（[^0-9]+?）|\([^0-9]+?\)$/, '');
   query = `"${query}"`;
-  if (queryStr) {
-    query = queryStr;
+  if (uniqueQueryStr) {
+    query = uniqueQueryStr;
   }
   if (!query) {
     console.info('Query string is empty');
@@ -237,9 +238,8 @@ export async function searchSubject(
   console.info('search bangumi subject URL: ', url);
   const rawText = await fetchText(url);
   const rawInfoList = dealSearchResults(rawText)[0] || []
-  // 使用ISBN 搜索时, 并且结果只有一条时，不再使用名称过滤
-  // @ts-ignore  TODO: 类型判断
-  if (subjectInfo.isbn && rawInfoList && rawInfoList.length === 1) {
+  // 使用指定搜索字符串如 ISBN 搜索时, 并且结果只有一条时，不再使用名称过滤
+  if (uniqueQueryStr && rawInfoList && rawInfoList.length === 1) {
     return rawInfoList[0];
   }
   const options = {
@@ -263,7 +263,9 @@ export async function findSubjectByDate(
   pageNumber: number = 1,
   type: SubjectTypeEnum = SubjectTypeEnum.GAME
 ) {
-  if (!subjectInfo || !subjectInfo.releaseDate) throw 'no date info';
+  if (!subjectInfo || !subjectInfo.releaseDate || !subjectInfo.name) {
+    throw new Error('invalid subject info');
+  }
   const releaseDate = new Date(subjectInfo.releaseDate);
   const sort = releaseDate.getDate() > 15 ? 'sort=date' : '';
   const page = pageNumber ? `page=${pageNumber}` : '';
