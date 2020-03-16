@@ -7,7 +7,8 @@
     "build:watch": "webpack -w --progress",
     "build": "webpack",
     "build:script": "rollup -c build/rollup.config.us.js",
-    "dev:rollup": "rollup -c build/rollup.config.dev.js",
+    "build:ext": "rollup -c build/rollup.config.ext.js",
+    "dev:ext": "rollup -w -c build/rollup.config.ext.js",
     "clean": "rimraf dist/",
     "start": "web-ext run --firefox-profile=default -s extension/",
     "test": "jest --all"
