@@ -1,4 +1,5 @@
-import {convertInfoValue} from "./index";
+import {BangumiDomain, changeDomain, convertInfoValue, Protocol} from "./index";
+import {randomNum} from "../../utils/utils";
 
 describe('test bangumi sites function', () => {
   it('test convert info', () => {
@@ -56,5 +57,18 @@ describe('test bangumi sites function', () => {
       }
     ]
     console.log(convertInfoValue(rawInfo, infoArr))
+  })
+  it('test change domain', () => {
+    let domainArr = [BangumiDomain.bangumi, BangumiDomain.chii, BangumiDomain.bgm]
+    const origin = domainArr.splice(randomNum(2, 0), 1)
+    const target = domainArr.splice(randomNum(1, 0), 1)
+    expect(changeDomain(`https://${origin}/new_subject/4`, target as any))
+      .toEqual(`https://${target}/new_subject/4`)
+    expect(changeDomain(
+      `https://${origin}/new_subject/4`,
+      target as any,
+      Protocol.http
+    ))
+      .toEqual(`http://${target}/new_subject/4`)
   })
 })

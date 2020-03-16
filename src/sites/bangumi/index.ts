@@ -22,6 +22,17 @@ enum SubjectTypeEnum {
   REAL = "real"
 }
 
+export enum BangumiDomain {
+  chii = 'chii.in',
+  bgm = 'bgm.tv',
+  bangumi = 'bangumi.tv'
+}
+
+export enum Protocol {
+  http = 'http',
+  https = 'https'
+}
+
 function dealDate(dataStr: string): string {
   let l = dataStr.split('/');
   return l.map((i) => {
@@ -291,7 +302,7 @@ export async function findSubjectByDate(
   if (!result) {
     if (pageNumber < numOfPage) {
       await sleep(300)
-      return await findSubjectByDate(subjectInfo, pageNumber+1, type)
+      return await findSubjectByDate(subjectInfo, pageNumber + 1, type)
     } else {
       throw 'notmatched';
     }
@@ -317,4 +328,17 @@ export async function checkBookSubjectExist(
   searchResult = await searchResult(subjectInfo, type);
   console.info('Third: search result of bangumi: ', searchResult);
   return searchResult;
+}
+
+export function changeDomain(
+  originUrl: string,
+  domain: BangumiDomain,
+  protocol: Protocol = Protocol.https
+): string {
+  let url = originUrl;
+  if (url.match(domain)) return url;
+  let domainArr = [BangumiDomain.bangumi, BangumiDomain.chii, BangumiDomain.bgm]
+  domainArr.splice(domainArr.indexOf(domain), 1)
+  return url.replace(new RegExp(domainArr.join('|').replace('.', '\\.')), domain)
+    .replace(/https?/, protocol);
 }
