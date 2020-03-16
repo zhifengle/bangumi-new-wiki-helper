@@ -1,6 +1,7 @@
 import { name } from '../package.json'
 import { resolve } from 'path'
 import typescript from 'rollup-plugin-typescript2'
+import commonjs from '@rollup/plugin-commonjs';
 
 export default {
   // 入口文件
@@ -13,6 +14,7 @@ export default {
     sourcemap: true,
   },
   plugins: [
+    commonjs(),
     typescript({
       exclude: ['./dist', './src/**/*.test.ts'],
     }),

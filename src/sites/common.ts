@@ -118,6 +118,7 @@ export function insertControlBtn(
   $t: Element,
   cb: (...args: any) => Promise<any>
 ) {
+  if (!$t) return;
   const $s = document.createElement("span");
   $s.classList.add("e-wiki-new-subject");
   $s.innerHTML = "新建";

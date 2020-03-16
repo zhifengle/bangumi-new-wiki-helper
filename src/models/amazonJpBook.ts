@@ -1,8 +1,9 @@
-import {SiteConfig} from "../interface/wiki";
+import {SiteConfig, SubjectTypeId} from "../interface/wiki";
 
 export const amazonSubjectModel: SiteConfig = {
   key: 'amazon_jp_book',
   description: '日亚图书',
+  type: SubjectTypeId.book,
   // subType: {
   //   selector: '#detail_bullets_id .bucket .content',
   //   subSelector: 'li',
@@ -86,7 +87,7 @@ amazonSubjectModel.itemList.push(
       selector: '#detail_bullets_id .bucket .content',
       subSelector: 'li',
       separator: ':',
-      keyWord: ['ページ', 'コミック']
+      keyWord: 'ページ'
     },
   },
   {

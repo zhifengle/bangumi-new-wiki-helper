@@ -12,6 +12,8 @@ const init = function () {
       case 'amazon.co.jp':
         amazon.init();
         break;
+      case 'getchu.com':
+        break
       case 'bangumi.tv':
       case 'chii.tv':
       case 'bgm.tv':

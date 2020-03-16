@@ -23,5 +23,6 @@ export interface InfoConfig {
 export interface SiteConfig {
   key: string
   description: string
+  type: SubjectTypeId,
   itemList: InfoConfig[]
 }
