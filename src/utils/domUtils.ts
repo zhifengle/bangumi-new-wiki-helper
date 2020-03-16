@@ -1,9 +1,9 @@
+import { Selector } from "../interface/wiki";
+
 /**
  * 为页面添加样式
  * @param style
  */
-import { Selector } from "../interface/wiki";
-
 export const addStyle = (style: string) => {
   const styleTag = document.createElement("style");
   styleTag.innerHTML = style;

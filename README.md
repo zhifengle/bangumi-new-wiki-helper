@@ -13,18 +13,18 @@
 
     npm install
 
-运行下面的命令构建输出到 `extension` 文件夹
+运行下面的命令, 监控文件并构建输出到 `extension` 文件夹
 
     npm run dev:ext
 
 ### 配合火狐浏览器开发
-首先编辑 `bin` 文件夹里面的 `run-fx.js` 里面的 `firefox` 的值为自己电脑里面安装 Firefox的路径
+首先编辑 `bin` 文件夹的 `run-fx.js` 里面的 `firefox` 的值为自己电脑里面安装 Firefox 的路径
 
-运行
+新开一个命令行运行
 
     npm start
 
-之后编辑文件后, [web-ext][web-ext] 会自动重新加载火狐里面的扩展
+编辑代码文件后, [web-ext][web-ext] 会自动重新加载扩展
 
 ![popup screenshot](screenshots/popup.png "popup screenshot")
 
