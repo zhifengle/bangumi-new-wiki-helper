@@ -1,5 +1,6 @@
 import {BangumiDomain, changeDomain, convertInfoValue, Protocol} from "./index";
 import {randomNum} from "../../utils/utils";
+import {book} from "../../data/subject";
 
 describe('test bangumi sites function', () => {
   it('test convert info', () => {
@@ -22,40 +23,7 @@ describe('test bangumi sites function', () => {
 |作者=
 }}
     `
-    const infoArr = [
-      {
-        "name": "名称",
-        "value": "test",
-        "category": "subject_title"
-      },
-      {
-        "name": "ASIN",
-        "value": "4785963816",
-        "category": "ISBN"
-      },
-      {
-        "name": "ISBN",
-        "value": "978-4785963811",
-        "category": "ISBN-13"
-      },
-      {
-        "name": "发售日",
-        "value": "2019/2/16",
-        "category": "date"
-      },
-      {
-        "name": "作者",
-        "value": "宮尾 岳"
-      },
-      {
-        "name": "出版社",
-        "value": "少年画報社"
-      },
-      {
-        "name": "页数",
-        "value": "162"
-      }
-    ]
+    const infoArr = [...book.infos]
     console.log(convertInfoValue(rawInfo, infoArr))
   })
   it('test change domain', () => {

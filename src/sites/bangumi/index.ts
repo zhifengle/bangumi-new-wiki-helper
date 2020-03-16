@@ -342,3 +342,24 @@ export function changeDomain(
   return url.replace(new RegExp(domainArr.join('|').replace('.', '\\.')), domain)
     .replace(/https?/, protocol);
 }
+
+export function insertFillFormBtn(
+  $t: Element,
+  cb: (...args: any) => any,
+  cancelCb: (...args: any) => any,
+  ) {
+  // 存在节点后，不再插入
+  const clx = 'e-wiki-fill-form';
+  if ($qa('.'+clx).length >= 2) return;
+  const $s = document.createElement('span');
+  $s.classList.add(clx);
+  $s.innerHTML = 'wiki 填表';
+  $t.appendChild($s);
+  $s.addEventListener('click', cb);
+
+  const $cancel = $s.cloneNode() as HTMLElement;
+  $cancel.innerHTML = '清空';
+  $cancel.classList.add(clx+'-cancel');
+  $cancel.addEventListener('click', cancelCb)
+  $t.appendChild($cancel);
+}

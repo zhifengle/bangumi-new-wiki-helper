@@ -9,8 +9,9 @@
     "build:script": "rollup -c build/rollup.config.us.js",
     "build:ext": "rollup -c build/rollup.config.ext.js",
     "dev:ext": "rollup -w -c build/rollup.config.ext.js",
-    "clean": "rimraf dist/",
-    "start": "web-ext run --firefox-profile=default -s extension/",
+    "clean": "rimraf dist/ extension/dist",
+    "start2": "web-ext run --firefox-profile=default -s extension/",
+    "start": "node bin/run-fx.js",
     "test": "jest --all"
   },
   "author": "22earth",
@@ -29,6 +30,7 @@
     "ts-node": "8.6.2",
     "tslib": "1.11.1",
     "typescript": "3.8.3",
+    "web-ext": "4.1.0",
     "webpack": "4.42.0",
     "webpack-cli": "3.3.11"
   }

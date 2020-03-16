@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "bangumi new wiki helper",
-  "description": "辅助创建 Bangumi WIKI 条目",
-  "version": "0.2.2",
+  "description": "辅助创建 bangumi.tv 上的条目",
+  "version": "0.3.0",
 
   "browser_action": {
     "browser_style": true,
@@ -20,6 +20,18 @@
   "background": {
     "scripts": ["dist/background.js"]
   },
+  "content_scripts": [
+    {
+      "matches": ["*://bgm.tv/*", "*://bangumi.tv/*", "*://chii.tv/*"],
+      "css": ["css/bangumi.css"],
+      "js": ["dist/bangumi.js"]
+    },
+    {
+      "matches": ["*://www.amazon.co.jp/*", "*://www.getchu.com/*"],
+      "css": ["css/bangumi.css"],
+      "js": ["dist/content.js"]
+    }
+  ],
   "permissions": [
     "tabs",
     "notifications",

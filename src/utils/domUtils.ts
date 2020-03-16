@@ -2,7 +2,7 @@
  * 为页面添加样式
  * @param style
  */
-import { InfoConfig, Selector } from "../interface/wiki";
+import { Selector } from "../interface/wiki";
 
 export const addStyle = (style: string) => {
   const styleTag = document.createElement("style");
@@ -66,33 +66,6 @@ export function contains(
   }
   return [].filter.call(elements, function(element: HTMLElement) {
     return new RegExp(t).test(getText(element));
-  });
-}
-
-/**
- * 插入控制的按钮
- * @param $t 父节点
- * @param cb 返回 Promise 的回调
- */
-export function insertControlBtn(
-  $t: Element,
-  cb: (...args: any) => Promise<any>
-) {
-  const $s = document.createElement("span");
-  $s.classList.add("e-wiki-new-subject");
-  $s.innerHTML = "新建";
-  const $search = $s.cloneNode() as Element;
-  $search.innerHTML = "新建并查重";
-  $t.appendChild($s);
-  $t.appendChild($search);
-  $s.addEventListener("click", async (e) => {
-    await cb(e)
-  });
-  $search.addEventListener("click", async e => {
-    if ($search.innerHTML !== "新建并查重") return;
-    $search.innerHTML = "查重中...";
-    await cb(e, true);
-    $search.innerHTML = "新建并查重";
   });
 }
 
