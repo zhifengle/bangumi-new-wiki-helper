@@ -1,6 +1,7 @@
-import {BangumiDomain, changeDomain, convertInfoValue, Protocol} from "./index";
+import {BangumiDomain, changeDomain, Protocol} from "./index";
 import {randomNum} from "../../utils/utils";
 import {book} from "../../data/subject";
+import {convertInfoValue} from "./newSubject";
 
 describe('test bangumi sites function', () => {
   it('test convert info', () => {

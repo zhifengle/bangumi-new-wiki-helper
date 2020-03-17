@@ -1,16 +1,8 @@
-import {
-  AllSubject,
-  BookSubject,
-  SearchResult,
-  SingleInfo,
-  Subject,
-  SubjectWikiInfo
-} from '../../interface/subject'
+import {AllSubject, BookSubject, SearchResult} from '../../interface/subject'
 import {sleep} from "../../utils/async/sleep";
-import {$q, $qa} from "../../utils/domUtils";
 import {fetchText} from "../../utils/fetchData";
 import {SubjectTypeId} from "../../interface/wiki";
-import {dealDate} from "../../utils/utils";
+import {dealDate, isEqualDate} from "../../utils/utils";
 
 enum SubjectTypeEnum {
   GAME = "game",
@@ -18,6 +10,14 @@ enum SubjectTypeEnum {
   MUSIC = "music",
   BOOK = "book",
   REAL = "real"
+}
+const subjectTypeDict = {
+  [SubjectTypeId.game]: 'game',
+  [SubjectTypeId.anime]: "anime",
+  [SubjectTypeId.music]: "music",
+  [SubjectTypeId.book]: "book",
+  [SubjectTypeId.real]: "real",
+  [SubjectTypeId.all]: "all",
 }
 
 export enum BangumiDomain {
@@ -91,32 +91,40 @@ function dealSearchResults(info: string): [SearchResult[], number] | [] {
  */
 function filterResults(items: SearchResult[], subjectInfo: AllSubject, opts: any) {
   if (!items) return;
+  // 只有一个结果时只比较日期
+  if (items.length === 1) {
+    const result = items[0]
+    if (isEqualDate(result.releaseDate, subjectInfo.releaseDate)) {
+      return result;
+    }
+  }
   let results = new Fuse(items, Object.assign({
     shouldSort: true,
-    threshold: 0.3,
+    threshold: 0.6,
     location: 0,
-    distance: 50,
-    maxPatternLength: 32,
+    distance: 100,
     minMatchCharLength: 1,
   }, opts))
     .search(subjectInfo.name);
   if (!results.length) return;
+  // 有参考的发布时间
   if (subjectInfo.releaseDate) {
     for (const result of results) {
       if (result.releaseDate) {
-        const resultDate = new Date(result.releaseDate)
-        const originDate = new Date(subjectInfo.releaseDate)
-        if (resultDate.getFullYear() === originDate.getFullYear() &&
-          resultDate.getMonth() === originDate.getMonth() &&
-          resultDate.getDate() === originDate.getDate()
-        ) {
+        if (isEqualDate(result.releaseDate, subjectInfo.releaseDate)) {
           return result;
         }
       }
     }
-  } else {
-    return results[0];
   }
+  // 比较名称
+  const nameRe = new RegExp(subjectInfo.name.trim());
+  for (const result of results) {
+    if (nameRe.test(result.name) || nameRe.test(result.greyName)) {
+      return result;
+    }
+  }
+  return results[0];
 }
 
 /**
@@ -134,12 +142,14 @@ export async function searchSubject(
   if (subjectInfo && subjectInfo.releaseDate) {
     releaseDate = subjectInfo.releaseDate;
   }
-  // 去掉末尾的括号加上引号搜索
-  let query = (subjectInfo.name || '').trim()
-    .replace(/（[^0-9]+?）|\([^0-9]+?\)$/, '');
-  query = `"${query}"`;
+  let query = (subjectInfo.name || '').trim();
+  if (type === SubjectTypeId.book) {
+    // 去掉末尾的括号并加上引号
+    query = query.replace(/（[^0-9]+?）|\([^0-9]+?\)$/, '');
+    query = `"${query}"`;
+  }
   if (uniqueQueryStr) {
-    query = uniqueQueryStr;
+    query = `"${uniqueQueryStr}"`;
   }
   if (!query) {
     console.info('Query string is empty');
@@ -169,10 +179,10 @@ export async function searchSubject(
  * @param type
  */
 export async function findSubjectByDate(
-  subjectInfo: Subject,
-  pageNumber: number = 1,
+  subjectInfo: AllSubject,
   bgmHost: string = 'https://bgm.tv',
-  type: SubjectTypeEnum = SubjectTypeEnum.GAME
+  pageNumber: number = 1,
+  type: string
 ) : Promise<SearchResult> {
   if (!subjectInfo || !subjectInfo.releaseDate || !subjectInfo.name) {
     throw new Error('invalid subject info');
@@ -202,7 +212,7 @@ export async function findSubjectByDate(
   if (!result) {
     if (pageNumber < numOfPage) {
       await sleep(300)
-      return await findSubjectByDate(subjectInfo, pageNumber + 1, type)
+      return await findSubjectByDate( subjectInfo, bgmHost, pageNumber + 1, type)
     } else {
       throw 'notmatched';
     }
@@ -231,6 +241,23 @@ export async function checkBookSubjectExist(
   return searchResult;
 }
 
+async function checkExist(
+  subjectInfo: AllSubject,
+  bgmHost: string = 'https://bgm.tv',
+  type: SubjectTypeId
+) {
+  let searchResult = await searchSubject(subjectInfo, bgmHost, type)
+  console.info(`First: search result of bangumi: `, searchResult);
+  if (searchResult && searchResult.url) {
+    return searchResult;
+  }
+  searchResult = await findSubjectByDate(
+    subjectInfo, bgmHost, 1, subjectTypeDict[type]
+  )
+  console.info(`Second: search result by date: `, searchResult);
+  return searchResult;
+}
+
 export async function checkSubjectExit(
   subjectInfo: AllSubject,
   bgmHost: string = 'https://bgm.tv',
@@ -246,6 +273,7 @@ export async function checkSubjectExit(
       )
       break;
     case SubjectTypeId.game:
+      result = await checkExist(subjectInfo, bgmHost, type)
       break;
     case SubjectTypeId.anime:
     case SubjectTypeId.real:
