@@ -82,13 +82,21 @@ function findElementByKeyWord(selector: Selector): Element {
   }
   return res;
 }
-export function findElement(selector: Selector): Element | null {
+export function findElement(selector: Selector | Selector[]): Element | null {
   let r: Element | null = null;
   if (selector) {
-    if (!selector.subSelector) {
-      r = $q(selector.selector);
+    if (selector instanceof Array) {
+      let i = 0;
+      let targetSelector = selector[i]
+      while (targetSelector && !(r = findElement(targetSelector))) {
+        targetSelector = selector[++i]
+      }
     } else {
-      r = findElementByKeyWord(selector);
+      if (!selector.subSelector) {
+        r = $q(selector.selector);
+      } else {
+        r = findElementByKeyWord(selector);
+      }
     }
   }
   return r;

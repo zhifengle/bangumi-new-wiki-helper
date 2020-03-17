@@ -1,8 +1,24 @@
-import {InfoConfig, Selector, SiteConfig} from "../interface/wiki";
+import {
+  InfoConfig,
+  Selector,
+  SiteConfig,
+  SubjectTypeId
+} from "../interface/wiki";
 
 export const getchuGameModel: SiteConfig = {
   key: 'getchu_game',
   description: 'Getchu游戏',
+  type: SubjectTypeId.game,
+  pageSelector: [
+    {
+      selector: '.genretab.current',
+      subSelector: 'a',
+      keyWord: 'ゲーム'
+    }
+  ],
+  controlSelector: {
+    selector: '#soft-title'
+  },
   itemList: []
 }
 
@@ -25,13 +41,17 @@ const dict: any = {
   "作曲": "主题歌作曲",
 }
 const configArr = Object.keys(dict).map(key => {
-  return {
+  const r = {
     name: dict[key],
     selector: {
       keyWord: key,
       ...commonSelector
     }
   } as InfoConfig
+  if (key === '発売日') {
+    r.category = 'date'
+  }
+  return r
 })
 
 getchuGameModel.itemList.push(

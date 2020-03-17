@@ -1,10 +1,10 @@
 import {InfoConfig, Selector} from "../interface/wiki";
 import {findElement, getText} from "../utils/domUtils";
 import {
-  AllSubject,
-  BookSubject,
-  SingleInfo, Subject
+  SingleInfo
 } from "../interface/subject";
+import {getchuTools} from "./getchu";
+import {dealDate} from "../utils/utils";
 
 /**
  * 处理单项 wiki 信息
@@ -34,8 +34,7 @@ export function dealItemText(
     .trim();
 }
 
-
-export function getWikiItem(infoConfig: InfoConfig): SingleInfo | void {
+export function getWikiItem(infoConfig: InfoConfig, site: string): SingleInfo | void {
   const sl = infoConfig.selector
   let $d: Element;
   let targetSelector: Selector
@@ -63,8 +62,16 @@ export function getWikiItem(infoConfig: InfoConfig): SingleInfo | void {
       height: $d.clientHeight,
       width: $d.clientWidth,
     }
+  }
+  val = getText($d as HTMLElement)
+  if ('subject_title' === infoConfig.category) {
+    if (site === 'getchu_game') {
+      val = getchuTools.dealTitle(val)
+    } else if (site == 'amazon_jp_book') {
+      // TODO
+    }
   } else {
-    val = dealItemText(getText($d as HTMLElement),infoConfig.category, keyWords)
+    val = dealItemText(val, infoConfig.category, keyWords)
   }
   if (val) {
     return {
@@ -76,21 +83,8 @@ export function getWikiItem(infoConfig: InfoConfig): SingleInfo | void {
 }
 
 
-export function getQueryInfo(items: SingleInfo[]) : Subject {
-  let info = {} as Subject;
-  items.forEach((item) => {
-    if (item.category === 'subject_title') {
-      info.name = item.value;
-    }
-    if (item.category === 'date') {
-      info.releaseDate = item.value;
-    }
-  });
-  return info;
-}
-
-export function getQueryBookInfo(items: SingleInfo[]): BookSubject {
-  let info = {} as BookSubject;
+export function getQueryInfo(items: SingleInfo[]) : any {
+  let info: any = {};
   items.forEach((item) => {
     if (item.category === 'subject_title') {
       info.name = item.value;
@@ -137,3 +131,6 @@ export function insertControlBtn(
   });
 }
 
+
+export function dealInfoList() {
+}

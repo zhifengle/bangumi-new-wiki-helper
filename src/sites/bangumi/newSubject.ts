@@ -73,12 +73,12 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
   for (let i = 0, len = infos.length; i < len; i++) {
     if (infos[i].category === 'subject_title') {
       let $title = $q('input[name=subject_title]') as HTMLInputElement;
-      $title.value = infos[i].value;
+      $title.value = (infos[i].value || '').trim();
       continue;
     }
     if (infos[i].category === 'subject_summary') {
       let $summary = $q('#subject_summary') as HTMLInputElement;
-      $summary.value = infos[i].value;
+      $summary.value = (infos[i].value || '').trim();
       continue;
     }
     // 有名称并且category不在制定列表里面

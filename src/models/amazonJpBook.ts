@@ -4,6 +4,16 @@ export const amazonSubjectModel: SiteConfig = {
   key: 'amazon_jp_book',
   description: '日亚图书',
   type: SubjectTypeId.book,
+  pageSelector: [
+    {
+      selector: '#nav-subnav .nav-a:first-child',
+      subSelector: '.nav-a-content',
+      keyWord: '本'
+    }
+  ],
+  controlSelector: {
+    selector: '#title',
+  },
   // subType: {
   //   selector: '#detail_bullets_id .bucket .content',
   //   subSelector: 'li',
@@ -92,9 +102,14 @@ amazonSubjectModel.itemList.push(
   },
   {
     name: '价格',
-    selector: {
-      selector: '.swatchElement.selected .a-color-base'
-    }
+    selector: [
+      {
+        selector: '.swatchElement.selected .a-color-base .a-size-base'
+      },
+      {
+        selector: '.swatchElement.selected .a-color-base'
+      }
+    ]
   },
   {
     name: '内容简介',
