@@ -17,26 +17,37 @@ interface Config {
   autoFill?: boolean
 }
 
-let E_CONFIG: Config = {};
+let E_USER_CONFIG: Config = {};
 
 async function handleMessage(request: any) {
   const { payload = {} } = request;
+  const activeOpen = E_USER_CONFIG.activeOpen;
+  let bgmHost = E_USER_CONFIG.domain as string;
+  if (E_USER_CONFIG.useHttps) {
+    bgmHost = `https://${bgmHost}`
+  } else {
+    bgmHost = `http://${bgmHost}`
+  }
   switch (request.action) {
     case 'check_subject_exist':
       try {
         if (payload.subjectInfo) {
-          const result = await checkBookSubjectExist(payload.subjectInfo, payload.type)
+          const result = await checkBookSubjectExist(
+            payload.subjectInfo,
+            bgmHost,
+            payload.type
+          )
           console.info('search results: ', result)
           if (result && result.url) {
             await browser.tabs.create({
-              url: changeDomain(result.url, E_CONFIG.domain),
-              active: E_CONFIG.activeOpen
+              url: bgmHost+result.url,
+              active: activeOpen
             });
           } else {
-            createNewSubjectTab(payload.type, E_CONFIG.domain, E_CONFIG.activeOpen)
+            createNewSubjectTab(payload.type, bgmHost, activeOpen)
           }
         } else {
-          createNewSubjectTab(payload.type, E_CONFIG.domain, E_CONFIG.activeOpen)
+          createNewSubjectTab(payload.type, bgmHost, activeOpen)
         }
       } catch (e) {
         /* handle error */
@@ -44,17 +55,16 @@ async function handleMessage(request: any) {
       }
       break;
     case 'create_new_subject':
-      createNewSubjectTab(payload.type, E_CONFIG.domain, E_CONFIG.activeOpen)
+      createNewSubjectTab(payload.type, bgmHost, activeOpen)
       break;
     default:
   }
 }
 function createNewSubjectTab(
   type: SubjectTypeId,
-  domain: BangumiDomain,
+  bgmHost: string,
   active: boolean) {
-  let url =  `https://bgm.tv/new_subject/${type}`;
-  url = changeDomain(url, domain);
+  let url =  `${bgmHost}/new_subject/${type}`;
   browser.tabs.create({
     url,
     active
@@ -78,16 +88,15 @@ async function init() {
       }
     });
   } else {
-    E_CONFIG = obj.config;
+    E_USER_CONFIG = obj.config;
   }
 
   browser.runtime.onMessage.addListener(handleMessage);
   // 监听配置修改的变化
   browser.storage.onChanged.addListener(async function(changes: any) {
-    console.log('changes: ', changes)
     if (changes.config) {
-      E_CONFIG = (await browser.storage.local.get()).config;
-      console.log('E_CONFIG: ', E_CONFIG)
+      E_USER_CONFIG = (await browser.storage.local.get()).config;
+      console.log('E_CONFIG: ', E_USER_CONFIG)
     }
   });
 }

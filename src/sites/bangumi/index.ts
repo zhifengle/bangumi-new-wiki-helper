@@ -12,9 +12,6 @@ import {fetchText} from "../../utils/fetchData";
 import {SubjectTypeId} from "../../interface/wiki";
 import {dealDate} from "../../utils/utils";
 
-const domain = 'bgm.tv';
-const protocol = 'https:'
-
 enum SubjectTypeEnum {
   GAME = "game",
   ANIME = "anime",
@@ -56,7 +53,8 @@ function dealSearchResults(info: string): [SearchResult[], number] | [] {
       let $subjectTitle = item.querySelector('h3>a.l');
       let itemSubject: SearchResult = {
         name: $subjectTitle.textContent.trim(),
-        url: `${protocol}//${domain}` + $subjectTitle.getAttribute('href'),
+        // url 没有协议和域名
+        url: $subjectTitle.getAttribute('href'),
         greyName: item.querySelector('h3>.grey') ?
           item.querySelector('h3>.grey').textContent.trim() : '',
       };
@@ -129,6 +127,7 @@ function filterResults(items: SearchResult[], subjectInfo: AllSubject, opts: any
  */
 export async function searchSubject(
   subjectInfo: AllSubject,
+  bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId = SubjectTypeId.all,
   uniqueQueryStr: string = '') {
   let releaseDate: string
@@ -146,7 +145,7 @@ export async function searchSubject(
     console.info('Query string is empty');
     return [];
   }
-  const url = `${protocol}//${domain}/subject_search/${encodeURIComponent(query)}?cat=${type}`;
+  const url = `${bgmHost}/subject_search/${encodeURIComponent(query)}?cat=${type}`;
   console.info('search bangumi subject URL: ', url);
   const rawText = await fetchText(url);
   const rawInfoList = dealSearchResults(rawText)[0] || []
@@ -172,6 +171,7 @@ export async function searchSubject(
 export async function findSubjectByDate(
   subjectInfo: Subject,
   pageNumber: number = 1,
+  bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeEnum = SubjectTypeEnum.GAME
 ) : Promise<SearchResult> {
   if (!subjectInfo || !subjectInfo.releaseDate || !subjectInfo.name) {
@@ -188,7 +188,7 @@ export async function findSubjectByDate(
   } else if (page) {
     query = '?' + page;
   }
-  const url = `${protocol}//${domain}/${type}/browser/airtime/${releaseDate.getFullYear()}-${releaseDate.getMonth() + 1}${query}`;
+  const url = `${bgmHost}/${type}/browser/airtime/${releaseDate.getFullYear()}-${releaseDate.getMonth() + 1}${query}`;
   console.info('find subject by date: ', url)
   const rawText = await fetchText(url)
   let [rawInfoList, numOfPage] = dealSearchResults(rawText);
@@ -212,20 +212,21 @@ export async function findSubjectByDate(
 
 export async function checkBookSubjectExist(
   subjectInfo: BookSubject,
+  bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId
 ) {
-  let searchResult = await searchSubject(subjectInfo, type, subjectInfo.isbn)
+  let searchResult = await searchSubject(subjectInfo, bgmHost, type, subjectInfo.isbn)
   console.info(`First: search result of bangumi: `, searchResult);
   if (searchResult && searchResult.url) {
     return searchResult;
   }
-  searchResult = await searchSubject(subjectInfo, type, subjectInfo.asin);
+  searchResult = await searchSubject(subjectInfo, bgmHost, type, subjectInfo.asin);
   console.info('Second: search result of bangumi: ', searchResult);
   if (searchResult && searchResult.url) {
     return searchResult;
   }
   // 默认使用名称搜索
-  searchResult = await searchSubject(subjectInfo, type);
+  searchResult = await searchSubject(subjectInfo, bgmHost, type);
   console.info('Third: search result of bangumi: ', searchResult);
   return searchResult;
 }

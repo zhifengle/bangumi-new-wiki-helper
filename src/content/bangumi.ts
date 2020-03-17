@@ -1,8 +1,6 @@
 // @ts-ignore
 import browser from 'webextension-polyfill';
-import {$q, $qa} from "../utils/domUtils";
-import {book as book2} from "../data/subject";
-import {SubjectWikiInfo} from "../interface/subject";
+import {$q} from "../utils/domUtils";
 import {initNewSubject} from "../sites/bangumi/newSubject";
 
 
@@ -17,9 +15,10 @@ const bangumi = {
         if (r && r.wikiData) {
           initNewSubject(r.wikiData)
           setTimeout(() => {
-            console.log('auto click')
-            // @ts-ignore
-            $q('.e-wiki-fill-form').click()
+            if (r.config.autoFill) {
+              // @ts-ignore
+              $q('.e-wiki-fill-form').click()
+            }
           }, 200)
         }
         break
