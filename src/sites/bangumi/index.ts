@@ -231,6 +231,31 @@ export async function checkBookSubjectExist(
   return searchResult;
 }
 
+export async function checkSubjectExit(
+  subjectInfo: AllSubject,
+  bgmHost: string = 'https://bgm.tv',
+  type: SubjectTypeId
+) {
+  let result;
+  switch (type) {
+    case SubjectTypeId.book:
+      result = await checkBookSubjectExist(
+        subjectInfo as BookSubject,
+        bgmHost,
+        type
+      )
+      break;
+    case SubjectTypeId.game:
+      break;
+    case SubjectTypeId.anime:
+    case SubjectTypeId.real:
+    case SubjectTypeId.music:
+    default:
+      console.info('not support type: ', type)
+  }
+  return result;
+}
+
 export function changeDomain(
   originUrl: string,
   domain: BangumiDomain,
