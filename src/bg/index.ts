@@ -14,6 +14,7 @@ interface Config {
   domain?: BangumiDomain
   activeOpen?: boolean
   useHttps?: boolean
+  autoFill?: boolean
 }
 
 let E_CONFIG: Config = {};
@@ -61,7 +62,7 @@ function createNewSubjectTab(
 }
 
 async function init() {
-// 初始化设置
+  // 初始化设置
   const obj = await browser.storage.local.get();
   if (obj && !obj.version || obj.version !== VERSION) {
     // await browser.storage.local.clear();
@@ -71,8 +72,9 @@ async function init() {
         // searchSubject: false,
         // newSubjectType: 1,
         domain: 'bgm.tv',
-        activeOpen: true,
+        activeOpen: false,
         useHttps: true,
+        autoFill: false
       }
     });
   } else {

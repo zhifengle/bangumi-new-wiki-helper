@@ -1,0 +1,206 @@
+/* reset */
+html,
+body {
+  border: 0;
+  font-family: 'Helvetica Neue', Helvetica, Tahoma, Arial, sans-serif;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+div,
+span,
+object,
+iframe,
+img,
+table,
+caption,
+thead,
+tbody,
+tfoot,
+tr,
+tr,
+td,
+article,
+aside,
+canvas,
+details,
+figure,
+hgroup,
+menu,
+nav,
+footer,
+header,
+section,
+summary,
+mark,
+audio,
+video {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+address,
+cit,
+code,
+del,
+dfn,
+em,
+ins,
+q,
+samp,
+small,
+strong,
+sub,
+sup,
+b,
+i,
+hr,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+legend,
+label {
+  border: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  margin: 0;
+  padding: 0;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: normal;
+}
+article,
+aside,
+canvas,
+figure,
+figure img,
+figcaption,
+hgroup,
+footer,
+header,
+nav,
+section,
+audio,
+video {
+  display: block;
+}
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+table caption,
+table th,
+table td {
+  text-align: left;
+  vertical-align: middle;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+a img {
+  border: 0;
+}
+ul,
+ol {
+  list-style: none;
+}
+:focus {
+  outline: 0;
+}
+input[type="search"] {
+  -webkit-appearance: none;
+}
+
+/* popup css */
+body {
+  min-width: 300px;
+  padding: 1em;
+}
+h1,
+h2 {
+  font-size: 24px;
+}
+.setting-container {
+  border-radius: 4px;
+  border: 1px solid hsl(120, 100%, 80%);
+  padding: 8px 10px;
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+.setting-container > ul .config-item {
+  font-size: 16px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.setting-container > ul .config-item input[type='button'] {
+  width: 46%;
+  cursor: pointer;
+  text-align: center;
+  /* border-radius: 3px; */
+}
+.setting-container > ul .config-item.check-item > label {
+  width: 100%;
+  display: flex;
+  cursor: pointer;
+  justify-content: space-between;
+  align-items: center;
+}
+.setting-container input[type='checkbox'] {
+  display: none;
+}
+.setting-container .checkbox-circle {
+  display: inline-block;
+  /* opacity: 0; */
+  /* vertical-align: -3*@width; */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  position: relative;
+  background-color: #ccc;
+}
+.setting-container .checkbox-circle:after {
+  content: '';
+  width: 10px;
+  height: 5px;
+  position: absolute;
+  top: 5px;
+  left: 4px;
+  border: 1.66666667px solid #fff;
+  border-top: none;
+  border-right: none;
+  background: transparent;
+  -moz-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+.setting-container input[type='checkbox']:checked + label .checkbox-circle {
+  opacity: 1;
+  background-color: #3c92fe;
+}
+.setting-container .checkbox-circle.checked {
+  background-color: #3c92fe;
+}

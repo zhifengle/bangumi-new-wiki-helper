@@ -169,12 +169,11 @@ export async function searchSubject(
  * @param pageNumber
  * @param type
  */
-// @ts-ignore
 export async function findSubjectByDate(
   subjectInfo: Subject,
   pageNumber: number = 1,
   type: SubjectTypeEnum = SubjectTypeEnum.GAME
-) {
+) : Promise<SearchResult> {
   if (!subjectInfo || !subjectInfo.releaseDate || !subjectInfo.name) {
     throw new Error('invalid subject info');
   }
@@ -220,13 +219,13 @@ export async function checkBookSubjectExist(
   if (searchResult && searchResult.url) {
     return searchResult;
   }
-  searchResult = await searchResult(subjectInfo, type, subjectInfo.asin);
+  searchResult = await searchSubject(subjectInfo, type, subjectInfo.asin);
   console.info('Second: search result of bangumi: ', searchResult);
   if (searchResult && searchResult.url) {
     return searchResult;
   }
   // 默认使用名称搜索
-  searchResult = await searchResult(subjectInfo, type);
+  searchResult = await searchSubject(subjectInfo, type);
   console.info('Third: search result of bangumi: ', searchResult);
   return searchResult;
 }
