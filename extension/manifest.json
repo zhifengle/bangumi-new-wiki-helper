@@ -18,7 +18,7 @@
     "96": "images/Watermelon-96.png"
   },
   "background": {
-    "scripts": ["dist/background.js"]
+    "scripts": ["lib/fuse.js","dist/background.js"]
   },
   "content_scripts": [
     {
@@ -34,10 +34,8 @@
   ],
   "permissions": [
     "tabs",
-    "notifications",
     "storage",
     "webRequest",
-    "<all_urls>",
-    "contextMenus"
+    "<all_urls>"
   ]
 }
