@@ -10,7 +10,7 @@
       "48": "images/Watermelon-48.png",
       "96": "images/Watermelon-96.png"
     },
-    "default_title": "Setting",
+    "default_title": "设置",
     "default_popup": "popup.html"
   },
   "icons": {

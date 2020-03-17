@@ -4,13 +4,6 @@ import {fetchText} from "../../utils/fetchData";
 import {SubjectTypeId} from "../../interface/wiki";
 import {dealDate, isEqualDate} from "../../utils/utils";
 
-enum SubjectTypeEnum {
-  GAME = "game",
-  ANIME = "anime",
-  MUSIC = "music",
-  BOOK = "book",
-  REAL = "real"
-}
 const subjectTypeDict = {
   [SubjectTypeId.game]: 'game',
   [SubjectTypeId.anime]: "anime",
@@ -174,9 +167,9 @@ export async function searchSubject(
 
 /**
  * 通过时间查找条目
- * @param subjectInfo
- * @param pageNumber
- * @param type
+ * @param subjectInfo 条目信息
+ * @param pageNumber 页码
+ * @param type 条目类型
  */
 export async function findSubjectByDate(
   subjectInfo: AllSubject,
@@ -241,6 +234,12 @@ export async function checkBookSubjectExist(
   return searchResult;
 }
 
+/**
+ * 查找条目是否存在： 通过名称搜索或者日期加上名称的过滤查询
+ * @param subjectInfo 条目基本信息
+ * @param bgmHost bangumi 域名
+ * @param type 条目类型
+ */
 async function checkExist(
   subjectInfo: AllSubject,
   bgmHost: string = 'https://bgm.tv',

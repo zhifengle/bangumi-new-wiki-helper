@@ -34,7 +34,7 @@ export function dealItemText(
     .trim();
 }
 
-export function getWikiItem(infoConfig: InfoConfig, site: string): SingleInfo | void {
+export function getWikiItem(infoConfig: InfoConfig, site: string = ''): SingleInfo | void {
   const sl = infoConfig.selector
   let $d: Element;
   let targetSelector: Selector

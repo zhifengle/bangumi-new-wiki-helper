@@ -1,5 +1,6 @@
 import {SiteConfig, SubjectTypeId} from "../interface/wiki";
 
+// TODO: 区分 kindle 页面和 纸质书页面
 export const amazonSubjectModel: SiteConfig = {
   key: 'amazon_jp_book',
   description: '日亚图书',
@@ -14,12 +15,6 @@ export const amazonSubjectModel: SiteConfig = {
   controlSelector: {
     selector: '#title',
   },
-  // subType: {
-  //   selector: '#detail_bullets_id .bucket .content',
-  //   subSelector: 'li',
-  //   separator: ':',
-  //   keyWord: 'ページ'
-  // },
   itemList: []
 }
 amazonSubjectModel.itemList.push(

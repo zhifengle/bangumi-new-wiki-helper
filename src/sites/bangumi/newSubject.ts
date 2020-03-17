@@ -94,6 +94,12 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
   $newbieMode.click();
 }
 
+/**
+ * 插入控制填表的按钮
+ * @param $t 插入按钮的父元素
+ * @param cb 填表回调
+ * @param cancelCb 清空表单回调
+ */
 export function insertFillFormBtn(
   $t: Element,
   cb: (...args: any) => any,
