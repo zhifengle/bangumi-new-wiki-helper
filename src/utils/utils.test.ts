@@ -1,4 +1,4 @@
-import {genRandomStr} from "./utils";
+import {dealDate, genRandomStr} from "./utils";
 
 describe('test utils', () => {
   it('test the length of return value', () => {
@@ -6,5 +6,11 @@ describe('test utils', () => {
   })
   it('return value', () => {
     expect(genRandomStr(5)).toMatch(/^[a-zA-Z0-9]{5}$/)
+  })
+  test('deal date', () => {
+    expect(dealDate('2019年2月19')).toEqual('2019-02-19')
+    expect(dealDate('2019年12月')).toEqual('2019-12')
+    expect(dealDate('2019/2/19')).toEqual('2019-02-19')
+    expect(dealDate('2019/2')).toEqual('2019-02')
   })
 })
