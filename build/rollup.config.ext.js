@@ -1,29 +1,39 @@
-import {resolve} from 'path'
+import {resolve as pathResolve} from 'path'
+import resolve from '@rollup/plugin-node-resolve';
 import base from './rollup.config.base'
+import commonjs from "@rollup/plugin-commonjs";
+import typescript from "rollup-plugin-typescript2";
 
 const bangumi = {
-  input: resolve(__dirname, '../src/content/bangumi.ts'),
+  input: pathResolve(__dirname, '../src/content/bangumi.ts'),
   output: {
-    file: resolve(__dirname, '../extension/dist/bangumi.js')
-  }
+    file: pathResolve(__dirname, '../extension/dist/bangumi.js')
+  },
+  plugins: [
+    resolve(),
+    commonjs(),
+    typescript({
+      exclude: ['./dist', './src/**/*.test.ts'],
+    }),
+  ],
 }
 const bg = {
-  input: resolve(__dirname, '../src/bg/index.ts'),
+  input: pathResolve(__dirname, '../src/bg/index.ts'),
   output: {
-    file: resolve(__dirname, '../extension/dist/background.js')
+    file: pathResolve(__dirname, '../extension/dist/background.js')
   }
 }
 const popup = {
-  input: resolve(__dirname, '../src/popup.ts'),
+  input: pathResolve(__dirname, '../src/popup.ts'),
   output: {
-    file: resolve(__dirname, '../extension/dist/popup.js')
+    file: pathResolve(__dirname, '../extension/dist/popup.js')
   }
 }
 const config = [
   {
-    input: resolve(__dirname, '../src/content/index.ts'),
+    input: pathResolve(__dirname, '../src/content/index.ts'),
     output: {
-      file: resolve(__dirname, '../extension/dist/content.js')
+      file: pathResolve(__dirname, '../extension/dist/content.js')
     }
   }
 ]
@@ -37,10 +47,10 @@ export default [
     ...base,
     ...bg,
   },
-  // {
-  //   ...base,
-  //   ...popup,
-  // },
+  {
+    ...base,
+    ...popup,
+  },
   ...config.map(obj => ({...base, ...obj}))
 ]
 

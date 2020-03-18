@@ -1,7 +1,7 @@
 // @ts-ignore
 import browser from 'webextension-polyfill';
 import {$q} from "../utils/domUtils";
-import {initNewSubject} from "../sites/bangumi/newSubject";
+import {initNewSubject, initUploadImg} from "../sites/bangumi/newSubject";
 
 
 const bangumi = {
@@ -9,9 +9,9 @@ const bangumi = {
     const re = new RegExp(['new_subject', 'add_related', 'character\/new', 'upload_img'].join('|'));
     const page = document.location.href.match(re);
     if (!page) return;
+    const r = await browser.storage.local.get(['config', 'wikiData'])
     switch (page[0]) {
       case 'new_subject':
-        const r = await browser.storage.local.get(['config', 'wikiData'])
         if (r && r.wikiData) {
           initNewSubject(r.wikiData)
           setTimeout(() => {
@@ -29,6 +29,9 @@ const bangumi = {
         // this.newCharacter();
         break;
       case 'upload_img':
+        if (r && r.wikiData) {
+          initUploadImg(r.wikiData)
+        }
         break;
     }
   }

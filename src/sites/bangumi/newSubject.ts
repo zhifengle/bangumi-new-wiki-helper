@@ -2,6 +2,7 @@ import {SingleInfo, SubjectWikiInfo} from "../../interface/subject";
 import {$q, $qa} from "../../utils/domUtils";
 import {sleep} from "../../utils/async/sleep";
 import {dealDate} from "../../utils/utils";
+import {dealImageWidget} from "./dealImageWidget";
 
 /**
  * 转换 wiki 模式下 infobox 内容
@@ -144,4 +145,11 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       $q('#subject_summary').value = '';
     }
   )
+}
+
+export function initUploadImg(wikiInfo: SubjectWikiInfo) {
+  const coverInfo = wikiInfo.infos.filter((item: SingleInfo) => item.category === 'cover')[0]
+  if (coverInfo && coverInfo.value && coverInfo.value.dataUrl) {
+    dealImageWidget($q('form[name=img_upload]'), coverInfo.value.dataUrl)
+  }
 }

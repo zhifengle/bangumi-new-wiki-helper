@@ -1,8 +1,7 @@
 // @ts-ignore
 import browser from 'webextension-polyfill';
-// import {amazon} from "./amazon";
 import {SiteConfig} from "../interface/wiki";
-import {$q, findElement} from "../utils/domUtils";
+import {findElement} from "../utils/domUtils";
 import {
   getQueryInfo,
   getWikiItem,
@@ -12,6 +11,10 @@ import {SingleInfo, SubjectWikiInfo} from "../interface/subject";
 import {amazonSubjectModel} from "../models/amazonJpBook";
 import {getchuGameModel} from "../models/getchuGame";
 
+const getData = async (list: Promise<any>[]) => {
+  return await Promise.all(list)
+}
+
 async function initCommon(siteConfig: SiteConfig, site: string, subtype = 0) {
   // 查找标志性的元素
   const $page = findElement(siteConfig.pageSelectors);
@@ -20,9 +23,9 @@ async function initCommon(siteConfig: SiteConfig, site: string, subtype = 0) {
   if (!$title) return;
   insertControlBtn($title.parentElement, async (e, flag) => {
     console.info('init')
-    const infoList: (SingleInfo | void)[] = siteConfig.itemList
-      .map(item => getWikiItem(item, site))
-      .filter(i => i)
+    // getWikiItem promise
+    const rawList = await getData(siteConfig.itemList.map(item => getWikiItem(item, site)));
+    const infoList: (SingleInfo | void)[] = rawList.filter(i => i)
     console.info('wiki info list: ', infoList)
     const wikiData: SubjectWikiInfo = {
       type: siteConfig.type,

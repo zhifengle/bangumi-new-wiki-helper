@@ -1,3 +1,4 @@
+import * as StackBlur from 'stackblur-canvas';
 import {getImageDataByURL} from '../../utils/dealImage';
 import {sendFormImg} from '../../utils/ajax';
 import {fetchText} from '../../utils/fetchData';
@@ -21,7 +22,7 @@ function getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent): Pos {
  * @param width blur rect width
  * @param radius blur rect height
  */
-function blur(el: HTMLCanvasElement, width: number, radius: number) {
+function blur(el: HTMLCanvasElement) {
   let isDrawing = false
   let ctx = el.getContext('2d')
 
@@ -30,11 +31,15 @@ function blur(el: HTMLCanvasElement, width: number, radius: number) {
     const pos = getMousePos(el, e)
     ctx.moveTo(pos.x, pos.y)
   }
+  const $width: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-width');
+  const $radius: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-radius');
   el.onmousemove = function (e: MouseEvent) {
     if (isDrawing) {
       const pos = getMousePos(el, e)
+      const width = +$width.value;
+      const radius = +$radius.value;
       // stack blur operation
-      // StackBlur.canvasRGBA(el, pos.x - width / 2, pos.y - width / 2, width, width, radius);
+      StackBlur.canvasRGBA(el, pos.x - width / 2, pos.y - width / 2, width, width, radius);
     }
   }
   el.onmouseup = function () {
@@ -139,12 +144,10 @@ export async function dealImageWidget($form: HTMLFormElement, base64Data: string
   }
   const $file: HTMLInputElement = $form.querySelector('input[type = file]');
   previewFileImage($file, $canvas, $img);
-
-  const $width: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-width');
-  const $radius: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-radius');
-  blur($canvas, +$width.value, +$radius.value);
+  blur($canvas);
   document.querySelector('#e-wiki-cover-reset').addEventListener('click', (e) => {
-    const $fillForm = document.querySelector('.fill-form');
+    // wiki 填表按钮
+    const $fillForm = document.querySelector('.e-wiki-fill-form');
     if (base64Data) {
       $img.dispatchEvent(new Event('load'));
     } else if ($file && $file.files[0]) {

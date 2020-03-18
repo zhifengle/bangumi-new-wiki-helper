@@ -4,7 +4,7 @@ import {
   SingleInfo
 } from "../interface/subject";
 import {getchuTools} from "./getchu";
-import {dealDate} from "../utils/utils";
+import {getImageDataByURL} from "../utils/dealImage";
 
 /**
  * 处理单项 wiki 信息
@@ -18,7 +18,7 @@ export function dealItemText(
   keyWords: string[] = []
 ): string {
   const separators = [':', '：']
-  if (['subject_summary', 'subject_title'].indexOf(category) !== -1) {
+  if (['subject_summary'].indexOf(category) !== -1) {
     return str;
   }
   // TODO: game book title
@@ -34,7 +34,9 @@ export function dealItemText(
     .trim();
 }
 
-export function getWikiItem(infoConfig: InfoConfig, site: string = ''): SingleInfo | void {
+export async function getWikiItem(
+  infoConfig: InfoConfig, site: string = ''
+){
   const sl = infoConfig.selector
   let $d: Element;
   let targetSelector: Selector
@@ -56,22 +58,27 @@ export function getWikiItem(infoConfig: InfoConfig, site: string = ''): SingleIn
     keyWords = [targetSelector.keyWord]
   }
   let val: any;
-  if ('cover' === infoConfig.category) {
-    val = {
-      url: $d.getAttribute('src'),
-      height: $d.clientHeight,
-      width: $d.clientWidth,
-    }
-  }
-  val = getText($d as HTMLElement)
-  if ('subject_title' === infoConfig.category) {
-    if (site === 'getchu_game') {
-      val = getchuTools.dealTitle(val)
-    } else if (site == 'amazon_jp_book') {
-      // TODO
-    }
-  } else {
-    val = dealItemText(val, infoConfig.category, keyWords)
+  const txt = getText($d as HTMLElement);
+  switch (infoConfig.category) {
+    case 'cover':
+      const url = $d.getAttribute('src');
+      val = {
+        url: $d.getAttribute('src'),
+        dataUrl: await getImageDataByURL(url),
+        height: $d.clientHeight,
+        width: $d.clientWidth,
+      }
+      break;
+    case 'subject_title':
+      if (site === 'getchu_game') {
+        val = getchuTools.dealTitle(getText($d as HTMLElement))
+      } else if (site == 'amazon_jp_book') {
+        // TODO
+        val = dealItemText(txt, infoConfig.category, keyWords)
+      }
+      break;
+    default:
+      val = dealItemText(txt, infoConfig.category, keyWords)
   }
   if (val) {
     return {
