@@ -20,3 +20,5 @@
 // @require     https://cdn.staticfile.org/fuse.js/3.6.1/fuse.min.js
 // ==/UserScript==
 
+var __enable_header = '';  // 避免 header 被清除的 hack
+console.info(__enable_header)
