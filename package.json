@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:watch": "webpack -w --progress",
-    "build": "webpack",
+    "build": "web-ext build -s extension",
     "build:script": "rollup -c build/rollup.config.us.js",
     "build:ext": "rollup -c build/rollup.config.ext.js",
     "dev:ext": "rollup -w -c build/rollup.config.ext.js",
