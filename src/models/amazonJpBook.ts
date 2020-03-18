@@ -9,7 +9,12 @@ export const amazonSubjectModel: SiteConfig = {
     {
       selector: '#nav-subnav .nav-a:first-child',
       subSelector: '.nav-a-content',
-      keyWord: '本'
+      keyWord: '(?<!Kindle)本'
+    },
+    {
+      selector: '#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child',
+      subSelector: '.a-link-normal',
+      keyWord: '(?<!Kindle)本'
     }
   ],
   controlSelector: {
