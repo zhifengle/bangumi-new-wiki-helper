@@ -1,23 +1,28 @@
-import {getWikiItem} from "./sites/common";
-import {SingleInfo} from "./interface/subject";
+import {amazonSubjectModel} from "./models/amazonJpBook";
 import {getchuGameModel} from "./models/getchuGame";
 
 const init = () => {
-  console.log('init')
-  const infoList: (SingleInfo | void)[] = getchuGameModel.itemList.map(item => getWikiItem(item))
-  console.log('infoList: ', infoList)
-  const re = new RegExp(['getchu', 'bangumi', 'bgm', 'amazon'].join('|'));
+  const re = new RegExp([
+    'getchu.com',
+    'bangumi\\.tv', 'bgm\\.tv', 'chii\\.tv',
+    'amazon\\.co\\.jp'
+  ].join('|'));
   const page = document.location.host.match(re);
   if (page) {
     switch (page[0]) {
-      case 'amazon':
-        // amazon.init();
+      case 'amazon.co.jp':
+        // initCommon(amazonSubjectModel, 'amazon_jp_book');
         break;
-      case 'bangumi':
-      case 'bgm':
+      case 'getchu.com':
+        // initCommon(getchuGameModel, 'getchu_game');
+        break
+      case 'bangumi.tv':
+      case 'chii.tv':
+      case 'bgm.tv':
         // bangumi.init();
         break;
       default:
+      // bangumi.init();
     }
   }
 }

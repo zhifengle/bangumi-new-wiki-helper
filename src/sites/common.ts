@@ -58,7 +58,12 @@ export async function getWikiItem(
   const txt = getText($d as HTMLElement);
   switch (infoConfig.category) {
     case 'cover':
-      const url = $d.getAttribute('src');
+      let url;
+      if ($d.tagName.toLowerCase() === 'a') {
+        url = $d.getAttribute('href');
+      } else if ($d.tagName.toLowerCase() === 'img') {
+        url = $d.getAttribute('src');
+      }
       val = {
         url: $d.getAttribute('src'),
         dataUrl: await getImageDataByURL(url),
