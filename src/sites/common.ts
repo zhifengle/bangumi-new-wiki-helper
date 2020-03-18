@@ -5,6 +5,7 @@ import {
 } from "../interface/subject";
 import {getchuTools} from "./getchu";
 import {getImageDataByURL} from "../utils/dealImage";
+import {amazonTools} from "./amazon";
 
 /**
  * 处理单项 wiki 信息
@@ -18,12 +19,8 @@ export function dealItemText(
   keyWords: string[] = []
 ): string {
   const separators = [':', '：']
-  if (['subject_summary'].indexOf(category) !== -1) {
+  if (['subject_summary', 'subject_title'].indexOf(category) !== -1) {
     return str;
-  }
-  // TODO: game book title
-  if (category === 'subject_title') {
-    return str.replace(/(?:(\d+))(\)|）).*$/, '$1$2').trim();
   }
   const textList = ['\\(.*?\\)', '（.*?）']; // 去掉多余的括号信息
   // const keyStr = keyWords.sort((a, b) => b.length - a.length).join('|')
@@ -71,9 +68,10 @@ export async function getWikiItem(
       break;
     case 'subject_title':
       if (site === 'getchu_game') {
-        val = getchuTools.dealTitle(getText($d as HTMLElement))
+        val = getchuTools.dealTitle(txt)
       } else if (site == 'amazon_jp_book') {
-        // TODO
+        val = amazonTools.dealTitle(txt)
+      } else {
         val = dealItemText(txt, infoConfig.category, keyWords)
       }
       break;
