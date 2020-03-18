@@ -5,7 +5,7 @@ export const amazonSubjectModel: SiteConfig = {
   key: 'amazon_jp_book',
   description: '日亚图书',
   type: SubjectTypeId.book,
-  pageSelector: [
+  pageSelectors: [
     {
       selector: '#nav-subnav .nav-a:first-child',
       subSelector: '.nav-a-content',

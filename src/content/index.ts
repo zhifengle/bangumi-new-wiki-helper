@@ -14,7 +14,7 @@ import {getchuGameModel} from "../models/getchuGame";
 
 async function initCommon(siteConfig: SiteConfig, site: string, subtype = 0) {
   // 查找标志性的元素
-  const $page = findElement(siteConfig.pageSelector);
+  const $page = findElement(siteConfig.pageSelectors);
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;

@@ -9,7 +9,7 @@ export const getchuGameModel: SiteConfig = {
   key: 'getchu_game',
   description: 'Getchu游戏',
   type: SubjectTypeId.game,
-  pageSelector: [
+  pageSelectors: [
     {
       selector: '.genretab.current',
       subSelector: 'a',
