@@ -37,10 +37,10 @@ export default [
     ...base,
     ...bg,
   },
-  {
-    ...base,
-    ...popup,
-  },
+  // {
+  //   ...base,
+  //   ...popup,
+  // },
   ...config.map(obj => ({...base, ...obj}))
 ]
 

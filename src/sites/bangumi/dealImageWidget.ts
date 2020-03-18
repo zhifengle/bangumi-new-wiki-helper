@@ -1,6 +1,6 @@
-import {getImageDataByURL} from '../utils/dealImage';
-import {sendFormImg} from '../utils/ajax';
-import {fetchText} from '../utils/fetchData';
+import {getImageDataByURL} from '../../utils/dealImage';
+import {sendFormImg} from '../../utils/ajax';
+import {fetchText} from '../../utils/fetchData';
 
 interface Pos {
   x: number,
