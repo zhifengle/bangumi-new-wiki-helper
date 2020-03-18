@@ -60,6 +60,12 @@ Chrome: 由于没有发布账号，没法在Chrome 的 APP Store 里面发布。
 ## 截图
 ![popup screenshot](screenshots/popup.png "popup screenshot")
 
+![amazon-jp-book screenshot](screenshots/amazon-jp-book.png "amazon-jp-book screenshot")
+
+![fill form](screenshots/fill-form.gif "fill-form screenshot")
+
+![deal image](screenshots/deal-image.gif "deal-image screenshot")
+
 [web-ext]: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext
 
 ## Icons
