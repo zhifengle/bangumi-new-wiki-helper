@@ -12,17 +12,16 @@ interface FormItem {
  * @param $form
  * @param dataURL
  */
-export function sendFormImg($form: HTMLFormElement, dataURL: string)
-  : Promise<string> {
+export async function sendFormImg($form: HTMLFormElement, dataURL: string) {
   const info: FormItem[] = [];
   const $file: HTMLInputElement = $form.querySelector('input[type=file]');
   const inputFileName = $file.name ? $file.name : 'picfile';
   info.push({
     name: inputFileName,
     value: dataURItoBlob(dataURL),
-    filename: genRandomStr(5) + '.jpg'
+    filename: genRandomStr(5) + '.png'
   } as FormItem)
-  return sendForm($form, info)
+  return await sendForm($form, info);
 }
 
 /**
@@ -30,35 +29,37 @@ export function sendFormImg($form: HTMLFormElement, dataURL: string)
  * TODO: return type
  * @param $form
  * @param extraInfo
- * @param TIMEOUT
  */
 export function sendForm(
   $form: HTMLFormElement,
-  extraInfo: FormItem[] = [],
-  TIMEOUT = 3000
+  extraInfo: FormItem[] = []
 ): Promise<any> {
   return new Promise((resolve, reject) => {
     const fd = new FormData($form);
     extraInfo.forEach(item => {
       if (item.filename) {
-        fd.set(item.name, item.value as Blob | File, item.filename)
+        fd.set(item.name, item.value as Blob, item.filename)
+      } else {
+        fd.set(item.name, item.value as any)
       }
-      fd.set(item.name, item.value as any)
     })
+    const $submit = $form.querySelector('[name=submit]') as HTMLInputElement;
+    if ($submit && $submit.name && $submit.value) {
+      fd.set($submit.name, $submit.value)
+    }
     const xhr = new XMLHttpRequest();
     xhr.open($form.method.toLowerCase(), $form.action, true);
-    xhr.onreadystatechange = function () {
+    xhr.onload = function () {
       let _location;
-      if (xhr.readyState === 2 && xhr.status === 200) {
+      if (xhr.status === 200) {
         _location = xhr.responseURL;
         if (_location) {
           resolve(_location);
+        } else {
+          reject('no location');
         }
-        reject('no location');
       }
     };
-    xhr.timeout = TIMEOUT;
-    xhr.ontimeout = reject() as any;
     xhr.send(fd);
   });
 }

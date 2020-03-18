@@ -161,14 +161,28 @@ export async function dealImageWidget($form: HTMLFormElement, base64Data: string
     $inputBtn.addEventListener('click',async (e) => {
       e.preventDefault();
       if ($canvas.width > 8 && $canvas.height > 10) {
-        const url = await sendFormImg($form, $canvas.toDataURL('image/jpg', 1));
-        // TODO: loading
-        // location.assign(url);
+        const $el = e.target as HTMLElement;
+        $el.style.display = 'none';
+        const $loading = insertLoading($el);
+        try {
+          const url = await sendFormImg($form, $canvas.toDataURL('image/png', 1));
+          $el.style.display = '';
+          $loading.remove();
+          location.assign(url);
+        } catch (e) {
+          console.log('send form err: ', e)
+        }
       }
     }, false);
   } else {
     $inputBtn.value = '处理图片';
   }
+}
+function insertLoading($sibling: Element) : Element {
+  const $loading = document.createElement('div');
+  $loading.setAttribute('style', 'width: 208px; height: 13px; background-image: url("/img/loadingAnimation.gif");')
+  $sibling.parentElement.insertBefore($loading, $sibling)
+  return $loading
 }
 
 
@@ -185,8 +199,7 @@ export async function uploadImage(subjectId: string) {
   if (!$form) return;
 
   if ($canvas.width > 8 && $canvas.height > 10) {
-    const url = await sendFormImg($form, $canvas.toDataURL('image/jpg', 1));
-    // TODO: loading
-    // location.assign(url);
+    const url = await sendFormImg($form, $canvas.toDataURL('image/png', 1));
+    location.assign(url);
   }
 }
