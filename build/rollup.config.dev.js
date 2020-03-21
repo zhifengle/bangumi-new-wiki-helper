@@ -6,11 +6,12 @@ import base from './rollup.config.base'
 
 export default {
   ...base,
+  input: pathResolve(__dirname, '../src/test.ts'),
   output: {
     name: name.replace(/-/g, '_').toUpperCase(),
-    file: pathResolve(__dirname,`../dist/${name}.user.js`),
-    format: 'iife',
-    sourcemap: true
+    file: pathResolve(__dirname,`../dist/${name}.test.js`),
+    // format: 'iife',
+    // sourcemap: true
   },
   plugins: [
     ...base.plugins,

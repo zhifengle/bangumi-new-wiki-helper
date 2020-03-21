@@ -8,6 +8,7 @@
     "build:script": "rollup -c build/rollup.config.us.js",
     "build:ext": "rollup -c build/rollup.config.ext.js",
     "dev:ext": "rollup -w -c build/rollup.config.ext.js",
+    "dev:test": "rollup -c build/rollup.config.dev.js",
     "clean": "rimraf dist/ extension/dist",
     "start2": "web-ext run --firefox-profile=default -s extension/",
     "start": "node bin/run-fx.js",
