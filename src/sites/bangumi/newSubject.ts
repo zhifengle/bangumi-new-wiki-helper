@@ -17,15 +17,23 @@ export function convertInfoValue(originValue: string, infoArr: SingleInfo[])
     let isDefault = false;
     for (let i = 0, len = arr.length; i < len; i++) {
       //  |发行日期=  ---> 发行日期
-      let n = arr[i].replace(/\||=.*/g, '');
+      // [纯假名|] ---> 纯假名
+      const m = arr[i].match(/(?:\||\[)(.+?)(\||=)/)
+      if (!m || m.length < 2) continue;
+      const n = m[1];
       if (n === info.name) {
         let d = info.value;
         // 处理时间格式
         if (info.category === 'date') {
           d = dealDate(d);
         }
-        // 拼接： |发行日期=2020-01-01
-        arr[i] = arr[i].replace(/=[^{[]+/, '=') + d;
+        // 匹配到 [英文名|]
+        if (/\[.+\|\]/.test(arr[i])) {
+          arr[i] = arr[i].replace(']', '') + d + ']'
+        } else {
+          // 拼接： |发行日期=2020-01-01
+          arr[i] = arr[i].replace(/=[^{[]+/, '=') + d;
+        }
         isDefault = true;
         break;
       }
@@ -55,6 +63,10 @@ function observerNode($node: HTMLElement): Promise<any> {
  * @param wikiData
  */
 export async function fillInfoBox(wikiData: SubjectWikiInfo) {
+  const dict = {
+    '誕生日': '生日',
+    'スリーサイズ': 'BWH'
+  } as any;
   const {infos} = wikiData;
   const subType = +wikiData.subtype
   const infoArray: SingleInfo[] = [];
@@ -82,13 +94,31 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
       $summary.value = (infos[i].value || '').trim();
       continue;
     }
-    // 有名称并且category不在制定列表里面
-    if (infos[i].name && ['cover'].indexOf(infos[i].category) === -1) {
-      infoArray.push(infos[i]);
+    if (infos[i].category === 'crt_summary') {
+      let $t = $q('#crt_summary') as HTMLInputElement;
+      $t.value = (infos[i].value || '').trim();
+      continue;
+    }
+    if (infos[i].category === 'crt_name') {
+      let $t = $q('#crt_name') as HTMLInputElement;
+      $t.value = (infos[i].value || '').trim();
+      continue;
+    }
+    // 有名称并且category不在特定列表里面
+    if (infos[i].name && ['cover', 'crt_cover'].indexOf(infos[i].category) === -1) {
+      const name = infos[i].name;
+      if (dict.hasOwnProperty(name)) {
+        infoArray.push({
+          ...infos[i],
+          name: dict[name]
+        })
+      } else {
+        infoArray.push(infos[i]);
+      }
     }
   }
   $wikiMode.click();
-  await sleep(100)
+  await sleep(200)
   const $infoBox = $q('#subject_infobox') as HTMLTextAreaElement
   $infoBox.value = convertInfoValue($infoBox.value, infoArray);
   await sleep(200);
@@ -145,6 +175,32 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       $q('#subject_summary').value = '';
     }
   )
+}
+
+export function initNewCharacter(wikiInfo: SubjectWikiInfo) {
+  const $t = $q('form[name=new_character] #crt_name').parentElement
+  const defaultVal = ($q('#subject_infobox') as HTMLTextAreaElement).value;
+  insertFillFormBtn(
+    $t,
+    async (e) => {
+      await fillInfoBox(wikiInfo)
+    },
+    () => {
+      const $wikiMode = $q('table small a:nth-of-type(1)[href="javascript:void(0)"]') as HTMLElement;
+      $wikiMode.click();
+      // @ts-ignore
+      $q('#subject_infobox').value = defaultVal;
+      // @ts-ignore
+      $q('#columnInSubjectA #crt_name').value = '';
+      // @ts-ignore
+      $q('#crt_summary').value = '';
+    }
+  )
+  const coverInfo = wikiInfo.infos
+    .filter((item: SingleInfo) => item.category === 'crt_cover')[0]
+  if (coverInfo && coverInfo.value && coverInfo.value.match(/^data:image/)) {
+    dealImageWidget($q('form[name=new_character]'), coverInfo.value)
+  }
 }
 
 export function initUploadImg(wikiInfo: SubjectWikiInfo) {

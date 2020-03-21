@@ -142,5 +142,22 @@ export function insertControlBtn(
 }
 
 
-export function dealInfoList() {
+/**
+ * 插入新建角色控制的按钮
+ * @param $t 父节点
+ * @param cb 返回 Promise 的回调
+ */
+export function insertControlBtnChara(
+  $t: Element,
+  cb: (...args: any) => Promise<any>
+) {
+  if (!$t) return;
+  const $s = document.createElement("a");
+  $s.classList.add("e-wiki-new-character");
+  // $s.setAttribute('target', '_blank')
+  $s.innerHTML = "添加新虚拟角色";
+  $t.appendChild($s);
+  $s.addEventListener("click", async (e) => {
+    await cb(e)
+  });
 }

@@ -8,3 +8,4 @@ node_modules
 extension.crx
 extension.pem
 *-bk.test.ts
+web-ext-artifacts

@@ -10,6 +10,7 @@ import {
 import {SingleInfo, SubjectWikiInfo} from "../interface/subject";
 import {amazonSubjectModel} from "../models/amazonJpBook";
 import {getchuGameModel} from "../models/getchuGame";
+import {getchu} from "./getchu";
 
 const getData = async (list: Promise<any>[]) => {
   return await Promise.all(list)
@@ -68,6 +69,7 @@ const init = function () {
         break;
       case 'getchu.com':
         initCommon(getchuGameModel, 'getchu_game');
+        getchu.init(getchuGameModel);
         break
       case 'bangumi.tv':
       case 'chii.tv':

@@ -56,6 +56,12 @@ async function handleMessage(request: any) {
     case 'create_new_subject':
       createNewSubjectTab(payload.type, bgmHost, activeOpen)
       break;
+    case 'create_new_character':
+      browser.tabs.create({
+        url: `${bgmHost}/character/new`,
+        active: activeOpen
+      });
+      break;
     default:
   }
 }

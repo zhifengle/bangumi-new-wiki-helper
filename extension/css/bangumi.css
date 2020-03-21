@@ -1,5 +1,7 @@
 /* new subject */
-.e-wiki-new-character, .e-wiki-new-subject, .e-wiki-search-subject, .e-wiki-fill-form {
+.e-wiki-control-btn,
+.e-wiki-new-character,
+.e-wiki-new-subject, .e-wiki-search-subject, .e-wiki-fill-form {
   color: rgb(0, 180, 30) !important;
   margin-left: 4px !important;
 }

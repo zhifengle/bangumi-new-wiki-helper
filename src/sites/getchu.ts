@@ -10,8 +10,7 @@ export const getchuTools = {
   },
   getCharacterInfo($t: Element): SingleInfo[] {
     const charaData: SingleInfo[] = [];
-    const $name = $t;
-    // const $name = $t.previousElementSibling;
+    const $name = $t.previousElementSibling;
     let name
     if ($name.querySelector('charalist')) {
       const $charalist = $name.querySelector('charalist') as HTMLElement;
