@@ -44,7 +44,8 @@ const configArr = Object.keys(dict).map(key => {
   const r = {
     name: dict[key],
     selector: {
-      keyWord: key,
+      // 匹配关键字开头 2020/03/18
+      keyWord: '^'+key,
       ...commonSelector
     }
   } as InfoConfig
