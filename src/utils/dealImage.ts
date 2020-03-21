@@ -69,3 +69,17 @@ export function getImageDataByURL(url: string): Promise<string> {
     return blobToBase64(myBlob);
   });
 }
+
+/**
+ * convert to img Element to base64 string
+ * @param $img
+ */
+export function convertImgToBase64($img: HTMLImageElement) : string {
+  const canvas = document.createElement("canvas");
+  canvas.width = $img.width;
+  canvas.height = $img.height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage($img, 0, 0, $img.width, $img.height);
+  const dataURL = canvas.toDataURL("image/png");
+  return dataURL;
+}
