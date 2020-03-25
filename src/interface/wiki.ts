@@ -28,5 +28,6 @@ export interface SiteConfig {
   // 插入控制按钮位置的元素选择器
   controlSelector: Selector,
   type: SubjectTypeId,
+  subType?: number,
   itemList: InfoConfig[]
 }

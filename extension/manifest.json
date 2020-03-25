@@ -27,7 +27,12 @@
       "js": ["dist/bangumi.js"]
     },
     {
-      "matches": ["*://www.amazon.co.jp/*", "*://www.getchu.com/*"],
+      "matches": [
+        "*://www.amazon.co.jp/*",
+        "*://www.getchu.com/*",
+        "*://erogamescape.org/*",
+        "*://erogamescape.dyndns.org/*"
+      ],
       "css": ["css/bangumi.css"],
       "js": ["dist/content.js"]
     }

@@ -83,6 +83,9 @@ export async function getWikiItem(
         val = dealItemText(txt, infoConfig.category, keyWords)
       }
       break;
+    case 'website':
+      val = $d.getAttribute('href');
+      break
     default:
       val = dealItemText(txt, infoConfig.category, keyWords)
   }
