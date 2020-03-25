@@ -1,8 +1,9 @@
-import {AllSubject, BookSubject, SearchResult} from '../../interface/subject'
+import {AllSubject, BookSubject, SearchResult} from '../../interface/subject';
 import {sleep} from "../../utils/async/sleep";
 import {fetchText} from "../../utils/fetchData";
 import {SubjectTypeId} from "../../interface/wiki";
-import {dealDate, isEqualDate} from "../../utils/utils";
+import {dealDate} from "../../utils/utils";
+import {filterResults} from "../common";
 
 const subjectTypeDict = {
   [SubjectTypeId.game]: 'game',
@@ -11,7 +12,7 @@ const subjectTypeDict = {
   [SubjectTypeId.book]: "book",
   [SubjectTypeId.real]: "real",
   [SubjectTypeId.all]: "all",
-}
+};
 
 export enum BangumiDomain {
   chii = 'chii.in',
@@ -30,7 +31,7 @@ export enum Protocol {
  * @param info 字符串 html
  */
 function dealSearchResults(info: string): [SearchResult[], number] | [] {
-  const results: SearchResult[] = []
+  const results: SearchResult[] = [];
   let $doc = (new DOMParser()).parseFromString(info, "text/html");
   let items = $doc.querySelectorAll('#browserItemList>li>div.inner');
   // get number of page
@@ -76,49 +77,6 @@ function dealSearchResults(info: string): [SearchResult[], number] | [] {
   return [results, numOfPage];
 }
 
-/**
- * 过滤搜索结果： 通过名称以及日期
- * @param items
- * @param subjectInfo
- * @param opts
- */
-function filterResults(items: SearchResult[], subjectInfo: AllSubject, opts: any) {
-  if (!items) return;
-  // 只有一个结果时只比较日期
-  if (items.length === 1) {
-    const result = items[0]
-    if (isEqualDate(result.releaseDate, subjectInfo.releaseDate)) {
-      return result;
-    }
-  }
-  let results = new Fuse(items, Object.assign({
-    shouldSort: true,
-    threshold: 0.6,
-    location: 0,
-    distance: 100,
-    minMatchCharLength: 1,
-  }, opts))
-    .search(subjectInfo.name);
-  if (!results.length) return;
-  // 有参考的发布时间
-  if (subjectInfo.releaseDate) {
-    for (const result of results) {
-      if (result.releaseDate) {
-        if (isEqualDate(result.releaseDate, subjectInfo.releaseDate)) {
-          return result;
-        }
-      }
-    }
-  }
-  // 比较名称
-  const nameRe = new RegExp(subjectInfo.name.trim());
-  for (const result of results) {
-    if (nameRe.test(result.name) || nameRe.test(result.greyName)) {
-      return result;
-    }
-  }
-  return results[0];
-}
 
 /**
  * 搜索条目
@@ -131,7 +89,7 @@ export async function searchSubject(
   bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId = SubjectTypeId.all,
   uniqueQueryStr: string = '') {
-  let releaseDate: string
+  let releaseDate: string;
   if (subjectInfo && subjectInfo.releaseDate) {
     releaseDate = subjectInfo.releaseDate;
   }
@@ -151,7 +109,7 @@ export async function searchSubject(
   const url = `${bgmHost}/subject_search/${encodeURIComponent(query)}?cat=${type}`;
   console.info('search bangumi subject URL: ', url);
   const rawText = await fetchText(url);
-  const rawInfoList = dealSearchResults(rawText)[0] || []
+  const rawInfoList = dealSearchResults(rawText)[0] || [];
   // 使用指定搜索字符串如 ISBN 搜索时, 并且结果只有一条时，不再使用名称过滤
   if (uniqueQueryStr && rawInfoList && rawInfoList.length === 1) {
     return rawInfoList[0];
@@ -176,7 +134,7 @@ export async function findSubjectByDate(
   bgmHost: string = 'https://bgm.tv',
   pageNumber: number = 1,
   type: string
-) : Promise<SearchResult> {
+): Promise<SearchResult> {
   if (!subjectInfo || !subjectInfo.releaseDate || !subjectInfo.name) {
     throw new Error('invalid subject info');
   }
@@ -192,8 +150,8 @@ export async function findSubjectByDate(
     query = '?' + page;
   }
   const url = `${bgmHost}/${type}/browser/airtime/${releaseDate.getFullYear()}-${releaseDate.getMonth() + 1}${query}`;
-  console.info('find subject by date: ', url)
-  const rawText = await fetchText(url)
+  console.info('find subject by date: ', url);
+  const rawText = await fetchText(url);
   let [rawInfoList, numOfPage] = dealSearchResults(rawText);
   const options = {
     keys: [
@@ -204,8 +162,8 @@ export async function findSubjectByDate(
   let result = filterResults(rawInfoList, subjectInfo, options);
   if (!result) {
     if (pageNumber < numOfPage) {
-      await sleep(300)
-      return await findSubjectByDate( subjectInfo, bgmHost, pageNumber + 1, type)
+      await sleep(300);
+      return await findSubjectByDate(subjectInfo, bgmHost, pageNumber + 1, type);
     } else {
       throw 'notmatched';
     }
@@ -218,7 +176,7 @@ export async function checkBookSubjectExist(
   bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId
 ) {
-  let searchResult = await searchSubject(subjectInfo, bgmHost, type, subjectInfo.isbn)
+  let searchResult = await searchSubject(subjectInfo, bgmHost, type, subjectInfo.isbn);
   console.info(`First: search result of bangumi: `, searchResult);
   if (searchResult && searchResult.url) {
     return searchResult;
@@ -245,14 +203,14 @@ async function checkExist(
   bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId
 ) {
-  let searchResult = await searchSubject(subjectInfo, bgmHost, type)
+  let searchResult = await searchSubject(subjectInfo, bgmHost, type);
   console.info(`First: search result of bangumi: `, searchResult);
   if (searchResult && searchResult.url) {
     return searchResult;
   }
   searchResult = await findSubjectByDate(
     subjectInfo, bgmHost, 1, subjectTypeDict[type]
-  )
+  );
   console.info(`Second: search result by date: `, searchResult);
   return searchResult;
 }
@@ -269,16 +227,16 @@ export async function checkSubjectExit(
         subjectInfo as BookSubject,
         bgmHost,
         type
-      )
+      );
       break;
     case SubjectTypeId.game:
-      result = await checkExist(subjectInfo, bgmHost, type)
+      result = await checkExist(subjectInfo, bgmHost, type);
       break;
     case SubjectTypeId.anime:
     case SubjectTypeId.real:
     case SubjectTypeId.music:
     default:
-      console.info('not support type: ', type)
+      console.info('not support type: ', type);
   }
   return result;
 }
@@ -290,8 +248,8 @@ export function changeDomain(
 ): string {
   let url = originUrl;
   if (url.match(domain)) return url;
-  let domainArr = [BangumiDomain.bangumi, BangumiDomain.chii, BangumiDomain.bgm]
-  domainArr.splice(domainArr.indexOf(domain), 1)
+  let domainArr = [BangumiDomain.bangumi, BangumiDomain.chii, BangumiDomain.bgm];
+  domainArr.splice(domainArr.indexOf(domain), 1);
   return url.replace(new RegExp(domainArr.join('|').replace('.', '\\.')), domain)
     .replace(/https?/, protocol);
 }

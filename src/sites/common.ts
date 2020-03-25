@@ -1,11 +1,14 @@
 import {InfoConfig, Selector} from "../interface/wiki";
 import {findElement, getText} from "../utils/domUtils";
 import {
+  AllSubject,
+  SearchResult,
   SingleInfo
 } from "../interface/subject";
 import {getchuTools} from "./getchu";
 import {getImageDataByURL} from "../utils/dealImage";
 import {amazonTools} from "./amazon";
+import {isEqualDate} from "../utils/utils";
 
 /**
  * 处理单项 wiki 信息
@@ -92,6 +95,52 @@ export async function getWikiItem(
   }
 }
 
+/**
+ * 过滤搜索结果： 通过名称以及日期
+ * @param items
+ * @param subjectInfo
+ * @param opts
+ */
+export function filterResults(items: SearchResult[], subjectInfo: AllSubject, opts: any = {}) {
+  if (!items) return;
+  // 只有一个结果时只比较日期
+  if (items.length === 1) {
+    const result = items[0]
+    if (isEqualDate(result.releaseDate, subjectInfo.releaseDate)) {
+      return result;
+    }
+  }
+  let results = new Fuse(items, Object.assign({
+    shouldSort: true,
+    threshold: 0.6,
+    location: 0,
+    distance: 100,
+    minMatchCharLength: 1,
+    keys: [
+      "name"
+    ]
+  }, opts))
+    .search(subjectInfo.name);
+  if (!results.length) return;
+  // 有参考的发布时间
+  if (subjectInfo.releaseDate) {
+    for (const result of results) {
+      if (result.releaseDate) {
+        if (isEqualDate(result.releaseDate, subjectInfo.releaseDate)) {
+          return result;
+        }
+      }
+    }
+  }
+  // 比较名称
+  const nameRe = new RegExp(subjectInfo.name.trim());
+  for (const result of results) {
+    if (nameRe.test(result.name) || nameRe.test(result.greyName)) {
+      return result;
+    }
+  }
+  return results[0];
+}
 
 export function getQueryInfo(items: SingleInfo[]) : any {
   let info: any = {};

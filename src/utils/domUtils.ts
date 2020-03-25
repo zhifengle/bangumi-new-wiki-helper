@@ -1,17 +1,21 @@
-import { Selector } from "../interface/wiki";
+import {Selector} from "../interface/wiki";
 
 /**
  * 为页面添加样式
  * @param style
  */
-export const addStyle = (style: string) => {
+export function addStyle(style: string) {
   const styleTag = document.createElement("style");
   styleTag.innerHTML = style;
   document.head.appendChild(styleTag);
 };
 
+/**
+ * 获取节点文本
+ * @param elem
+ */
 export function getText(elem: HTMLElement): string {
-  if (!elem) return ''
+  if (!elem) return '';
   return elem.textContent || elem.innerText || "";
 }
 
@@ -51,7 +55,7 @@ export function contains(
   selector: string,
   text: string | string[],
   $parent: HTMLElement
-) :Element[] {
+): Element[] {
   let elements;
   if ($parent) {
     elements = $parent.querySelectorAll(selector);
@@ -64,14 +68,14 @@ export function contains(
   } else {
     t = text.join("|");
   }
-  return [].filter.call(elements, function(element: HTMLElement) {
+  return [].filter.call(elements, function (element: HTMLElement) {
     return new RegExp(t).test(getText(element));
   });
 }
 
 function findElementByKeyWord(selector: Selector): Element {
   let res: Element = null;
-  const targets = contains(selector.subSelector, selector.keyWord, $q(selector.selector))
+  const targets = contains(selector.subSelector, selector.keyWord, $q(selector.selector));
   if (targets && targets.length) {
     let $t = targets[targets.length - 1];
     // 相邻节点
@@ -82,14 +86,15 @@ function findElementByKeyWord(selector: Selector): Element {
   }
   return res;
 }
+
 export function findElement(selector: Selector | Selector[]): Element | null {
   let r: Element | null = null;
   if (selector) {
     if (selector instanceof Array) {
       let i = 0;
-      let targetSelector = selector[i]
+      let targetSelector = selector[i];
       while (targetSelector && !(r = findElement(targetSelector))) {
-        targetSelector = selector[++i]
+        targetSelector = selector[++i];
       }
     } else {
       if (!selector.subSelector) {
