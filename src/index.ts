@@ -3,6 +3,7 @@ import {getchuGameModel} from "./models/getchuGame";
 import {initCommon, addStyle} from "./user-script";
 import {bangumi} from "./user-script/bangumi";
 import {BGM_DOMAIN, PROTOCOL} from "./user-script/constraints";
+import {erogamescapeModel} from "./models/erogamescape";
 
 function setDomain() {
   bgm_domain = prompt(
@@ -12,6 +13,7 @@ function setDomain() {
   GM_setValue('bgm', bgm_domain);
   return bgm_domain;
 }
+
 function setProtocol() {
   var p = prompt(
     `预设的 bangumi 页面协议是https 根据需要输入 http`,
@@ -19,6 +21,7 @@ function setProtocol() {
   );
   GM_setValue(PROTOCOL, p);
 }
+
 var bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
 // if (!bgm_domain.length || !bgm_domain.match(/bangumi\.tv|bgm\.tv/)) {
 //   bgm_domain = setDomain();
@@ -31,20 +34,26 @@ if (GM_registerMenuCommand) {
 
 const init = async () => {
   const re = new RegExp([
-    'getchu.com',
-    'bangumi\\.tv', 'bgm\\.tv', 'chii\\.tv',
-    'amazon\\.co\\.jp'
-  ].join('|'));
+    ...getchuGameModel.host,
+    ...amazonSubjectModel.host,
+    ...erogamescapeModel.host,
+    'bangumi.tv', 'bgm.tv', 'chii.tv',
+  ].map(h => h.replace('.', '\\.'))
+    .join('|'));
   const page = document.location.host.match(re);
   if (page) {
     addStyle();
     switch (page[0]) {
       case 'amazon.co.jp':
-        initCommon(amazonSubjectModel, 'amazon_jp_book');
+        initCommon(amazonSubjectModel);
         break;
       case 'getchu.com':
-        initCommon(getchuGameModel, 'getchu_game');
-        break
+        initCommon(getchuGameModel);
+        break;
+      case 'erogamescape.org':
+      case 'erogamescape.dyndns.org':
+        initCommon(erogamescapeModel);
+        break;
       case 'bangumi.tv':
       case 'chii.tv':
       case 'bgm.tv':
@@ -54,5 +63,5 @@ const init = async () => {
       // bangumi.init();
     }
   }
-}
-init()
+};
+init();

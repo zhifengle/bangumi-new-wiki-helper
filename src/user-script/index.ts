@@ -10,7 +10,7 @@ const getData = async (list: Promise<any>[]) => {
   return await Promise.all(list)
 }
 
-export async function initCommon(siteConfig: SiteConfig, site: string, subtype = 0) {
+export async function initCommon(siteConfig: SiteConfig, subtype = 0) {
   const $page = findElement(siteConfig.pageSelectors);
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
@@ -21,7 +21,7 @@ export async function initCommon(siteConfig: SiteConfig, site: string, subtype =
     const bgmHost = `${protocol}://${bgm_domain}`
     console.info('init')
     // getWikiItem promise
-    const rawList = await getData(siteConfig.itemList.map(item => getWikiItem(item, site)));
+    const rawList = await getData(siteConfig.itemList.map(item => getWikiItem(item, siteConfig.key)));
     const infoList: SingleInfo[] = rawList.filter(i => i)
     console.info('wiki info list: ', infoList)
     const wikiData: SubjectWikiInfo = {

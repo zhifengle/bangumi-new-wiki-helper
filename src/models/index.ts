@@ -1,9 +1,9 @@
-// import getchu from './getchu'
-// import amazon_jp_book from './amazon_jp_book'
+import { getchuGameModel }  from './getchuGame'
+import { amazonSubjectModel } from "./amazonJpBook";
+import { erogamescapeModel} from "./erogamescape";
 
-export default {
-  configModel: {
-    // [getchu.key]: getchu,
-    // [amazon_jp_book.key]: amazon_jp_book
-  }
+export const configs =  {
+    [getchuGameModel.key]: getchuGameModel,
+    [erogamescapeModel.key]: erogamescapeModel,
+    [amazonSubjectModel.key]: amazonSubjectModel,
 }

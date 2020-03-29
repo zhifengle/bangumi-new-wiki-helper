@@ -8,6 +8,7 @@ import {
 export const getchuGameModel: SiteConfig = {
   key: 'getchu_game',
   description: 'Getchu游戏',
+  host: ['getchu.com'],
   type: SubjectTypeId.game,
   pageSelectors: [
     {

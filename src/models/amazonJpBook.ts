@@ -3,6 +3,7 @@ import {SiteConfig, SubjectTypeId} from "../interface/wiki";
 // TODO: 区分 kindle 页面和 纸质书页面
 export const amazonSubjectModel: SiteConfig = {
   key: 'amazon_jp_book',
+  host: ['amazon.co.jp'],
   description: '日亚图书',
   type: SubjectTypeId.book,
   pageSelectors: [
