@@ -65,7 +65,12 @@ export function dataURItoBlob(dataURI: string): Blob {
 
 export function getImageDataByURL(url: string): Promise<string> {
   if (!url) return Promise.reject('invalid img url');
-  return fetchBinary(url).then(myBlob => {
+  return fetchBinary(url, {
+    method: 'GET',
+    credentials: 'same-origin',
+    mode: 'no-cors',
+    cache: 'default',
+  }).then(myBlob => {
     return blobToBase64(myBlob);
   });
 }

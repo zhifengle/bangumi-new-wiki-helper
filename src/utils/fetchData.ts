@@ -1,12 +1,13 @@
 // support GM_XMLHttpRequest
 const ENV_FLAG = '__ENV_EXT__';
 
-export function fetchBinary(url: string, TIMEOUT = 10 * 1000): Promise<Blob> {
+export function fetchBinary(url: string, opts: {} = {}, TIMEOUT = 10 * 1000): Promise<Blob> {
   return internalFetch(fetch(url, {
     method: 'GET',
     credentials: 'include',
-    mode: 'cors',
-    cache: 'default'
+    // mode: 'cors',
+    // cache: 'default',
+    ...opts
   }), TIMEOUT)
     .then(response => response.blob(),
       err => console.log('fetch err: ', err))
@@ -41,8 +42,8 @@ export function fetchText(url: string, TIMEOUT = 10 * 1000): Promise<string> {
   return internalFetch(fetch(url, {
     method: 'GET',
     credentials: 'include',
-    mode: 'cors',
-    cache: 'default'
+    // mode: 'cors',
+    // cache: 'default'
   }), TIMEOUT)
     .then(response => response.text(),
       err => console.log('fetch err: ', err))
