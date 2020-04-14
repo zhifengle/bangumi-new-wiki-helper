@@ -24,6 +24,9 @@ export function getText(elem: HTMLElement): string {
  * @param {string} selector
  */
 export function $q<E extends Element = Element>(selector: string): E | null {
+  if (window._parsedEl) {
+    return window._parsedEl.querySelector(selector)
+  }
   return document.querySelector(selector);
 }
 
@@ -32,6 +35,9 @@ export function $q<E extends Element = Element>(selector: string): E | null {
  * @param {string} selector
  */
 export function $qa<E extends Element>(selector: string): NodeListOf<E> {
+  if (window._parsedEl) {
+    return window._parsedEl.querySelectorAll(selector)
+  }
   return document.querySelectorAll(selector);
 }
 

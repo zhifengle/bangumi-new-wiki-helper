@@ -1,4 +1,4 @@
-import {InfoConfig, Selector} from "../interface/wiki";
+import {InfoConfig, Selector, SiteConfig} from "../interface/wiki";
 import {findElement, getText} from "../utils/domUtils";
 import {
   AllSubject,
@@ -96,6 +96,17 @@ export async function getWikiItem(
       category: infoConfig.category
     } as SingleInfo
   }
+}
+
+export async function getWikiData(siteConfig: SiteConfig, el?: Document) {
+  if (el) {
+    window._parsedEl = el
+  } else {
+    window._parsedEl = null
+  }
+  const r = await Promise.all(siteConfig.itemList.map(item => getWikiItem(item, siteConfig.key)));
+  delete window._parsedEl
+  return r.filter(i => i);
 }
 
 /**
