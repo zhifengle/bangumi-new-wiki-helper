@@ -1,7 +1,8 @@
 import {AllSubject, SearchResult} from "../interface/subject";
 import {fetchText} from "../utils/fetchData";
-import {filterResults} from "./common";
+import {filterResults, getWikiData} from "./common";
 import {getText} from "../utils/domUtils";
+import {erogamescapeModel} from "../models/erogamescape";
 
 enum ErogamescapeCategory {
   game = 'game',
@@ -40,21 +41,21 @@ export function dealSearchResults(info: string): [SearchResult[], number] | [] {
     let scoreIdx;
     const headers = items[0].querySelectorAll('th');
     for (let i = 0, len = headers.length; i < len; i++) {
-      const th = headers[i]
-      const text = getText(th)
+      const th = headers[i];
+      const text = getText(th);
       if (/ゲーム名/.test(text)) {
-        nameIdx = i
+        nameIdx = i;
       } else if (/発売日/.test(text)) {
-        dateIdx = i
+        dateIdx = i;
       } else if (/中央値/.test(text)) {
-        scoreIdx = i
+        scoreIdx = i;
       } else if (/データ数/.test(text)) {
-        countIdx = i
+        countIdx = i;
       }
     }
     for (let idx = 1, len = items.length; idx < len; idx++) {
       const tds = items[idx].querySelectorAll('td');
-      const nameTd = tds[nameIdx]
+      const nameTd = tds[nameIdx];
       if (!nameTd) continue;
       const nameTag = nameTd.querySelector('a');
       let result: SearchResult = {
@@ -62,13 +63,13 @@ export function dealSearchResults(info: string): [SearchResult[], number] | [] {
         url: nameTag.getAttribute('href'),
       };
       if (dateIdx && tds[dateIdx]) {
-        result.releaseDate = getText(tds[dateIdx])
+        result.releaseDate = getText(tds[dateIdx]);
       }
       if (scoreIdx && tds[scoreIdx]) {
-        result.score = getText(tds[scoreIdx]) || 0
+        result.score = getText(tds[scoreIdx]) || 0;
       }
       if (countIdx && tds[countIdx]) {
-        result.count = getText(tds[countIdx]) || 0
+        result.count = getText(tds[countIdx]) || 0;
       }
 
       results.push(result);
@@ -99,4 +100,20 @@ async function searchSubject(
   const rawInfoList = dealSearchResults(rawText)[0] || [];
   return filterResults(rawInfoList, subjectInfo);
 }
+
+export async function getWebsite(
+  result: SearchResult,
+  host: string = 'https://erogamescape.dyndns.org',
+) {
+  const url = `${host}/~ap2/ero/toukei_kaiseki/${result.url}`;
+  const rawText = await fetchText(url);
+  let $doc = (new DOMParser()).parseFromString(rawText, "text/html");
+
+  const d = await getWikiData(erogamescapeModel, $doc)
+  const r = d.filter(item => item.category === 'website')
+  if (r && r.length) {
+    return r[0].value
+  }
+}
+
 
