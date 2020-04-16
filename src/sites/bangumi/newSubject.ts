@@ -18,7 +18,7 @@ export function convertInfoValue(originValue: string, infoArr: SingleInfo[])
     for (let i = 0, len = arr.length; i < len; i++) {
       //  |发行日期=  ---> 发行日期
       // [纯假名|] ---> 纯假名
-      const m = arr[i].match(/(?:\||\[)(.+?)(\||=)/)
+      const m = arr[i].match(/(?:\||\[)(.+?)([|=])/)
       if (!m || m.length < 2) continue;
       const n = m[1];
       if (n === info.name) {
@@ -30,6 +30,9 @@ export function convertInfoValue(originValue: string, infoArr: SingleInfo[])
         // 匹配到 [英文名|]
         if (/\[.+\|\]/.test(arr[i])) {
           arr[i] = arr[i].replace(']', '') + d + ']'
+        } else if (/\|.+={/.test(arr[i])) {
+          // |平台={
+          arr[i] = `${arr[i]}\n[${info.value}]`
         } else {
           // 拼接： |发行日期=2020-01-01
           arr[i] = arr[i].replace(/=[^{[]+/, '=') + d;
