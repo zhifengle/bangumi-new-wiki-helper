@@ -1,9 +1,12 @@
 export interface Selector {
   selector: string
   subSelector?: string
+  // 是否使用关键字查找，需要有 subSelector
   keyWord?: string | string[]
   sibling?: boolean
   separator?: string
+  // 是否为 iframe， 如果是 iframe 需要有 subSelector
+  isIframe?: boolean
 }
 
 export enum SubjectTypeId {

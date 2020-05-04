@@ -22,7 +22,7 @@ export const amazonSubjectModel: SiteConfig = {
     selector: '#title',
   },
   itemList: []
-}
+};
 amazonSubjectModel.itemList.push(
   {
     name: '名称',
@@ -114,12 +114,19 @@ amazonSubjectModel.itemList.push(
   },
   {
     name: '内容简介',
-    selector: {
-      selector: '#productDescription',
-      subSelector: 'h3',
-      sibling: true,
-      keyWord: ['内容紹介', '内容'],
-    },
+    selector: [
+      {
+        selector: '#productDescription',
+        subSelector: 'h3',
+        sibling: true,
+        keyWord: ['内容紹介', '内容'],
+      },
+      {
+        selector: '#bookDesc_iframe',
+        subSelector: '#iframeContent',
+        isIframe: true
+      }
+    ],
     category: 'subject_summary'
   }
-)
+);

@@ -16,7 +16,7 @@ export function addStyle(style: string) {
  */
 export function getText(elem: HTMLElement): string {
   if (!elem) return '';
-  return elem.textContent || elem.innerText || "";
+  return elem.innerText || elem.textContent || "";
 }
 
 /**
@@ -103,7 +103,10 @@ export function findElement(selector: Selector | Selector[]): Element | null {
         targetSelector = selector[++i];
       }
     } else {
-      if (!selector.subSelector) {
+      if (selector.isIframe) {
+        const $iframeDoc: Document = ($q(selector.selector) as HTMLIFrameElement).contentDocument;
+        r = $iframeDoc.querySelector(selector.subSelector)
+      } else if (!selector.subSelector) {
         r = $q(selector.selector);
       } else {
         r = findElementByKeyWord(selector);
