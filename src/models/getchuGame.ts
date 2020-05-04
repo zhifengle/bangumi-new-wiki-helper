@@ -91,3 +91,11 @@ getchuGameModel.itemList.push(
     category: 'subject_summary'
   }
 )
+
+getchuGameModel.defaultInfos = [
+  {
+    name: '平台',
+    value: 'PC',
+    category: 'platform'
+  }
+]

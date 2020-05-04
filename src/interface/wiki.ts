@@ -1,3 +1,5 @@
+import {SingleInfo} from "./subject";
+
 export interface Selector {
   selector: string
   subSelector?: string
@@ -33,5 +35,6 @@ export interface SiteConfig {
   controlSelector: Selector,
   type: SubjectTypeId,
   subType?: number,
-  itemList: InfoConfig[]
+  itemList: InfoConfig[],
+  defaultInfos?: SingleInfo[]
 }

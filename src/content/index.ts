@@ -3,7 +3,7 @@ import browser from 'webextension-polyfill';
 import {SiteConfig} from "../interface/wiki";
 import {findElement} from "../utils/domUtils";
 import {
-  getQueryInfo,
+  getQueryInfo, getWikiData,
   getWikiItem,
   insertControlBtn
 } from "../sites/common";
@@ -25,9 +25,7 @@ async function initCommon(siteConfig: SiteConfig) {
   if (!$title) return;
   insertControlBtn($title.parentElement, async (e, flag) => {
     console.info('init');
-    // getWikiItem promise
-    const rawList = await getData(siteConfig.itemList.map(item => getWikiItem(item, siteConfig.key)));
-    const infoList: (SingleInfo | void)[] = rawList.filter(i => i);
+    const infoList: (SingleInfo | void)[] = await getWikiData(siteConfig);
     console.info('wiki info list: ', infoList);
     const wikiData: SubjectWikiInfo = {
       type: siteConfig.type,

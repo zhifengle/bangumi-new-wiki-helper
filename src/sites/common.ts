@@ -106,7 +106,8 @@ export async function getWikiData(siteConfig: SiteConfig, el?: Document) {
   }
   const r = await Promise.all(siteConfig.itemList.map(item => getWikiItem(item, siteConfig.key)));
   delete window._parsedEl
-  return r.filter(i => i);
+  const defaultInfos = siteConfig.defaultInfos || [];
+  return [...r.filter(i => i), ...defaultInfos];
 }
 
 /**
