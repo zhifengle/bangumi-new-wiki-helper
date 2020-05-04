@@ -4,6 +4,7 @@ import {initCommon, addStyle} from "./user-script";
 import {bangumi} from "./user-script/bangumi";
 import {BGM_DOMAIN, PROTOCOL} from "./user-script/constraints";
 import {erogamescapeModel} from "./models/erogamescape";
+import {getchu} from "./user-script/getchu";
 
 function setDomain() {
   bgm_domain = prompt(
@@ -49,6 +50,7 @@ const init = async () => {
         break;
       case 'getchu.com':
         initCommon(getchuGameModel);
+        getchu.init(getchuGameModel)
         break;
       case 'erogamescape.org':
       case 'erogamescape.dyndns.org':

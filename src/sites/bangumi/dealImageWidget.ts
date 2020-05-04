@@ -165,6 +165,12 @@ export async function dealImageWidget($form: HTMLFormElement, base64Data: string
         $el.style.display = 'none';
         const $loading = insertLoading($el);
         try {
+          try {
+            // 执行标准化表单，避免修改后表单没有更新
+            // @ts-ignore
+            NormaltoWCODE()
+          } catch (e) {
+          }
           const url = await sendFormImg($form, $canvas.toDataURL('image/png', 1));
           $el.style.display = '';
           $loading.remove();

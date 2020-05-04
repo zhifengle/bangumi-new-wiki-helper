@@ -34,10 +34,11 @@ export const getchuTools = {
         value: nameTxt.match(/（(.*)）/)[1]
       })
     }
-    if (nameTxt.match("CV")) {
+    const cvMatch = nameTxt.match(/(?<=CV[：:]).+/)
+    if (cvMatch) {
       charaData.push({
         name: 'CV',
-        value: nameTxt.replace(/.*CV[：:]/g, '')
+        value: cvMatch[0]
       })
     }
     const $img = $t.closest('tr').querySelector('td > img');
@@ -50,6 +51,7 @@ export const getchuTools = {
     }
 
     // 处理杂项 参考 id=1074002 id=735329
+    // id=1080431
     // dd tag
     const $dd = $t.closest('dt').nextElementSibling;
     const $clonedDd = ($dd.cloneNode(true) as HTMLElement)

@@ -42,12 +42,16 @@ export async function initCommon(siteConfig: SiteConfig, subtype = 0) {
       } else {
         // 重置自动填表
         GM_setValue(AUTO_FILL_FORM, 1);
-        GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`)
+        setTimeout(() => {
+          GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`)
+        }, 200)
       }
     } else {
       // 重置自动填表
       GM_setValue(AUTO_FILL_FORM, 1);
-      GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`)
+      setTimeout(() => {
+        GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`)
+      }, 200)
     }
   });
 }

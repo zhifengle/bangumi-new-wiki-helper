@@ -1,6 +1,6 @@
-import {initNewSubject, initUploadImg} from "../sites/bangumi/newSubject";
+import {initNewCharacter, initNewSubject, initUploadImg} from "../sites/bangumi/newSubject";
 import {$q} from "../utils/domUtils";
-import {AUTO_FILL_FORM, WIKI_DATA} from "./constraints";
+import {AUTO_FILL_FORM, CHARA_DATA, WIKI_DATA} from "./constraints";
 
 export const bangumi = {
   async init() {
@@ -8,6 +8,7 @@ export const bangumi = {
     const page = document.location.href.match(re);
     if (!page) return;
     const wikiData = JSON.parse(GM_getValue(WIKI_DATA) || null)
+    const charaData = JSON.parse(GM_getValue(CHARA_DATA) || null)
     const autoFill = GM_getValue(AUTO_FILL_FORM)
     switch (page[0]) {
       case 'new_subject':
@@ -17,16 +18,24 @@ export const bangumi = {
             if (autoFill) {
               // @ts-ignore
               $q('.e-wiki-fill-form').click()
-              GM_setValue(AUTO_FILL_FORM, 0)
             }
-          }, 200)
+            GM_setValue(AUTO_FILL_FORM, 0)
+          }, 300)
         }
         break
       case 'add_related':
-        // this.addRelated();
         break;
       case 'character\/new':
-        // this.newCharacter();
+        if (charaData) {
+          initNewCharacter(charaData)
+          setTimeout(() => {
+            if (autoFill) {
+              // @ts-ignore
+              $q('.e-wiki-fill-form').click()
+            }
+            GM_setValue(AUTO_FILL_FORM, 0)
+          }, 300)
+        }
         break;
       case 'upload_img':
         if (wikiData) {

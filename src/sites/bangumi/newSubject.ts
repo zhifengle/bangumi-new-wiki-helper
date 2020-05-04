@@ -203,6 +203,13 @@ export function initNewCharacter(wikiInfo: SubjectWikiInfo) {
     .filter((item: SingleInfo) => item.category === 'crt_cover')[0]
   if (coverInfo && coverInfo.value && coverInfo.value.match(/^data:image/)) {
     dealImageWidget($q('form[name=new_character]'), coverInfo.value)
+    // 修改文本
+    setTimeout(() => {
+      const $input = $q('.e-wiki-cover-container [name=submit]') as HTMLInputElement;
+      if ($input) {
+        $input.value = '添加人物并上传肖像';
+      }
+    }, 200)
   }
 }
 

@@ -16,6 +16,11 @@ export function addStyle(style: string) {
  */
 export function getText(elem: HTMLElement): string {
   if (!elem) return '';
+  return elem.textContent || elem.innerText || "";
+}
+
+export function getInnerText(elem: HTMLElement): string {
+  if (!elem) return '';
   return elem.innerText || elem.textContent || "";
 }
 
