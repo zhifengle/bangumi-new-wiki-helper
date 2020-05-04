@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "bangumi new wiki helper",
   "description": "辅助创建 bangumi.tv 上的条目",
-  "version": "0.3.0",
+  "version": "0.3.1",
 
   "browser_action": {
     "browser_style": true,
