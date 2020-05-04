@@ -10,5 +10,9 @@ describe('test amazon function', function () {
       .toEqual('幾日')
     expect(dealTitle(`幾日 (WANIMAGAZINE COMICS SPECIAL) (1)`))
       .toEqual('幾日 (WANIMAGAZINE COMICS SPECIAL) (1)')
+    expect(dealTitle(`
+                大蜘蛛ちゃんフラッシュ・バック(2) (アフタヌーンKC)
+            `))
+      .toEqual('大蜘蛛ちゃんフラッシュ・バック(2)')
   });
 });
