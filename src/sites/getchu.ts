@@ -84,6 +84,11 @@ export const getchuTools = {
       value: getText($clonedDd).trim(),
       category: 'crt_summary'
     });
+    charaData.push({
+      name: '平台',
+      value: 'PC',
+      category: 'platform'
+    });
 
     return charaData;
   }

@@ -14,13 +14,13 @@ export const bangumi = {
       case 'new_subject':
         if (wikiData) {
           initNewSubject(wikiData)
-          setTimeout(() => {
-            if (autoFill) {
+          if (autoFill == 1) {
+            setTimeout(() => {
               // @ts-ignore
               $q('.e-wiki-fill-form').click()
-            }
-            GM_setValue(AUTO_FILL_FORM, 0)
-          }, 300)
+              GM_setValue(AUTO_FILL_FORM, 0)
+            }, 300)
+          }
         }
         break
       case 'add_related':
@@ -28,13 +28,13 @@ export const bangumi = {
       case 'character\/new':
         if (charaData) {
           initNewCharacter(charaData)
-          setTimeout(() => {
-            if (autoFill) {
+          if (autoFill == 1) {
+            setTimeout(() => {
               // @ts-ignore
               $q('.e-wiki-fill-form').click()
-            }
-            GM_setValue(AUTO_FILL_FORM, 0)
-          }, 300)
+              GM_setValue(AUTO_FILL_FORM, 0)
+            }, 300)
+          }
         }
         break;
       case 'upload_img':

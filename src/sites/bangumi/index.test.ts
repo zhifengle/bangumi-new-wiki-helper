@@ -41,3 +41,55 @@ describe('test bangumi sites function', () => {
       .toEqual(`http://${target}/new_subject/4`)
   })
 })
+
+test('test new game', () => {
+  const str = `{{Infobox Game
+|中文名=
+|平台={
+}
+|游戏类型=
+|游戏开发商=
+|游戏出版商=
+|发行商=
+|游戏设计师=
+|游戏引擎=
+|游玩人数=
+|发行日期=
+|售价=
+|官方网站=
+}}  
+`;
+  const infos = [
+    {
+      "name": "售价",
+      "value": "￥9,800"
+    },
+    {
+      "name": "发行日期",
+      "value": "2020/08/28",
+      "category": "date"
+    },
+    {
+      "name": "游戏类型",
+      "value": "ADV"
+    },
+    {
+      "name": "开发",
+      "value": "jj"
+    },
+    {
+      "name": "原画",
+      "value": "123"
+    },
+    {
+      "name": "剧本",
+      "value": "xxxx xx"
+    },
+    {
+      "name": "平台",
+      "value": "PC",
+      "category": "platform"
+    }
+  ];
+  console.log(convertInfoValue(str, infos))
+})
