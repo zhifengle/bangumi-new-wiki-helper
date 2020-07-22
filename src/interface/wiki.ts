@@ -1,4 +1,4 @@
-import {SingleInfo} from "./subject";
+import { SingleInfo } from './subject'
 
 export interface Selector {
   selector: string
@@ -17,7 +17,7 @@ export enum SubjectTypeId {
   music = 3,
   game = 4,
   real = 6,
-  all = 'all'
+  all = 'all',
 }
 export interface InfoConfig {
   name: string
@@ -25,16 +25,23 @@ export interface InfoConfig {
   category?: string
 }
 
+export type ModelKey =
+  | 'amazon_jp_book'
+  | 'erogamescape'
+  | 'getchu_game'
+  | 'steam_game'
+  | 'steamdb_game'
+
 export interface SiteConfig {
-  key: string
+  key: ModelKey
   description: string
-  host: string[],
+  host: string[]
   // 区分页面是目标的选择器
-  pageSelectors: Selector[],
+  pageSelectors: Selector[]
   // 插入控制按钮位置的元素选择器
-  controlSelector: Selector,
-  type: SubjectTypeId,
-  subType?: number,
-  itemList: InfoConfig[],
+  controlSelector: Selector
+  type: SubjectTypeId
+  subType?: number
+  itemList: InfoConfig[]
   defaultInfos?: SingleInfo[]
 }
