@@ -19,7 +19,7 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @require     https://cdn.staticfile.org/fuse.js/3.6.1/fuse.min.js
+// @require     https://cdn.staticfile.org/fuse.js/6.4.0/fuse.min.js
 // ==/UserScript==
 
 var __enable_header = '' // 避免 header 被清除的 hack

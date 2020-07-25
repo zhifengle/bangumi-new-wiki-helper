@@ -154,12 +154,13 @@ export async function findSubjectByDate(
   const rawText = await fetchText(url);
   let [rawInfoList, numOfPage] = dealSearchResults(rawText);
   const options = {
+    threshold: 0.3,
     keys: [
       "name",
       "greyName"
     ]
   };
-  let result = filterResults(rawInfoList, subjectInfo, options);
+  let result = filterResults(rawInfoList, subjectInfo, options, false);
   if (!result) {
     if (pageNumber < numOfPage) {
       await sleep(300);

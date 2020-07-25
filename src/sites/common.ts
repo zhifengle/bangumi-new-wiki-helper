@@ -118,11 +118,12 @@ export async function getWikiData(siteConfig: SiteConfig, el?: Document) {
 export function filterResults(
   items: SearchResult[],
   subjectInfo: AllSubject,
-  opts: any = {}
+  opts: any = {},
+  isSearch: boolean = true,
 ) {
   if (!items) return
   // 只有一个结果时只比较日期
-  if (items.length === 1) {
+  if (items.length === 1 && isSearch) {
     const result = items[0]
     if (isEqualDate(result.releaseDate, subjectInfo.releaseDate)) {
       return result
@@ -132,18 +133,13 @@ export function filterResults(
     items,
     Object.assign(
       {
-        shouldSort: true,
-        threshold: 0.6,
-        location: 0,
-        distance: 100,
-        minMatchCharLength: 1,
-        keys: ['name'],
       },
       opts
     )
   ).search(subjectInfo.name)
   if (!results.length) return
   // 有参考的发布时间
+  console.log('test: ', results)
   if (subjectInfo.releaseDate) {
     for (const result of results) {
       if (result.releaseDate) {
@@ -205,8 +201,15 @@ export function insertControlBtn(
   $search.addEventListener('click', async (e) => {
     if ($search.innerHTML !== '新建并查重') return
     $search.innerHTML = '查重中...'
-    await cb(e, true)
-    $search.innerHTML = '新建并查重'
+    try {
+      await cb(e, true)
+    } catch (e) {
+      if (e === 'notmatched') {
+        $search.innerHTML = '未查到条目'
+      }
+      console.error(e)
+    }
+    // $search.innerHTML = '新建并查重'
   })
 }
 
