@@ -3,6 +3,7 @@ import { getWikiItem, getWikiData } from './sites/common'
 import { SingleInfo } from './interface/subject'
 import { steamdbModel } from './models/steamdb'
 import { steamModel } from './models/steam'
+import {getchuGameModel} from "./models/getchuGame";
 
 // links
 // https://store.steampowered.com/app/1044620/_/?l=schinese&curator_clanid=30614503
@@ -21,5 +22,6 @@ const getInfoList = async (siteConfig: SiteConfig) => {
   return infoList
 }
 
-getInfoList(steamdbModel)
-getInfoList(steamModel)
+// getInfoList(steamdbModel)
+// getInfoList(steamModel)
+getInfoList(getchuGameModel)

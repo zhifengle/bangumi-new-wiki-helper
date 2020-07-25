@@ -139,6 +139,9 @@ export async function findSubjectByDate(
     throw new Error('invalid subject info');
   }
   const releaseDate = new Date(subjectInfo.releaseDate);
+  if (isNaN(releaseDate.getTime())) {
+    throw `invalid releasedate: ${subjectInfo.releaseDate}`
+  }
   const sort = releaseDate.getDate() > 15 ? 'sort=date' : '';
   const page = pageNumber ? `page=${pageNumber}` : '';
   let query = '';
@@ -178,18 +181,18 @@ export async function checkBookSubjectExist(
   type: SubjectTypeId
 ) {
   let searchResult = await searchSubject(subjectInfo, bgmHost, type, subjectInfo.isbn);
-  console.info(`First: search result of bangumi: `, searchResult);
+  console.info(`First: search book of bangumi: `, searchResult);
   if (searchResult && searchResult.url) {
     return searchResult;
   }
   searchResult = await searchSubject(subjectInfo, bgmHost, type, subjectInfo.asin);
-  console.info('Second: search result of bangumi: ', searchResult);
+  console.info('Second: search book of bangumi: ', searchResult);
   if (searchResult && searchResult.url) {
     return searchResult;
   }
   // 默认使用名称搜索
   searchResult = await searchSubject(subjectInfo, bgmHost, type);
-  console.info('Third: search result of bangumi: ', searchResult);
+  console.info('Third: search book of bangumi: ', searchResult);
   return searchResult;
 }
 

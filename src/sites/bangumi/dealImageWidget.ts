@@ -13,7 +13,7 @@ function getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent): Pos {
   return {
     x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
     y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
-  }
+  };
 }
 
 /**
@@ -23,25 +23,25 @@ function getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent): Pos {
  * @param radius blur rect height
  */
 function blur(el: HTMLCanvasElement) {
-  let isDrawing = false
-  let ctx = el.getContext('2d')
+  let isDrawing = false;
+  let ctx = el.getContext('2d');
 
   el.onmousedown = function (e: MouseEvent) {
-    isDrawing = true
-    const pos = getMousePos(el, e)
-    ctx.moveTo(pos.x, pos.y)
-  }
+    isDrawing = true;
+    const pos = getMousePos(el, e);
+    ctx.moveTo(pos.x, pos.y);
+  };
   const $width: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-width');
   const $radius: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-radius');
   el.onmousemove = function (e: MouseEvent) {
     if (isDrawing) {
-      const pos = getMousePos(el, e)
+      const pos = getMousePos(el, e);
       const width = +$width.value;
       const radius = +$radius.value;
       // stack blur operation
       StackBlur.canvasRGBA(el, pos.x - width / 2, pos.y - width / 2, width, width, radius);
     }
-  }
+  };
   el.onmouseup = function () {
     isDrawing = false;
   };
@@ -61,7 +61,7 @@ function initContainer($target: HTMLElement) {
     <input id="e-wiki-cover-slider-radius" type="range" value="20" name="radius" min="1" max="100">
     <br>
     <a href="javascript:void(0)" id="e-wiki-cover-reset">reset</a>
-    <img src="" alt="" style="display:none;">
+    <img class="preview" src="" alt="" style="display:none;">
   `;
   const $info = document.createElement('div');
   $info.classList.add('e-wiki-cover-container');
@@ -103,13 +103,14 @@ function changeInfo($width: HTMLInputElement, $radius: HTMLInputElement) {
 }
 
 function previewFileImage($file: HTMLInputElement, $canvas: HTMLCanvasElement, $img = new Image()) {
-  const ctx = $canvas.getContext('2d')
+  const ctx = $canvas.getContext('2d');
   $img.addEventListener('load', function () {
     $canvas.width = $img.width;
     $canvas.height = $img.height;
     ctx.drawImage($img, 0, 0);
     window.dispatchEvent(new Event('resize'));  // let img cut tool at right position
   }, false);
+
   function loadImgData() {
     var file = $file.files[0];
     var reader = new FileReader();
@@ -120,6 +121,7 @@ function previewFileImage($file: HTMLInputElement, $canvas: HTMLCanvasElement, $
       reader.readAsDataURL(file);
     }
   }
+
   if ($file) {
     $file.addEventListener('change', loadImgData, false);
   }
@@ -135,12 +137,22 @@ export async function dealImageWidget($form: HTMLFormElement, base64Data: string
   if (document.querySelector('.e-wiki-cover-container')) return;
   initContainer($form);
   const $canvas: HTMLCanvasElement = document.querySelector('#e-wiki-cover-preview');
-  const $img: HTMLImageElement = document.querySelector('.e-wiki-cover-container img');
+  const $img: HTMLImageElement = document.querySelector('.e-wiki-cover-container img.preview');
   if (base64Data) {
     if (base64Data.match(/^http/)) {
-      base64Data = await getImageDataByURL(base64Data);
+      // 跨域和refer 的问题，暂时改成链接
+      // base64Data = await getImageDataByURL(base64Data);
+      const link = document.createElement('a');
+      link.classList.add('preview-fetch-img-link')
+      link.href = base64Data;
+      link.setAttribute('rel', 'noopener noreferrer nofollow');
+      link.setAttribute('target', '_blank');
+      link.innerText = '查看抓取封面';
+      document.querySelector('.e-wiki-cover-container').insertBefore(link,
+        document.querySelector('#e-wiki-cover-preview'));
+    } else {
+      $img.src = base64Data;
     }
-    $img.src = base64Data;
   }
   const $file: HTMLInputElement = $form.querySelector('input[type = file]');
   previewFileImage($file, $canvas, $img);
@@ -158,7 +170,7 @@ export async function dealImageWidget($form: HTMLFormElement, base64Data: string
   }, false);
   const $inputBtn: HTMLInputElement = document.querySelector('.e-wiki-cover-container .inputBtn');
   if ($file) {
-    $inputBtn.addEventListener('click',async (e) => {
+    $inputBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       if ($canvas.width > 8 && $canvas.height > 10) {
         const $el = e.target as HTMLElement;
@@ -168,7 +180,7 @@ export async function dealImageWidget($form: HTMLFormElement, base64Data: string
           try {
             // 执行标准化表单，避免修改后表单没有更新
             // @ts-ignore
-            NormaltoWCODE()
+            NormaltoWCODE();
           } catch (e) {
           }
           const url = await sendFormImg($form, $canvas.toDataURL('image/png', 1));
@@ -176,7 +188,7 @@ export async function dealImageWidget($form: HTMLFormElement, base64Data: string
           $loading.remove();
           location.assign(url);
         } catch (e) {
-          console.log('send form err: ', e)
+          console.log('send form err: ', e);
         }
       }
     }, false);
@@ -184,11 +196,12 @@ export async function dealImageWidget($form: HTMLFormElement, base64Data: string
     $inputBtn.value = '处理图片';
   }
 }
-function insertLoading($sibling: Element) : Element {
+
+function insertLoading($sibling: Element): Element {
   const $loading = document.createElement('div');
-  $loading.setAttribute('style', 'width: 208px; height: 13px; background-image: url("/img/loadingAnimation.gif");')
-  $sibling.parentElement.insertBefore($loading, $sibling)
-  return $loading
+  $loading.setAttribute('style', 'width: 208px; height: 13px; background-image: url("/img/loadingAnimation.gif");');
+  $sibling.parentElement.insertBefore($loading, $sibling);
+  return $loading;
 }
 
 

@@ -128,5 +128,12 @@ export function addStyle() {
   width: 84px;
   height: auto;
 }
+
+.preview-fetch-img-link {
+  margin-left: 8px;
+  font-weight: 500;
+  color: #149bff !important;
+  text-decoration: none;
+}
   `)
 }

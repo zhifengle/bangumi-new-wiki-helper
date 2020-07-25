@@ -66,14 +66,19 @@ export function dataURItoBlob(dataURI: string): Blob {
 
 export function getImageDataByURL(url: string): Promise<string> {
   if (!url) return Promise.reject('invalid img url');
-  return fetchBinary(url, {
-    method: 'GET',
-    credentials: 'same-origin',
-    mode: 'no-cors',
-    cache: 'default',
-  }).then(myBlob => {
-    return blobToBase64(myBlob);
-  });
+  return new Promise<string>((resolve) => {
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+      var reader = new FileReader();
+      reader.onloadend = function() {
+        resolve(reader.result as any);
+      }
+      reader.readAsDataURL(xhr.response);
+    };
+    xhr.open('GET', url);
+    xhr.responseType = 'blob';
+    xhr.send();
+  })
 }
 
 /**

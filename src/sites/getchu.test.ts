@@ -19,5 +19,8 @@ describe('test getchu function', function () {
       .toEqual('恋する乙女と守護の楯 Re:boot The“SHIELD-9”')
     expect(dealTitle('ママ×カノ フルセット特別限定版 '))
       .toEqual('ママ×カノ')
+    expect(dealTitle('かけぬけ★青春スパーキング！      （このタイトルの関連商品）'))
+      .toEqual('かけぬけ★青春スパーキング！')
+    // Re：LieF ～親愛なるあなたへ～ Re：EditioN
   });
 });

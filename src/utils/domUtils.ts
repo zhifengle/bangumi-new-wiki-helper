@@ -123,8 +123,8 @@ export function findElement(
         // iframe 暂时不支持 parent
         const $iframeDoc: Document = ($q(
           selector.selector
-        ) as HTMLIFrameElement).contentDocument
-        r = $iframeDoc.querySelector(selector.subSelector)
+        ) as HTMLIFrameElement)?.contentDocument
+        r = $iframeDoc?.querySelector(selector.subSelector)
       } else {
         r = findElementByKeyWord(selector, $parent)
       }

@@ -32,7 +32,7 @@ export function gmFetchBinary(url, TIMEOUT = 5000) {
 export function fetchBinary(url: string, opts: {} = {}, TIMEOUT = 10 * 1000): Promise<Blob> {
   return internalFetch(fetch(url, {
     method: 'GET',
-    credentials: 'include',
+    // credentials: 'include',
     // mode: 'cors',
     // cache: 'default',
     ...opts
