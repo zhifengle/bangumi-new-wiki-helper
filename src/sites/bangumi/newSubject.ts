@@ -41,7 +41,8 @@ export function convertInfoValue(originValue: string, infoArr: SingleInfo[])
         break;
       }
     }
-    if (!isDefault && info.name) {
+    // 抹去 asin 2020/7/26
+    if (!isDefault && info.name && !['asin', 'ASIN'].includes(info.name)) {
       newArr.push(`|${info.name}=${info.value}`);
     }
   }
