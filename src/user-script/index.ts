@@ -1,59 +1,57 @@
-import {SiteConfig} from "../interface/wiki";
-import {findElement} from "../utils/domUtils";
-import {getQueryInfo, getWikiItem, insertControlBtn} from "../sites/common";
-import {SingleInfo, SubjectWikiInfo} from "../interface/subject";
-import {checkSubjectExit} from "../sites/bangumi";
-import {AUTO_FILL_FORM, BGM_DOMAIN, PROTOCOL, WIKI_DATA} from "./constraints";
-
-
-const getData = async (list: Promise<any>[]) => {
-  return await Promise.all(list)
-}
+import { SiteConfig } from '../interface/wiki'
+import { findElement } from '../utils/domUtils'
+import {
+  getQueryInfo,
+  getWikiItem,
+  insertControlBtn,
+  getWikiData,
+} from '../sites/common'
+import { SubjectWikiInfo } from '../interface/subject'
+import { checkSubjectExit } from '../sites/bangumi'
+import { AUTO_FILL_FORM, BGM_DOMAIN, PROTOCOL, WIKI_DATA } from './constraints'
 
 export async function initCommon(siteConfig: SiteConfig, subtype = 0) {
-  const $page = findElement(siteConfig.pageSelectors);
-  if (!$page) return;
-  const $title = findElement(siteConfig.controlSelector);
-  if (!$title) return;
+  const $page = findElement(siteConfig.pageSelectors)
+  if (!$page) return
+  const $title = findElement(siteConfig.controlSelector)
+  if (!$title) return
   insertControlBtn($title.parentElement, async (e, flag) => {
-    const protocol = GM_getValue(PROTOCOL) || 'https';
-    const bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
+    const protocol = GM_getValue(PROTOCOL) || 'https'
+    const bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv'
     const bgmHost = `${protocol}://${bgm_domain}`
     console.info('init')
-    // getWikiItem promise
-    const rawList = await getData(siteConfig.itemList.map(item => getWikiItem(item, siteConfig.key)));
-    const infoList: SingleInfo[] = rawList.filter(i => i)
+    const infoList = await getWikiData(siteConfig)
     console.info('wiki info list: ', infoList)
     const wikiData: SubjectWikiInfo = {
       type: siteConfig.type,
       subtype,
-      infos: infoList
+      infos: infoList,
     }
     GM_setValue(WIKI_DATA, JSON.stringify(wikiData))
     if (flag) {
       const result = await checkSubjectExit(
         getQueryInfo(infoList),
         bgmHost,
-        wikiData.type,
-      );
+        wikiData.type
+      )
       console.info('search results: ', result)
       if (result && result.url) {
         GM_openInTab(bgmHost + result.url)
       } else {
         // 重置自动填表
-        GM_setValue(AUTO_FILL_FORM, 1);
+        GM_setValue(AUTO_FILL_FORM, 1)
         setTimeout(() => {
           GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`)
         }, 200)
       }
     } else {
       // 重置自动填表
-      GM_setValue(AUTO_FILL_FORM, 1);
+      GM_setValue(AUTO_FILL_FORM, 1)
       setTimeout(() => {
         GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`)
       }, 200)
     }
-  });
+  })
 }
 
 export function addStyle() {

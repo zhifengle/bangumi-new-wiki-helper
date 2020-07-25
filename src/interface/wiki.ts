@@ -9,6 +9,8 @@ export interface Selector {
   separator?: string
   // 是否为 iframe， 如果是 iframe 需要有 subSelector
   isIframe?: boolean
+  // 之前没考虑好 subSelector 的层级，为了兼容以前的代码使用 nextSelector
+  nextSelector?: Selector
 }
 
 export enum SubjectTypeId {

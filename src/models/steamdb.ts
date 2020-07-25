@@ -59,6 +59,11 @@ const detailsTableSelector: Selector = {
   subSelector: 'td',
   sibling: true,
 }
+const subTableSelector: Selector = {
+  selector: 'table.web-assets',
+  subSelector: 'td',
+  sibling: true,
+}
 steamdbModel.itemList.push(
   {
     name: '游戏名',
@@ -68,10 +73,65 @@ steamdbModel.itemList.push(
     category: 'subject_title',
   },
   {
+    name: '中文名',
+    selector: [
+      {
+        ...detailsTableSelector,
+        keyWord: 'name_localized',
+        nextSelector: {
+          ...subTableSelector,
+          keyWord: 'schinese',
+        },
+      },
+      {
+        ...detailsTableSelector,
+        keyWord: 'name_localized',
+        nextSelector: {
+          ...subTableSelector,
+          keyWord: 'tchinese',
+        },
+      },
+    ],
+  },
+  {
+    name: '别名',
+    // name: '日文名',
+    selector: [
+      {
+        ...detailsTableSelector,
+        keyWord: 'name_localized',
+        nextSelector: {
+          ...subTableSelector,
+          keyWord: 'japanese',
+        },
+      },
+    ],
+    category: 'alias',
+  },
+  {
     name: 'cover',
     selector: [
       {
-        selector: '#info table',
+        ...detailsTableSelector,
+        keyWord: 'library_assets',
+        nextSelector: {
+          selector: 'table.web-assets',
+          subSelector: 'td',
+          keyWord: 'library_capsule',
+          sibling: true,
+          nextSelector: {
+            selector: 'a',
+          },
+        },
+      },
+      {
+        ...detailsTableSelector,
+        keyWord: 'Web Assets',
+        nextSelector: {
+          selector: 'table.web-assets',
+          subSelector: 'td > a',
+          keyWord: 'library_600x900',
+        },
       },
     ],
     category: 'cover',

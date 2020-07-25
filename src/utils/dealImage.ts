@@ -1,4 +1,4 @@
-import { fetchBinary } from './fetchData';
+import {fetchBinary, gmFetchBinary} from './fetchData';
 
 function getImageSuffix(url: string) {
   const m = url.match(/png|jpg|jpeg|gif|bmp/);
@@ -20,7 +20,8 @@ function getImageSuffix(url: string) {
 
 export function getImageBase64(url: string): Promise<string> {
   // TODO: info type
-  return fetchBinary(url).then((info: any) => {
+  // ts-ignore
+  return gmFetchBinary(url).then((info: any) => {
     const bytes = [];
     for (let i = 0; i < info.length; i++) {
       bytes[i] = info.charCodeAt(i) & 0xff;

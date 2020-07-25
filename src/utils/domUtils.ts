@@ -65,7 +65,7 @@ export function injectScript(fn: Function, data: Object) {
 export function contains(
   selector: string,
   text: string | string[],
-  $parent: HTMLElement
+  $parent: Element
 ): Element[] {
   let elements
   if ($parent) {
@@ -84,12 +84,12 @@ export function contains(
   })
 }
 
-function findElementByKeyWord(selector: Selector): Element {
+function findElementByKeyWord(selector: Selector, $parent?: Element): Element {
   let res: Element = null
   const targets = contains(
     selector.subSelector,
     selector.keyWord,
-    $q(selector.selector)
+    $parent ? $parent : $q(selector.selector)
   )
   if (targets && targets.length) {
     let $t = targets[targets.length - 1]
@@ -102,7 +102,10 @@ function findElementByKeyWord(selector: Selector): Element {
   return res
 }
 
-export function findElement(selector: Selector | Selector[]): Element | null {
+export function findElement(
+  selector: Selector | Selector[],
+  $parent?: Element
+): Element | null {
   let r: Element | null = null
   if (selector) {
     if (selector instanceof Array) {
@@ -112,15 +115,22 @@ export function findElement(selector: Selector | Selector[]): Element | null {
         targetSelector = selector[++i]
       }
     } else {
-      if (selector.isIframe) {
+      if (!selector.subSelector) {
+        r = $parent
+          ? $parent.querySelector(selector.selector)
+          : $q(selector.selector)
+      } else if (selector.isIframe) {
+        // iframe 暂时不支持 parent
         const $iframeDoc: Document = ($q(
           selector.selector
         ) as HTMLIFrameElement).contentDocument
         r = $iframeDoc.querySelector(selector.subSelector)
-      } else if (!selector.subSelector) {
-        r = $q(selector.selector)
       } else {
-        r = findElementByKeyWord(selector)
+        r = findElementByKeyWord(selector, $parent)
+      }
+      if (selector.nextSelector) {
+        const nextSelector = selector.nextSelector
+        r = findElement(nextSelector, r)
       }
     }
   }

@@ -1,9 +1,7 @@
 import { InfoConfig, Selector, SiteConfig, ModelKey } from '../interface/wiki'
 import { findElement, getText } from '../utils/domUtils'
 import { AllSubject, SearchResult, SingleInfo } from '../interface/subject'
-import { getchuTools } from './getchu'
 import { getImageDataByURL } from '../utils/dealImage'
-import { amazonTools } from './amazon'
 import { isEqualDate } from '../utils/utils'
 import { dealFuncByCategory } from './dealUtils'
 
@@ -60,22 +58,31 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
       let url
       if ($d.tagName.toLowerCase() === 'a') {
         url = $d.getAttribute('href')
+        val = {
+          url: url,
+          dataUrl: url,
+        }
       } else if ($d.tagName.toLowerCase() === 'img') {
         url = $d.getAttribute('src')
-      }
-      val = {
-        url: $d.getAttribute('src'),
-        dataUrl: await getImageDataByURL(url),
-        height: $d.clientHeight,
-        width: $d.clientWidth,
+        val = {
+          url: url,
+          dataUrl: await getImageDataByURL(url),
+          height: $d.clientHeight,
+          width: $d.clientWidth,
+        }
       }
       break
     case 'subject_title':
-      val = dealFuncByCategory(site, 'subject_title')(txt)
+      val = dealFuncByCategory(site, infoConfig.category)(txt)
       break
     case 'website':
       val = dealFuncByCategory(site, 'website')($d.getAttribute('href'))
       break
+    case 'date':
+      if (site === 'steamdb_game') {
+        val = dealFuncByCategory(site, infoConfig.category)(txt)
+        break
+      }
     default:
       val = dealItemText(txt, infoConfig.category, keyWords)
   }

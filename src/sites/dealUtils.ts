@@ -1,6 +1,7 @@
 import { ModelKey } from '../interface/wiki'
 import { getchuTools } from './getchu'
 import { amazonTools } from './amazon'
+import { formatDate } from '../utils/utils'
 
 type Utils = {
   [key in ModelKey]?: {
@@ -16,6 +17,16 @@ export const dealUtils: Utils = {
         // https://steamcommunity.com/linkfilter/?url=https://www.koeitecmoamerica.com/ryza/
         const arr = str.split('?url=')
         return arr[1] || ''
+      },
+    },
+  ],
+  steamdb_game: [
+    {
+      category: 'date',
+      dealFunc(str: string) {
+        const arr = str.split('–')
+        if (!arr[0]) return ''
+        return formatDate(arr[0].trim())
       },
     },
   ],

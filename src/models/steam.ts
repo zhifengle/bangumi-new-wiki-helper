@@ -57,6 +57,18 @@ steamModel.itemList.push(
       keyWord: ['访问网站', 'Visit the website'],
     },
     category: 'website',
+  },
+  {
+    name: '游戏简介',
+    selector: [
+      {
+        selector: '#game_area_description',
+      },
+      {
+        selector: '.game_description_snippet',
+      },
+    ],
+    category: 'subject_summary',
   }
   // {
   //   name: 'cover',

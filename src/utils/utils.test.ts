@@ -1,4 +1,4 @@
-import { dealDate, genRandomStr } from './utils'
+import { dealDate, genRandomStr, formatDate } from './utils'
 
 describe('test utils', () => {
   it('test the length of return value', () => {
@@ -13,5 +13,9 @@ describe('test utils', () => {
     expect(dealDate('2019年12月')).toEqual('2019-12')
     expect(dealDate('2019/2/19')).toEqual('2019-02-19')
     expect(dealDate('2019/2')).toEqual('2019-02')
+  })
+  test('formate date', () => {
+    expect(formatDate('27 September 2019', 'YYYY-MM-DD')).toEqual('2019-09-27')
+    expect(formatDate('27 September 2019', 'yyyy-MM-dd')).toEqual('2019-09-27')
   })
 })

@@ -7,6 +7,7 @@
 // @include     http://www.getchu.com/soft.phtml?id=*
 // @include     /^https?:\/\/www\.amazon\.co\.jp\/.*$/
 // @include     /^https?:\/\/(bangumi|bgm|chii)\.(tv|in)\/.*$/
+// @match      *://*/*
 // @author      22earth
 // @homepage    https://github.com/22earth/bangumi-new-wiki-helper
 // @version     0.3.1
@@ -21,5 +22,5 @@
 // @require     https://cdn.staticfile.org/fuse.js/3.6.1/fuse.min.js
 // ==/UserScript==
 
-var __enable_header = '';  // 避免 header 被清除的 hack
+var __enable_header = '' // 避免 header 被清除的 hack
 console.info(__enable_header)
