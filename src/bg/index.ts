@@ -1,31 +1,30 @@
 // @ts-ignore
 import browser from 'webextension-polyfill';
-import {
-  BangumiDomain,
-  checkSubjectExit
-} from "../sites/bangumi";
-import {SubjectTypeId} from "../interface/wiki";
+import { BangumiDomain, checkSubjectExit } from '../sites/bangumi';
+import { SubjectTypeId } from '../interface/wiki';
+import { getWikiDataByURL, combineInfoList } from '../sites/common';
+import { SingleInfo } from '../interface/subject';
 // import { version as VERSION } from "../../extension/manifest.json";
 
-const VERSION = '0.3.0'
+const VERSION = '0.3.0';
 
 interface Config {
-  domain?: BangumiDomain
-  activeOpen?: boolean
-  useHttps?: boolean
-  autoFill?: boolean
+  domain?: BangumiDomain;
+  activeOpen?: boolean;
+  useHttps?: boolean;
+  autoFill?: boolean;
 }
 
 let E_USER_CONFIG: Config = {};
 
 async function handleMessage(request: any) {
-  const {payload = {}} = request;
+  const { payload = {} } = request;
   const activeOpen = E_USER_CONFIG.activeOpen;
   let bgmHost = E_USER_CONFIG.domain as string;
   if (E_USER_CONFIG.useHttps) {
-    bgmHost = `https://${bgmHost}`
+    bgmHost = `https://${bgmHost}`;
   } else {
-    bgmHost = `http://${bgmHost}`
+    bgmHost = `http://${bgmHost}`;
   }
   switch (request.action) {
     case 'check_subject_exist':
@@ -34,19 +33,21 @@ async function handleMessage(request: any) {
           const result = await checkSubjectExit(
             payload.subjectInfo,
             bgmHost,
-            payload.type
+            payload.type,
+            payload.disableDate
           );
-          console.info('search results: ', result)
+          console.info('search results: ', result);
           if (result && result.url) {
             await browser.tabs.create({
               url: bgmHost + result.url,
-              active: activeOpen
+              active: activeOpen,
             });
           } else {
-            createNewSubjectTab(payload.type, bgmHost, activeOpen)
+            payload.auxSite && (await updateAuxData(payload.auxSite));
+            createNewSubjectTab(payload.type, bgmHost, activeOpen);
           }
         } else {
-          createNewSubjectTab(payload.type, bgmHost, activeOpen)
+          createNewSubjectTab(payload.type, bgmHost, activeOpen);
         }
       } catch (e) {
         /* handle error */
@@ -54,12 +55,13 @@ async function handleMessage(request: any) {
       }
       break;
     case 'create_new_subject':
-      createNewSubjectTab(payload.type, bgmHost, activeOpen)
+      payload.auxSite && (await updateAuxData(payload.auxSite));
+      createNewSubjectTab(payload.type, bgmHost, activeOpen);
       break;
     case 'create_new_character':
       browser.tabs.create({
         url: `${bgmHost}/character/new`,
-        active: activeOpen
+        active: activeOpen,
       });
       break;
     default:
@@ -69,18 +71,42 @@ async function handleMessage(request: any) {
 function createNewSubjectTab(
   type: SubjectTypeId,
   bgmHost: string,
-  active: boolean) {
+  active: boolean
+) {
   let url = `${bgmHost}/new_subject/${type}`;
   browser.tabs.create({
     url,
-    active
+    active,
   });
+}
+
+async function updateAuxData(auxSite: string) {
+  try {
+    const auxData = await getWikiDataByURL(auxSite);
+    const obj = await browser.storage.local.get(['wikiData']);
+    console.info('current wikiData: ', obj.wikiData);
+    const { wikiData } = obj;
+    let infos = combineInfoList(wikiData.infos, auxData);
+    if (auxSite.match(/store\.steampowered\.com/)) {
+      infos = combineInfoList(auxData, wikiData.infos);
+    }
+    await browser.storage.local.set({
+      wikiData: {
+        type: wikiData.type,
+        subtype: wikiData.subType || 0,
+        infos,
+      },
+    });
+    console.info('the end of updating aux data');
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 async function init() {
   // 初始化设置
   const obj = await browser.storage.local.get(['version', 'config']);
-  if (obj && !obj.version || obj.version !== VERSION) {
+  if ((obj && !obj.version) || obj.version !== VERSION) {
     // await browser.storage.local.clear();
     await browser.storage.local.set({
       version: VERSION,
@@ -88,8 +114,8 @@ async function init() {
         domain: BangumiDomain.bgm,
         activeOpen: false,
         useHttps: true,
-        autoFill: false
-      }
+        autoFill: false,
+      },
     });
   } else {
     E_USER_CONFIG = obj.config;
@@ -100,10 +126,9 @@ async function init() {
   browser.storage.onChanged.addListener(async function (changes: any) {
     if (changes.config) {
       E_USER_CONFIG = (await browser.storage.local.get(['config'])).config;
-      console.log('E_CONFIG: ', E_USER_CONFIG)
+      console.log('E_CONFIG: ', E_USER_CONFIG);
     }
   });
 }
 
-init()
-
+init();

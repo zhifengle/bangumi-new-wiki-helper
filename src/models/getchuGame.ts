@@ -2,8 +2,8 @@ import {
   InfoConfig,
   Selector,
   SiteConfig,
-  SubjectTypeId
-} from "../interface/wiki";
+  SubjectTypeId,
+} from '../interface/wiki';
 
 export const getchuGameModel: SiteConfig = {
   key: 'getchu_game',
@@ -14,47 +14,52 @@ export const getchuGameModel: SiteConfig = {
     {
       selector: '.genretab.current',
       subSelector: 'a',
-      keyWord: 'ゲーム'
-    }
+      keyWord: 'ゲーム',
+    },
   ],
-  controlSelector: {
-    selector: '#soft-title'
-  },
-  itemList: []
-}
+  controlSelector: [
+    {
+      selector: '#soft-title > :first-child',
+    },
+    {
+      selector: '#soft-title',
+    },
+  ],
+  itemList: [],
+};
 
 const commonSelector: Selector = {
   selector: '#soft_table table',
   subSelector: 'td',
-  sibling: true
-}
+  sibling: true,
+};
 const dict: any = {
-  "定価": "售价",
-  "発売日": "发行日期",
-  "ジャンル": "游戏类型",
+  定価: '售价',
+  発売日: '发行日期',
+  ジャンル: '游戏类型',
 
-  "ブランド": "开发",
-  "原画": "原画",
-  "音楽": "音乐",
-  "シナリオ": "剧本",
-  "アーティスト": "主题歌演出",
-  "作詞": "主题歌作词",
-  "作曲": "主题歌作曲",
-}
-const configArr = Object.keys(dict).map(key => {
+  ブランド: '开发',
+  原画: '原画',
+  音楽: '音乐',
+  シナリオ: '剧本',
+  アーティスト: '主题歌演出',
+  作詞: '主题歌作词',
+  作曲: '主题歌作曲',
+};
+const configArr = Object.keys(dict).map((key) => {
   const r = {
     name: dict[key],
     selector: {
       // 匹配关键字开头 2020/03/18
-      keyWord: '^'+key,
-      ...commonSelector
-    }
-  } as InfoConfig
+      keyWord: '^' + key,
+      ...commonSelector,
+    },
+  } as InfoConfig;
   if (key === '発売日') {
-    r.category = 'date'
+    r.category = 'date';
   }
-  return r
-})
+  return r;
+});
 
 getchuGameModel.itemList.push(
   {
@@ -62,14 +67,14 @@ getchuGameModel.itemList.push(
     selector: {
       selector: '#soft-title',
     },
-    category: 'subject_title'
+    category: 'subject_title',
   },
   {
     name: 'cover',
     selector: {
       selector: '#soft_table .highslide',
     },
-    category: 'cover'
+    category: 'cover',
   },
   ...configArr,
   {
@@ -86,16 +91,16 @@ getchuGameModel.itemList.push(
         subSelector: '.tabletitle',
         sibling: true,
         keyWord: '商品紹介',
-      }
+      },
     ],
-    category: 'subject_summary'
+    category: 'subject_summary',
   }
-)
+);
 
 getchuGameModel.defaultInfos = [
   {
     name: '平台',
     value: 'PC',
-    category: 'platform'
-  }
-]
+    category: 'platform',
+  },
+];

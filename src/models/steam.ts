@@ -1,4 +1,4 @@
-import { SiteConfig, SubjectTypeId } from '../interface/wiki'
+import { SiteConfig, SubjectTypeId } from '../interface/wiki';
 
 export const steamModel: SiteConfig = {
   key: 'steam_game',
@@ -14,7 +14,7 @@ export const steamModel: SiteConfig = {
     selector: '.apphub_AppName',
   },
   itemList: [],
-}
+};
 
 steamModel.itemList.push(
   {
@@ -62,10 +62,13 @@ steamModel.itemList.push(
     name: '游戏简介',
     selector: [
       {
-        selector: '#game_area_description',
+        selector: '.game_description_snippet',
       },
       {
-        selector: '.game_description_snippet',
+        selector: 'head meta[name="description"]',
+      },
+      {
+        selector: '#game_area_description',
       },
     ],
     category: 'subject_summary',
@@ -77,7 +80,7 @@ steamModel.itemList.push(
   //   },
   //   category: 'cover',
   // }
-)
+);
 
 steamModel.defaultInfos = [
   {
@@ -85,4 +88,4 @@ steamModel.defaultInfos = [
     value: 'PC',
     category: 'platform',
   },
-]
+];

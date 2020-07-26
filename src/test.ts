@@ -9,8 +9,10 @@ import { jdBookModel } from './models/jdBook';
 
 // links
 // https://store.steampowered.com/app/1044620/_/?l=schinese&curator_clanid=30614503
+// 蒼の彼方のフォーリズム
 // https://steamdb.info/app/1044620/info/
 // https://steamdb.info/app/1121560/info/
+// https://steamdb.info/app/955560/info/
 
 // https://www.amazon.co.jp/dp/4757556977
 

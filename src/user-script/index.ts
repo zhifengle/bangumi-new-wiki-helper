@@ -5,16 +5,42 @@ import {
   getWikiItem,
   insertControlBtn,
   getWikiData,
+  getWikiDataByURL,
+  combineInfoList,
 } from '../sites/common';
 import { SubjectWikiInfo } from '../interface/subject';
 import { checkSubjectExit } from '../sites/bangumi';
 import { AUTO_FILL_FORM, BGM_DOMAIN, PROTOCOL, WIKI_DATA } from './constraints';
 
-export async function initCommon(siteConfig: SiteConfig, subtype = 0) {
+async function updateAuxData(auxSite: string) {
+  try {
+    console.info('the start of updating aux data');
+    const auxData = await getWikiDataByURL(auxSite);
+    const wikiData = JSON.parse(GM_getValue(WIKI_DATA) || null);
+    let infos = combineInfoList(wikiData.infos, auxData);
+    if (auxSite.match(/store\.steampowered\.com/)) {
+      infos = combineInfoList(auxData, wikiData.infos);
+    }
+    GM_setValue(
+      WIKI_DATA,
+      JSON.stringify({
+        type: wikiData.type,
+        subtype: wikiData.subType || 0,
+        infos,
+      })
+    );
+    console.info('the end of updating aux data');
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export async function initCommon(siteConfig: SiteConfig, config: any = {}) {
   const $page = findElement(siteConfig.pageSelectors);
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
+  const { payload = {} } = config;
   insertControlBtn($title.parentElement, async (e, flag) => {
     const protocol = GM_getValue(PROTOCOL) || 'https';
     const bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
@@ -24,34 +50,22 @@ export async function initCommon(siteConfig: SiteConfig, subtype = 0) {
     console.info('wiki info list: ', infoList);
     const wikiData: SubjectWikiInfo = {
       type: siteConfig.type,
-      subtype,
+      subtype: siteConfig.subType,
       infos: infoList,
     };
     GM_setValue(WIKI_DATA, JSON.stringify(wikiData));
     if (flag) {
-      let result;
-      // steam 禁用时间筛选
-      if (
-        siteConfig.key === 'steam_game' ||
-        siteConfig.key === 'steamdb_game'
-      ) {
-        result = await checkSubjectExit(
-          getQueryInfo(infoList),
-          bgmHost,
-          wikiData.type,
-          true
-        );
-      } else {
-        result = await checkSubjectExit(
-          getQueryInfo(infoList),
-          bgmHost,
-          wikiData.type
-        );
-      }
+      let result = await checkSubjectExit(
+        getQueryInfo(infoList),
+        bgmHost,
+        wikiData.type,
+        config?.payload?.disableDate
+      );
       console.info('search results: ', result);
       if (result && result.url) {
         GM_openInTab(bgmHost + result.url);
       } else {
+        payload.auxSite && (await updateAuxData(payload.auxSite));
         // 重置自动填表
         GM_setValue(AUTO_FILL_FORM, 1);
         setTimeout(() => {
@@ -61,6 +75,7 @@ export async function initCommon(siteConfig: SiteConfig, subtype = 0) {
     } else {
       // 重置自动填表
       GM_setValue(AUTO_FILL_FORM, 1);
+      payload.auxSite && (await updateAuxData(payload.auxSite));
       setTimeout(() => {
         GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`);
       }, 200);

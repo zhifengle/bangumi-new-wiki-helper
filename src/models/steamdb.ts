@@ -79,7 +79,7 @@ steamdbModel.itemList.push(
       },
       {
         selector: '.pagehead h1',
-      }
+      },
     ],
     category: 'subject_title',
   },
@@ -146,7 +146,26 @@ steamdbModel.itemList.push(
     ],
     category: 'cover',
   },
-  ...configArr
+  ...configArr,
+  {
+    name: '游戏简介',
+    selector: [
+      {
+        selector: 'head meta[name="description"]',
+      },
+      {
+        selector: '.scope-app header-description',
+      },
+    ],
+    category: 'subject_summary',
+  },
+  {
+    name: 'website',
+    selector: {
+      selector: '.app-links a[aria-label^="Games homepage"]',
+    },
+    category: 'website',
+  }
 );
 
 steamdbModel.defaultInfos = [

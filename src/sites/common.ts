@@ -1,9 +1,16 @@
 import { InfoConfig, Selector, SiteConfig, ModelKey } from '../interface/wiki';
 import { findElement, getText } from '../utils/domUtils';
-import { AllSubject, SearchResult, SingleInfo } from '../interface/subject';
+import {
+  AllSubject,
+  SearchResult,
+  SingleInfo,
+  SubjectWikiInfo,
+} from '../interface/subject';
 import { getImageDataByURL } from '../utils/dealImage';
 import { isEqualDate } from '../utils/utils';
 import { dealFuncByCategory } from './dealUtils';
+import { findModelByHost } from '../models';
+import { fetchText } from '../utils/fetchData';
 
 /**
  * 处理单项 wiki 信息
@@ -187,13 +194,15 @@ export function insertControlBtn(
   cb: (...args: any) => Promise<any>
 ) {
   if (!$t) return;
+  const $div = document.createElement('div');
   const $s = document.createElement('span');
   $s.classList.add('e-wiki-new-subject');
   $s.innerHTML = '新建';
   const $search = $s.cloneNode() as Element;
   $search.innerHTML = '新建并查重';
-  $t.appendChild($s);
-  $t.appendChild($search);
+  $div.appendChild($s);
+  $div.appendChild($search);
+  $t.insertAdjacentElement('afterend', $div);
   $s.addEventListener('click', async (e) => {
     await cb(e);
   });
@@ -230,4 +239,119 @@ export function insertControlBtnChara(
   $s.addEventListener('click', async (e) => {
     await cb(e);
   });
+}
+
+function isChineseStr(str: string) {
+  return /^[\u4e00-\u9fa5]+/i.test(str) && !hasJpStr(str);
+}
+function hasJpStr(str: string) {
+  var pHiragana = /[\u3040-\u309Fー]/;
+  var pKatakana = /[\u30A0-\u30FF]/;
+  return pHiragana.test(str) || pKatakana.test(str);
+}
+function getTargetStr(
+  str1: string,
+  str2: string,
+  checkFunc: (str: string) => boolean
+): string {
+  if (checkFunc(str1)) return str1;
+  if (checkFunc(str2)) return str2;
+  return '';
+}
+// 综合两个单项信息
+function combineObj(current: SingleInfo, target: SingleInfo): SingleInfo[] {
+  const obj = { ...current, ...target };
+  if (current.category === 'subject_title') {
+    // 中日  日英  中英
+    let cnName = { name: '中文名', value: '' };
+    let titleObj = { ...current };
+    let otherName = { name: '别名', value: '' };
+    let chineseStr = getTargetStr(current.value, target.value, isChineseStr);
+    let jpStr = getTargetStr(current.value, target.value, hasJpStr);
+    // TODO 状态机？
+    if (chineseStr) {
+      cnName.value = chineseStr;
+      if (current.value === chineseStr) {
+        titleObj.value = target.value;
+      } else {
+        titleObj.value = current.value;
+      }
+    }
+    if (jpStr) {
+      titleObj.value = jpStr;
+      if (!chineseStr) {
+        if (current.value === jpStr) {
+          otherName.value = target.value;
+        } else {
+          otherName.value = current.value;
+        }
+      }
+    }
+    return [titleObj, cnName, otherName];
+  }
+  if (['游戏简介', '开发', '发行'].includes(current.name)) {
+    return [{ ...current }];
+  }
+  if (current.value.length < target.value.length) {
+    obj.value = target.value;
+  } else {
+    obj.value = current.value;
+  }
+  return [obj];
+}
+
+/**
+ * 结合不用网站的信息
+ * @param infoList 当前的条目信息
+ * @param otherInfoList 参考的条目信息
+ */
+export function combineInfoList(
+  infoList: SingleInfo[],
+  otherInfoList: SingleInfo[]
+): SingleInfo[] {
+  const multipleNames = ['平台', '别名'];
+  const res: SingleInfo[] = [];
+  const idxSetOther = new Set();
+  for (let i = 0; i < infoList.length; i++) {
+    const current = infoList[i];
+    if (multipleNames.includes(current.name)) {
+      res.push(current);
+      continue;
+    }
+    const idxOther = otherInfoList.findIndex(
+      (info) => info.name === current.name
+    );
+    if (idxOther === -1) {
+      res.push(current);
+    } else {
+      const objArr = combineObj(current, otherInfoList[idxOther]);
+      res.push(...objArr);
+      idxSetOther.add(idxOther);
+    }
+  }
+  for (let j = 0; j < otherInfoList.length; j++) {
+    const other = otherInfoList[j];
+    if (multipleNames.includes(other.name)) {
+      res.push(other);
+      continue;
+    }
+    if (idxSetOther.has(j)) continue;
+    res.push(other);
+  }
+  const noEmptyArr = res.filter((v) => v.value);
+  // ref: https://stackoverflow.com/questions/2218999/remove-duplicates-from-an-array-of-objects-in-javascript
+  return noEmptyArr.filter(
+    (v, i, a) =>
+      a.findIndex((t) => t.value === v.value && t.name === v.name) === i
+  );
+}
+
+export async function getWikiDataByURL(url: string) {
+  const urlObj = new URL(url);
+  const model = findModelByHost(urlObj.hostname);
+  if (model) {
+    const rawText = await fetchText(url, 4 * 1000);
+    let $doc = new DOMParser().parseFromString(rawText, 'text/html');
+    return await getWikiData(model, $doc);
+  }
 }

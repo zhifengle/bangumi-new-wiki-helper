@@ -43,7 +43,7 @@ export interface SiteConfig {
   // 区分页面是目标的选择器
   pageSelectors: Selector[];
   // 插入控制按钮位置的元素选择器
-  controlSelector: Selector;
+  controlSelector: Selector | Selector[];
   type: SubjectTypeId;
   subType?: number;
   itemList: InfoConfig[];

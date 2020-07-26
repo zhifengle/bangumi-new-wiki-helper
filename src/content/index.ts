@@ -2,20 +2,18 @@
 import browser from 'webextension-polyfill';
 import { SiteConfig } from '../interface/wiki';
 import { findElement } from '../utils/domUtils';
-import {
-  getQueryInfo,
-  getWikiData,
-  getWikiItem,
-  insertControlBtn,
-} from '../sites/common';
+import { getQueryInfo, getWikiData, insertControlBtn } from '../sites/common';
 import { SingleInfo, SubjectWikiInfo } from '../interface/subject';
 import { amazonSubjectModel } from '../models/amazonJpBook';
 import { getchuGameModel } from '../models/getchuGame';
 import { getchu } from './getchu';
 import { erogamescapeModel } from '../models/erogamescape';
 import { configs, findModelByHost } from '../models';
+import { steamdbModel } from '../models/steamdb';
+import { steamModel } from '../models/steam';
+import { getSteamURL, getSteamdbURL } from '../sites/steam';
 
-async function initCommon(siteConfig: SiteConfig) {
+async function initCommon(siteConfig: SiteConfig, config: any = {}) {
   // 查找标志性的元素
   const $page = findElement(siteConfig.pageSelectors);
   if (!$page) return;
@@ -37,14 +35,8 @@ async function initCommon(siteConfig: SiteConfig) {
       let payload: any = {
         subjectInfo: getQueryInfo(infoList as SingleInfo[]),
         type: siteConfig.type,
+        ...config?.payload,
       };
-      // steam 禁用时间筛选
-      if (
-        siteConfig.key === 'steam_game' ||
-        siteConfig.key === 'steamdb_game'
-      ) {
-        payload.disableDate = true;
-      }
       await browser.runtime.sendMessage({
         action: 'check_subject_exist',
         payload,
@@ -54,6 +46,7 @@ async function initCommon(siteConfig: SiteConfig) {
         action: 'create_new_subject',
         payload: {
           type: siteConfig.type,
+          ...config?.payload,
         },
       });
     }
@@ -85,6 +78,22 @@ const init = function () {
       case 'erogamescape.dyndns.org':
       case 'erogamescape.org':
         initCommon(erogamescapeModel);
+        break;
+      case 'steamdb.info':
+        initCommon(steamdbModel, {
+          payload: {
+            disableDate: true,
+            auxSite: getSteamURL(window.location.href),
+          },
+        });
+        break;
+      case 'store.steampowered.com':
+        initCommon(steamModel, {
+          payload: {
+            disableDate: true,
+            auxSite: getSteamdbURL(window.location.href),
+          },
+        });
         break;
       case 'bangumi.tv':
       case 'chii.tv':
