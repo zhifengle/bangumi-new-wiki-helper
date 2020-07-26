@@ -1,14 +1,20 @@
-import {ModelKey} from '../interface/wiki';
-import {getchuTools} from './getchu';
-import {amazonTools} from './amazon';
-import {dealDate, formatDate} from '../utils/utils';
+import { ModelKey } from '../interface/wiki';
+import { getchuTools } from './getchu';
+import { amazonTools } from './amazon';
+import { dealDate, formatDate } from '../utils/utils';
 
 type Utils = {
   [key in ModelKey]?: {
-    category: string
-    dealFunc: (...args: any) => string
-  }[]
+    category: string;
+    dealFunc: (...args: any) => string;
+  }[];
+};
+
+export function trimParenthesis(str: string) {
+  const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
+  return str.replace(new RegExp(textList.join('|'), 'g'), '').trim();
 }
+
 export const dealUtils: Utils = {
   steam_game: [
     {
@@ -23,11 +29,10 @@ export const dealUtils: Utils = {
       category: 'date',
       dealFunc(str: string) {
         if (/年/.test(str)) {
-          return dealDate(str)
+          return dealDate(str);
         }
         return formatDate(str);
       },
-
     },
   ],
   steamdb_game: [
@@ -52,9 +57,23 @@ export const dealUtils: Utils = {
       dealFunc: amazonTools.dealTitle,
     },
   ],
+  dangdang_book: [
+    {
+      category: 'date',
+      dealFunc(str: string) {
+        return dealDate(str.replace(/出版时间[:：]/, '').trim());
+      },
+    },
+    {
+      category: 'subject_title',
+      dealFunc(str: string) {
+        return trimParenthesis(str);
+      },
+    },
+  ],
 };
 
-function identity<T>(x: T): T {
+export function identity<T>(x: T): T {
   return x;
 }
 

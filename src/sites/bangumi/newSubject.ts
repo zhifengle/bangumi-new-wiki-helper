@@ -1,24 +1,29 @@
-import {SingleInfo, SubjectWikiInfo} from "../../interface/subject";
-import {$q, $qa} from "../../utils/domUtils";
-import {sleep} from "../../utils/async/sleep";
-import {dealDate} from "../../utils/utils";
-import {dealImageWidget} from "./dealImageWidget";
+import { SingleInfo, SubjectWikiInfo } from '../../interface/subject';
+import { $q, $qa } from '../../utils/domUtils';
+import { sleep } from '../../utils/async/sleep';
+import { dealDate } from '../../utils/utils';
+import { dealImageWidget } from './dealImageWidget';
 
 /**
  * 转换 wiki 模式下 infobox 内容
  * @param originValue
  * @param infoArr
  */
-export function convertInfoValue(originValue: string, infoArr: SingleInfo[])
-  : string {
-  const arr = originValue.trim().split('\n').filter(v => !!v);
+export function convertInfoValue(
+  originValue: string,
+  infoArr: SingleInfo[]
+): string {
+  const arr = originValue
+    .trim()
+    .split('\n')
+    .filter((v) => !!v);
   const newArr = [];
   for (const info of infoArr) {
     let isDefault = false;
     for (let i = 0, len = arr.length; i < len; i++) {
       //  |发行日期=  ---> 发行日期
       // [纯假名|] ---> 纯假名
-      const m = arr[i].match(/(?:\||\[)(.+?)([|=])/)
+      const m = arr[i].match(/(?:\||\[)(.+?)([|=])/);
       if (!m || m.length < 2) continue;
       const n = m[1];
       if (n === info.name) {
@@ -29,10 +34,10 @@ export function convertInfoValue(originValue: string, infoArr: SingleInfo[])
         }
         // 匹配到 [英文名|]
         if (/\[.+\|\]/.test(arr[i])) {
-          arr[i] = arr[i].replace(']', '') + d + ']'
+          arr[i] = arr[i].replace(']', '') + d + ']';
         } else if (/\|.+={/.test(arr[i])) {
           // |平台={
-          arr[i] = `${arr[i]}\n[${info.value}]`
+          arr[i] = `${arr[i]}\n[${info.value}]`;
         } else {
           // 拼接： |发行日期=2020-01-01
           arr[i] = arr[i].replace(/=[^{[]+/, '=') + d;
@@ -47,18 +52,41 @@ export function convertInfoValue(originValue: string, infoArr: SingleInfo[])
     }
   }
   arr.pop();
-  return [...arr, ...newArr, '}}'].join('\n')
+  // 图书条目的 infobox 作者放在出版社之前
+  if (/animanga/.test(arr[0])) {
+    let pressIdx;
+    let authorIdx;
+    let resArr = [...arr, ...newArr, '}}'];
+    for (let i = 0; i < resArr.length; i++) {
+      if (/\|(\s*)出版社(\s*)=/.test(resArr[i])) {
+        pressIdx = i;
+        continue;
+      }
+      if (/作者/.test(resArr[i])) {
+        authorIdx = i;
+        continue;
+      }
+    }
+    if (pressIdx && authorIdx && authorIdx > pressIdx) {
+      const press = resArr[pressIdx];
+      const author = resArr[authorIdx];
+      resArr.splice(pressIdx, 1, author, press);
+      resArr.splice(authorIdx + 1, 1);
+      return resArr.join('\n');
+    }
+  }
+  return [...arr, ...newArr, '}}'].join('\n');
 }
 
 function observerNode($node: HTMLElement): Promise<any> {
-  return new Promise<any>(resolve => {
-    const config = {attributes: true, childList: true, subtree: true};
+  return new Promise<any>((resolve) => {
+    const config = { attributes: true, childList: true, subtree: true };
     const observer = new MutationObserver((mutationsList) => {
-      observer.disconnect()
-      resolve(mutationsList)
+      observer.disconnect();
+      resolve(mutationsList);
     });
     observer.observe($node, config);
-  })
+  });
 }
 
 /**
@@ -68,13 +96,15 @@ function observerNode($node: HTMLElement): Promise<any> {
  */
 export async function fillInfoBox(wikiData: SubjectWikiInfo) {
   const dict = {
-    '誕生日': '生日',
-    'スリーサイズ': 'BWH'
+    誕生日: '生日',
+    スリーサイズ: 'BWH',
   } as any;
-  const {infos} = wikiData;
-  const subType = +wikiData.subtype
+  const { infos } = wikiData;
+  const subType = +wikiData.subtype;
   const infoArray: SingleInfo[] = [];
-  const $typeInput: NodeList = $qa('table tr:nth-of-type(2) > td:nth-of-type(2) input');
+  const $typeInput: NodeList = $qa(
+    'table tr:nth-of-type(2) > td:nth-of-type(2) input'
+  );
   if ($typeInput) {
     // @ts-ignore
     $typeInput[0].click();
@@ -85,8 +115,12 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
   }
   await sleep(100);
 
-  const $wikiMode = $q('table small a:nth-of-type(1)[href="javascript:void(0)"]') as HTMLElement;
-  const $newbieMode = $q('table small a:nth-of-type(2)[href="javascript:void(0)"]') as HTMLElement;
+  const $wikiMode = $q(
+    'table small a:nth-of-type(1)[href="javascript:void(0)"]'
+  ) as HTMLElement;
+  const $newbieMode = $q(
+    'table small a:nth-of-type(2)[href="javascript:void(0)"]'
+  ) as HTMLElement;
   for (let i = 0, len = infos.length; i < len; i++) {
     if (infos[i].category === 'subject_title') {
       let $title = $q('input[name=subject_title]') as HTMLInputElement;
@@ -109,21 +143,24 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
       continue;
     }
     // 有名称并且category不在特定列表里面
-    if (infos[i].name && ['cover', 'crt_cover'].indexOf(infos[i].category) === -1) {
+    if (
+      infos[i].name &&
+      ['cover', 'crt_cover'].indexOf(infos[i].category) === -1
+    ) {
       const name = infos[i].name;
       if (dict.hasOwnProperty(name)) {
         infoArray.push({
           ...infos[i],
-          name: dict[name]
-        })
+          name: dict[name],
+        });
       } else {
         infoArray.push(infos[i]);
       }
     }
   }
   $wikiMode.click();
-  await sleep(200)
-  const $infoBox = $q('#subject_infobox') as HTMLTextAreaElement
+  await sleep(200);
+  const $infoBox = $q('#subject_infobox') as HTMLTextAreaElement;
   $infoBox.value = convertInfoValue($infoBox.value, infoArray);
   await sleep(200);
   $newbieMode.click();
@@ -138,11 +175,11 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
 export function insertFillFormBtn(
   $t: Element,
   cb: (...args: any) => any,
-  cancelCb: (...args: any) => any,
+  cancelCb: (...args: any) => any
 ) {
   // 存在节点后，不再插入
   const clx = 'e-wiki-fill-form';
-  if ($qa('.'+clx).length >= 2) return;
+  if ($qa('.' + clx).length >= 2) return;
   const $s = document.createElement('span');
   $s.classList.add(clx);
   $s.innerHTML = 'wiki 填表';
@@ -151,25 +188,27 @@ export function insertFillFormBtn(
 
   const $cancel = $s.cloneNode() as HTMLElement;
   $cancel.innerHTML = '清空';
-  $cancel.classList.add(clx+'-cancel');
-  $cancel.addEventListener('click', cancelCb)
+  $cancel.classList.add(clx + '-cancel');
+  $cancel.addEventListener('click', cancelCb);
   $t.appendChild($cancel);
 }
 
 export function initNewSubject(wikiInfo: SubjectWikiInfo) {
-  const $t = $q('form[name=create_subject] [name=subject_title]').parentElement
+  const $t = $q('form[name=create_subject] [name=subject_title]').parentElement;
   const defaultVal = ($q('#subject_infobox') as HTMLTextAreaElement).value;
   insertFillFormBtn(
     $t,
     async (e) => {
-      await fillInfoBox(wikiInfo)
+      await fillInfoBox(wikiInfo);
     },
     () => {
       // 清除默认值
-      $qa('input[name=platform]').forEach(element => {
+      $qa('input[name=platform]').forEach((element) => {
         (element as HTMLInputElement).checked = false;
       });
-      const $wikiMode = $q('table small a:nth-of-type(1)[href="javascript:void(0)"]') as HTMLElement;
+      const $wikiMode = $q(
+        'table small a:nth-of-type(1)[href="javascript:void(0)"]'
+      ) as HTMLElement;
       $wikiMode.click();
       // @ts-ignore
       $q('#subject_infobox').value = defaultVal;
@@ -178,19 +217,21 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       // @ts-ignore
       $q('#subject_summary').value = '';
     }
-  )
+  );
 }
 
 export function initNewCharacter(wikiInfo: SubjectWikiInfo) {
-  const $t = $q('form[name=new_character] #crt_name').parentElement
+  const $t = $q('form[name=new_character] #crt_name').parentElement;
   const defaultVal = ($q('#subject_infobox') as HTMLTextAreaElement).value;
   insertFillFormBtn(
     $t,
     async (e) => {
-      await fillInfoBox(wikiInfo)
+      await fillInfoBox(wikiInfo);
     },
     () => {
-      const $wikiMode = $q('table small a:nth-of-type(1)[href="javascript:void(0)"]') as HTMLElement;
+      const $wikiMode = $q(
+        'table small a:nth-of-type(1)[href="javascript:void(0)"]'
+      ) as HTMLElement;
       $wikiMode.click();
       // @ts-ignore
       $q('#subject_infobox').value = defaultVal;
@@ -199,24 +240,29 @@ export function initNewCharacter(wikiInfo: SubjectWikiInfo) {
       // @ts-ignore
       $q('#crt_summary').value = '';
     }
-  )
-  const coverInfo = wikiInfo.infos
-    .filter((item: SingleInfo) => item.category === 'crt_cover')[0]
+  );
+  const coverInfo = wikiInfo.infos.filter(
+    (item: SingleInfo) => item.category === 'crt_cover'
+  )[0];
   if (coverInfo && coverInfo.value && coverInfo.value.match(/^data:image/)) {
-    dealImageWidget($q('form[name=new_character]'), coverInfo.value)
+    dealImageWidget($q('form[name=new_character]'), coverInfo.value);
     // 修改文本
     setTimeout(() => {
-      const $input = $q('.e-wiki-cover-container [name=submit]') as HTMLInputElement;
+      const $input = $q(
+        '.e-wiki-cover-container [name=submit]'
+      ) as HTMLInputElement;
       if ($input) {
         $input.value = '添加人物并上传肖像';
       }
-    }, 200)
+    }, 200);
   }
 }
 
 export function initUploadImg(wikiInfo: SubjectWikiInfo) {
-  const coverInfo = wikiInfo.infos.filter((item: SingleInfo) => item.category === 'cover')[0]
+  const coverInfo = wikiInfo.infos.filter(
+    (item: SingleInfo) => item.category === 'cover'
+  )[0];
   if (coverInfo && coverInfo.value && coverInfo.value.dataUrl) {
-    dealImageWidget($q('form[name=img_upload]'), coverInfo.value.dataUrl)
+    dealImageWidget($q('form[name=img_upload]'), coverInfo.value.dataUrl);
   }
 }

@@ -1,52 +1,62 @@
-import { BangumiDomain, changeDomain, Protocol } from './index'
-import { randomNum } from '../../utils/utils'
-import { book } from '../../data/subject'
-import { convertInfoValue } from './newSubject'
+import { BangumiDomain, changeDomain, Protocol } from './index';
+import { randomNum } from '../../utils/utils';
+import { book } from '../../data/subject';
+import { convertInfoValue } from './newSubject';
 
 describe('test bangumi sites function', () => {
   it('test convert info', () => {
     const rawInfo = `
 {{Infobox animanga/Manga
 |中文名=
-|别名={
-}
-|出版社=
+|出版社= *
 |价格=
+|作画=
 |其他出版社=
 |连载杂志=
 |发售日=
-|册数=
 |页数=
 |话数=
-|ISBN=
 |其他=
-|ASIN=
-|作者=
 }}
-    `
-    const infoArr = [...book.infos]
-    console.log(convertInfoValue(rawInfo, infoArr))
-  })
+    `;
+    const infoArr = [...book.infos];
+    expect(convertInfoValue(rawInfo, infoArr)).toEqual(`{{Infobox animanga/Manga
+|中文名=
+|作者=宮尾 岳
+|出版社=少年画報社
+|价格=
+|作画=
+|其他出版社=
+|连载杂志=
+|发售日=2019-02-16
+|页数=162
+|话数=
+|其他=
+|名称=test
+|内容简介=test summary
+|ISBN=978-4785963811
+}}`);
+  });
   it('test change domain', () => {
-    let domainArr = [
+    let testArr = [
       BangumiDomain.bangumi,
       BangumiDomain.chii,
       BangumiDomain.bgm,
-    ]
-    const origin = domainArr.splice(randomNum(2, 0), 1)
-    const target = domainArr.splice(randomNum(1, 0), 1)
+    ];
+    const origin = testArr.splice(randomNum(2, 0), 1)[0];
+    const target = testArr.splice(randomNum(1, 0), 1)[0];
     expect(
       changeDomain(`https://${origin}/new_subject/4`, target as any)
-    ).toEqual(`https://${target}/new_subject/4`)
+    ).toEqual(`https://${target}/new_subject/4`);
     expect(
       changeDomain(
         `https://${origin}/new_subject/4`,
         target as any,
         Protocol.http
       )
-    ).toEqual(`http://${target}/new_subject/4`)
-  })
-})
+    ).toEqual(`http://${target}/new_subject/4`);
+  });
+});
 
 test('test new game', () => {
   const str = `{{Infobox Game
@@ -64,7 +74,7 @@ test('test new game', () => {
 |售价=
 |官方网站=
 }}
-`
+`;
   const infos = [
     {
       name: '售价',
@@ -101,6 +111,6 @@ test('test new game', () => {
       value: 'PS4',
       category: 'platform',
     },
-  ]
-  console.log(convertInfoValue(str, infos))
-})
+  ];
+  console.log(convertInfoValue(str, infos));
+});

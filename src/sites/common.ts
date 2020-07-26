@@ -1,9 +1,9 @@
-import {InfoConfig, Selector, SiteConfig, ModelKey} from '../interface/wiki';
-import {findElement, getText} from '../utils/domUtils';
-import {AllSubject, SearchResult, SingleInfo} from '../interface/subject';
-import {getImageDataByURL} from '../utils/dealImage';
-import {isEqualDate} from '../utils/utils';
-import {dealFuncByCategory} from './dealUtils';
+import { InfoConfig, Selector, SiteConfig, ModelKey } from '../interface/wiki';
+import { findElement, getText } from '../utils/domUtils';
+import { AllSubject, SearchResult, SingleInfo } from '../interface/subject';
+import { getImageDataByURL } from '../utils/dealImage';
+import { isEqualDate } from '../utils/utils';
+import { dealFuncByCategory } from './dealUtils';
 
 /**
  * 处理单项 wiki 信息
@@ -25,8 +25,11 @@ export function dealItemText(
   // `(${keyStr})(${separators.join('|')})?`
   return str
     .replace(new RegExp(textList.join('|'), 'g'), '')
-    .replace(new RegExp(keyWords.join('|')), '')
-    .replace(new RegExp(`^.*?${separators.join('|')}`), '')
+    .replace(
+      new RegExp(keyWords.map((k) => `${k}\s*?(:|：)?`).join('|'), 'g'),
+      ''
+    )
+    .replace(/[^\d:]+?(:|：)/, '')
     .trim();
 }
 
@@ -80,10 +83,9 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
       val = dealFuncByCategory(site, 'website')($d.getAttribute('href'));
       break;
     case 'date':
-      if (!['amazon_jp_book', 'getchu_game'].includes(site)) {
-        val = dealFuncByCategory(site, infoConfig.category)(txt);
-        break;
-      }
+      val = dealItemText(txt, infoConfig.category, keyWords);
+      val = dealFuncByCategory(site, infoConfig.category)(val);
+      break;
     default:
       val = dealItemText(txt, infoConfig.category, keyWords);
   }
@@ -120,7 +122,7 @@ export function filterResults(
   items: SearchResult[],
   subjectInfo: AllSubject,
   opts: any = {},
-  isSearch: boolean = true,
+  isSearch: boolean = true
 ) {
   if (!items) return;
   // 只有一个结果时直接返回, 不再比较日期
@@ -130,13 +132,9 @@ export function filterResults(
     // if (isEqualDate(result.releaseDate, subjectInfo.releaseDate)) {
     // }
   }
-  let results = new Fuse(
-    items,
-    Object.assign(
-      {},
-      opts
-    )
-  ).search(subjectInfo.name);
+  let results = new Fuse(items, Object.assign({}, opts)).search(
+    subjectInfo.name
+  );
   if (!results.length) return;
   // 有参考的发布时间
   if (subjectInfo.releaseDate) {

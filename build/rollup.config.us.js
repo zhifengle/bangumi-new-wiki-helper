@@ -7,14 +7,15 @@ import replace from '@rollup/plugin-replace';
 import multi from '@rollup/plugin-multi-entry';
 import base from './rollup.config.base'
 
+const outputName = name.replace(/-|\d+/g, '_');
 export default {
   input: [
     pathResolve(__dirname, '../src/header/bangumi_new_wiki_helper.js'),
     pathResolve(__dirname, '../src/index.ts')
   ],
   output: {
-    name: name.replace(/-|\d+/g, '_').toUpperCase(),
-    file: pathResolve(__dirname,`../dist/${name}.user.js`),
+    name: outputName.toUpperCase(),
+    file: pathResolve(__dirname,`../dist/${outputName.toLowerCase()}.user.js`),
     // format: 'iife',
     // sourcemap: true
   },

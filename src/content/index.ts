@@ -1,21 +1,19 @@
 // @ts-ignore
 import browser from 'webextension-polyfill';
-import {SiteConfig} from "../interface/wiki";
-import {findElement} from "../utils/domUtils";
+import { SiteConfig } from '../interface/wiki';
+import { findElement } from '../utils/domUtils';
 import {
-  getQueryInfo, getWikiData,
+  getQueryInfo,
+  getWikiData,
   getWikiItem,
-  insertControlBtn
-} from "../sites/common";
-import {SingleInfo, SubjectWikiInfo} from "../interface/subject";
-import {amazonSubjectModel} from "../models/amazonJpBook";
-import {getchuGameModel} from "../models/getchuGame";
-import {getchu} from "./getchu";
-import {erogamescapeModel} from "../models/erogamescape";
-
-const getData = async (list: Promise<any>[]) => {
-  return await Promise.all(list);
-};
+  insertControlBtn,
+} from '../sites/common';
+import { SingleInfo, SubjectWikiInfo } from '../interface/subject';
+import { amazonSubjectModel } from '../models/amazonJpBook';
+import { getchuGameModel } from '../models/getchuGame';
+import { getchu } from './getchu';
+import { erogamescapeModel } from '../models/erogamescape';
+import { configs, findModelByHost } from '../models';
 
 async function initCommon(siteConfig: SiteConfig) {
   // 查找标志性的元素
@@ -30,40 +28,52 @@ async function initCommon(siteConfig: SiteConfig) {
     const wikiData: SubjectWikiInfo = {
       type: siteConfig.type,
       subtype: siteConfig.subType || 0,
-      infos: infoList as SingleInfo[]
+      infos: infoList as SingleInfo[],
     };
     await browser.storage.local.set({
-      wikiData
+      wikiData,
     });
     if (flag) {
+      let payload: any = {
+        subjectInfo: getQueryInfo(infoList as SingleInfo[]),
+        type: siteConfig.type,
+      };
+      // steam 禁用时间筛选
+      if (
+        siteConfig.key === 'steam_game' ||
+        siteConfig.key === 'steamdb_game'
+      ) {
+        payload.disableDate = true;
+      }
       await browser.runtime.sendMessage({
         action: 'check_subject_exist',
-        payload: {
-          subjectInfo: getQueryInfo(infoList as SingleInfo[]),
-          type: siteConfig.type
-        }
+        payload,
       });
     } else {
       await browser.runtime.sendMessage({
         action: 'create_new_subject',
         payload: {
-          type: siteConfig.type
-        }
+          type: siteConfig.type,
+        },
       });
     }
   });
 }
 
+// common
+const hostArr: string[] = [];
+Object.keys(configs).forEach((key: string) =>
+  hostArr.push(...configs[key].host)
+);
+const siteRe = new RegExp(
+  [...hostArr, 'bangumi.tv', 'bgm.tv', 'chii.tv']
+    .map((h) => h.replace('.', '\\.'))
+    .join('|')
+);
 const init = function () {
-  const re = new RegExp([
-    'getchu.com',
-    'bangumi\\.tv', 'bgm\\.tv', 'chii\\.tv',
-    'erogamescape\\.org', 'erogamescape\\.dyndns\\.org',
-    'amazon\\.co\\.jp'
-  ].join('|'));
-  const page = document.location.host.match(re);
+  const page = document.location.host.match(siteRe);
   if (page) {
-    console.info('content script init')
+    console.info('content script init');
     switch (page[0]) {
       case 'amazon.co.jp':
         initCommon(amazonSubjectModel);
@@ -82,7 +92,10 @@ const init = function () {
         // bangumi.init();
         break;
       default:
-      // bangumi.init();
+        const model = findModelByHost(page[0]);
+        if (model) {
+          initCommon(model);
+        }
     }
   }
 };

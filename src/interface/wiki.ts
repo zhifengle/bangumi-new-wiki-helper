@@ -1,16 +1,16 @@
-import { SingleInfo } from './subject'
+import { SingleInfo } from './subject';
 
 export interface Selector {
-  selector: string
-  subSelector?: string
+  selector: string;
+  subSelector?: string;
   // 是否使用关键字查找，需要有 subSelector
-  keyWord?: string | string[]
-  sibling?: boolean
-  separator?: string
+  keyWord?: string | string[];
+  sibling?: boolean;
+  separator?: string;
   // 是否为 iframe， 如果是 iframe 需要有 subSelector
-  isIframe?: boolean
+  isIframe?: boolean;
   // 之前没考虑好 subSelector 的层级，为了兼容以前的代码使用 nextSelector
-  nextSelector?: Selector
+  nextSelector?: Selector;
 }
 
 export enum SubjectTypeId {
@@ -22,9 +22,9 @@ export enum SubjectTypeId {
   all = 'all',
 }
 export interface InfoConfig {
-  name: string
-  selector: Selector | Selector[]
-  category?: string
+  name: string;
+  selector: Selector | Selector[];
+  category?: string;
 }
 
 export type ModelKey =
@@ -33,17 +33,19 @@ export type ModelKey =
   | 'getchu_game'
   | 'steam_game'
   | 'steamdb_game'
+  | 'dangdang_book'
+  | 'jd_book';
 
 export interface SiteConfig {
-  key: ModelKey
-  description: string
-  host: string[]
+  key: ModelKey;
+  description: string;
+  host: string[];
   // 区分页面是目标的选择器
-  pageSelectors: Selector[]
+  pageSelectors: Selector[];
   // 插入控制按钮位置的元素选择器
-  controlSelector: Selector
-  type: SubjectTypeId
-  subType?: number
-  itemList: InfoConfig[]
-  defaultInfos?: SingleInfo[]
+  controlSelector: Selector;
+  type: SubjectTypeId;
+  subType?: number;
+  itemList: InfoConfig[];
+  defaultInfos?: SingleInfo[];
 }

@@ -1,57 +1,71 @@
-import { SiteConfig } from '../interface/wiki'
-import { findElement } from '../utils/domUtils'
+import { SiteConfig } from '../interface/wiki';
+import { findElement } from '../utils/domUtils';
 import {
   getQueryInfo,
   getWikiItem,
   insertControlBtn,
   getWikiData,
-} from '../sites/common'
-import { SubjectWikiInfo } from '../interface/subject'
-import { checkSubjectExit } from '../sites/bangumi'
-import { AUTO_FILL_FORM, BGM_DOMAIN, PROTOCOL, WIKI_DATA } from './constraints'
+} from '../sites/common';
+import { SubjectWikiInfo } from '../interface/subject';
+import { checkSubjectExit } from '../sites/bangumi';
+import { AUTO_FILL_FORM, BGM_DOMAIN, PROTOCOL, WIKI_DATA } from './constraints';
 
 export async function initCommon(siteConfig: SiteConfig, subtype = 0) {
-  const $page = findElement(siteConfig.pageSelectors)
-  if (!$page) return
-  const $title = findElement(siteConfig.controlSelector)
-  if (!$title) return
+  const $page = findElement(siteConfig.pageSelectors);
+  if (!$page) return;
+  const $title = findElement(siteConfig.controlSelector);
+  if (!$title) return;
   insertControlBtn($title.parentElement, async (e, flag) => {
-    const protocol = GM_getValue(PROTOCOL) || 'https'
-    const bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv'
-    const bgmHost = `${protocol}://${bgm_domain}`
-    console.info('init')
-    const infoList = await getWikiData(siteConfig)
-    console.info('wiki info list: ', infoList)
+    const protocol = GM_getValue(PROTOCOL) || 'https';
+    const bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
+    const bgmHost = `${protocol}://${bgm_domain}`;
+    console.info('init');
+    const infoList = await getWikiData(siteConfig);
+    console.info('wiki info list: ', infoList);
     const wikiData: SubjectWikiInfo = {
       type: siteConfig.type,
       subtype,
       infos: infoList,
-    }
-    GM_setValue(WIKI_DATA, JSON.stringify(wikiData))
+    };
+    GM_setValue(WIKI_DATA, JSON.stringify(wikiData));
     if (flag) {
-      const result = await checkSubjectExit(
-        getQueryInfo(infoList),
-        bgmHost,
-        wikiData.type
-      )
-      console.info('search results: ', result)
+      let result;
+      // steam 禁用时间筛选
+      if (
+        siteConfig.key === 'steam_game' ||
+        siteConfig.key === 'steamdb_game'
+      ) {
+        result = await checkSubjectExit(
+          getQueryInfo(infoList),
+          bgmHost,
+          wikiData.type,
+          true
+        );
+      } else {
+        result = await checkSubjectExit(
+          getQueryInfo(infoList),
+          bgmHost,
+          wikiData.type
+        );
+      }
+      console.info('search results: ', result);
       if (result && result.url) {
-        GM_openInTab(bgmHost + result.url)
+        GM_openInTab(bgmHost + result.url);
       } else {
         // 重置自动填表
-        GM_setValue(AUTO_FILL_FORM, 1)
+        GM_setValue(AUTO_FILL_FORM, 1);
         setTimeout(() => {
-          GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`)
-        }, 200)
+          GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`);
+        }, 200);
       }
     } else {
       // 重置自动填表
-      GM_setValue(AUTO_FILL_FORM, 1)
+      GM_setValue(AUTO_FILL_FORM, 1);
       setTimeout(() => {
-        GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`)
-      }, 200)
+        GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`);
+      }, 200);
     }
-  })
+  });
 }
 
 export function addStyle() {
@@ -135,5 +149,5 @@ export function addStyle() {
   color: #149bff !important;
   text-decoration: none;
 }
-  `)
+  `);
 }
