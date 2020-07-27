@@ -1,11 +1,6 @@
 import { InfoConfig, Selector, SiteConfig, ModelKey } from '../interface/wiki';
 import { findElement, getText } from '../utils/domUtils';
-import {
-  AllSubject,
-  SearchResult,
-  SingleInfo,
-  SubjectWikiInfo,
-} from '../interface/subject';
+import { AllSubject, SearchResult, SingleInfo } from '../interface/subject';
 import { getImageDataByURL } from '../utils/dealImage';
 import { isEqualDate } from '../utils/utils';
 import { dealFuncByCategory } from './dealUtils';
@@ -346,6 +341,7 @@ export function combineInfoList(
   );
 }
 
+// 后台抓取其它网站的 wiki 信息
 export async function getWikiDataByURL(url: string) {
   const urlObj = new URL(url);
   const model = findModelByHost(urlObj.hostname);

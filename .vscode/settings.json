@@ -2,5 +2,6 @@
   "prettier.semi": true,
   "prettier.singleQuote": true,
   "prettier.tabWidth": 2,
-  "prettier.useTabs": false
+  "prettier.useTabs": false,
+  "auto-close-tag.enableAutoCloseTag": false
 }
