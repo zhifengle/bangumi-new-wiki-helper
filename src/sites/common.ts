@@ -76,6 +76,10 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
     default:
       val = dealItemText(txt, infoConfig.category, keyWords);
   }
+  // 信息后处理
+  if (infoConfig.category === 'creator') {
+    val = val.replace(/\s/g, '');
+  }
   if (val) {
     return {
       name: infoConfig.name,

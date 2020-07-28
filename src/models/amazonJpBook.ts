@@ -87,6 +87,7 @@ amazonSubjectModel.itemList.push(
         selector: '#bylineInfo .contributorNameID',
       },
     ],
+    category: 'creator',
   },
   {
     name: '出版社',
