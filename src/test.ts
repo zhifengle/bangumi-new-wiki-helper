@@ -17,6 +17,7 @@ import { jdBookModel } from './models/jdBook';
 // https://www.amazon.co.jp/dp/4757556977
 
 // http://product.dangdang.com/27914599.html
+// http://www.getchu.com/soft.phtml?id=1080370
 
 const getData = async (list: Promise<any>[]) => {
   return await Promise.all(list);

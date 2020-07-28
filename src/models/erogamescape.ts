@@ -2,8 +2,8 @@ import {
   InfoConfig,
   Selector,
   SiteConfig,
-  SubjectTypeId
-} from "../interface/wiki";
+  SubjectTypeId,
+} from '../interface/wiki';
 
 export const erogamescapeModel: SiteConfig = {
   key: 'erogamescape',
@@ -13,13 +13,13 @@ export const erogamescapeModel: SiteConfig = {
   pageSelectors: [
     {
       selector: '#soft-title',
-    }
+    },
   ],
   controlSelector: {
-    selector: '#soft-title > span'
+    selector: '#soft-title',
   },
-  itemList: []
-}
+  itemList: [],
+};
 
 erogamescapeModel.itemList.push(
   {
@@ -27,13 +27,13 @@ erogamescapeModel.itemList.push(
     selector: {
       selector: '#soft-title > span',
     },
-    category: 'subject_title'
+    category: 'subject_title',
   },
   {
     name: '开发',
     selector: {
       selector: '#brand a',
-    }
+    },
   },
   {
     name: '发行日期',
@@ -47,7 +47,7 @@ erogamescapeModel.itemList.push(
     selector: {
       selector: '#image_and_basic_infomation img',
     },
-    category: 'cover'
+    category: 'cover',
   },
   {
     name: 'website',
@@ -55,15 +55,15 @@ erogamescapeModel.itemList.push(
       {
         selector: '#links',
         subSelector: 'a',
-        keyWord: 'game_OHP'
+        keyWord: 'game_OHP',
       },
       {
         selector: '#bottom_inter_links_main',
         subSelector: 'a',
-        keyWord: 'game_OHP'
-      }
+        keyWord: 'game_OHP',
+      },
     ],
-    category: 'website'
+    category: 'website',
   },
   {
     name: '原画',
@@ -82,5 +82,5 @@ erogamescapeModel.itemList.push(
     selector: {
       selector: '#kasyu > td:last-child',
     },
-  },
-)
+  }
+);

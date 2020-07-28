@@ -3,6 +3,7 @@ import { ITiming, IFuncPromise } from '../interface/types';
 import { amazonTools } from './amazon';
 import { dealDate, formatDate } from '../utils/utils';
 import { getchuTools } from './getchu';
+import { getImageDataByURL, convertImgToBase64 } from '../utils/dealImage';
 
 type FuncDict = {
   hooks?: {
@@ -30,6 +31,24 @@ export function getHooks(
 ): IFuncPromise {
   const hooks: any = sitesFuncDict[siteConfig.key]?.hooks || {};
   return hooks[timing] || noOps;
+}
+export async function getCover($d: Element, site: ModelKey) {
+  let url;
+  let dataUrl = '';
+  if ($d.tagName.toLowerCase() === 'a') {
+    url = $d.getAttribute('href');
+    dataUrl = await getImageDataByURL(url);
+  } else if ($d.tagName.toLowerCase() === 'img') {
+    url = $d.getAttribute('src');
+    // dataUrl = convertImgToBase64($d as any);
+    dataUrl = await getImageDataByURL(url);
+  }
+  if (dataUrl) {
+    return {
+      dataUrl,
+    };
+  }
+  return;
 }
 
 export function dealFuncByCategory(

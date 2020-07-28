@@ -1,4 +1,4 @@
-import {SiteConfig, SubjectTypeId} from "../interface/wiki";
+import { SiteConfig, SubjectTypeId } from '../interface/wiki';
 
 // TODO: 区分 kindle 页面和 纸质书页面
 export const amazonSubjectModel: SiteConfig = {
@@ -10,18 +10,19 @@ export const amazonSubjectModel: SiteConfig = {
     {
       selector: '#nav-subnav .nav-a:first-child',
       subSelector: '.nav-a-content',
-      keyWord: '(?<!Kindle)本'
+      keyWord: '(?<!Kindle)本',
     },
     {
-      selector: '#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child',
+      selector:
+        '#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child',
       subSelector: '.a-link-normal',
-      keyWord: '(?<!Kindle)本'
-    }
+      keyWord: '(?<!Kindle)本',
+    },
   ],
   controlSelector: {
     selector: '#title',
   },
-  itemList: []
+  itemList: [],
 };
 amazonSubjectModel.itemList.push(
   {
@@ -29,15 +30,19 @@ amazonSubjectModel.itemList.push(
     selector: {
       selector: '#productTitle',
     },
-    category: 'subject_title'
+    category: 'subject_title',
   },
   {
     name: 'cover',
-    selector: {
-      selector: 'img#imgBlkFront',
-    },
-    // selector: 'img#igImage'
-    category: 'cover'
+    selector: [
+      {
+        selector: 'img#igImage',
+      },
+      {
+        selector: 'img#imgBlkFront',
+      },
+    ],
+    category: 'cover',
   },
   {
     name: 'ASIN',
@@ -47,7 +52,7 @@ amazonSubjectModel.itemList.push(
       keyWord: 'ISBN-10',
       separator: ':',
     },
-    category: 'ASIN'
+    category: 'ASIN',
   },
   {
     name: 'ISBN',
@@ -57,7 +62,7 @@ amazonSubjectModel.itemList.push(
       keyWord: 'ISBN-13',
       separator: ':',
     },
-    category: 'ISBN'
+    category: 'ISBN',
   },
   {
     name: '发售日',
@@ -67,21 +72,21 @@ amazonSubjectModel.itemList.push(
       keyWord: '発売日',
       separator: ':',
     },
-    category: 'date'
+    category: 'date',
   },
   {
     name: '作者',
     selector: [
       {
-        selector: '#byline .author span.a-size-medium'
+        selector: '#byline .author span.a-size-medium',
       },
       {
-        selector: '#bylineInfo .author > a'
+        selector: '#bylineInfo .author > a',
       },
       {
-        selector: '#bylineInfo .contributorNameID'
+        selector: '#bylineInfo .contributorNameID',
       },
-    ]
+    ],
   },
   {
     name: '出版社',
@@ -89,8 +94,8 @@ amazonSubjectModel.itemList.push(
       selector: '#detail_bullets_id .bucket .content',
       subSelector: 'li',
       separator: ':',
-      keyWord: '出版社'
-    }
+      keyWord: '出版社',
+    },
   },
   {
     name: '页数',
@@ -98,19 +103,19 @@ amazonSubjectModel.itemList.push(
       selector: '#detail_bullets_id .bucket .content',
       subSelector: 'li',
       separator: ':',
-      keyWord: 'ページ'
+      keyWord: 'ページ',
     },
   },
   {
     name: '价格',
     selector: [
       {
-        selector: '.swatchElement.selected .a-color-base .a-size-base'
+        selector: '.swatchElement.selected .a-color-base .a-size-base',
       },
       {
-        selector: '.swatchElement.selected .a-color-base'
-      }
-    ]
+        selector: '.swatchElement.selected .a-color-base',
+      },
+    ],
   },
   {
     name: '内容简介',
@@ -124,9 +129,9 @@ amazonSubjectModel.itemList.push(
       {
         selector: '#bookDesc_iframe',
         subSelector: '#iframeContent',
-        isIframe: true
-      }
+        isIframe: true,
+      },
     ],
-    category: 'subject_summary'
+    category: 'subject_summary',
   }
 );

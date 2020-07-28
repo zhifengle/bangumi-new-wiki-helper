@@ -291,3 +291,9 @@ export function changeDomain(
     .replace(new RegExp(domainArr.join('|').replace('.', '\\.')), domain)
     .replace(/https?/, protocol);
 }
+
+export function getSubjectId(url: string) {
+  const m = url.match(/subject\/(\d+)/);
+  if (!m) return '';
+  return m[1];
+}

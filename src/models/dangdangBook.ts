@@ -1,6 +1,5 @@
 import { SiteConfig, SubjectTypeId } from '../interface/wiki';
 
-// TODO: 区分 kindle 页面和 纸质书页面
 export const dangdangBookModel: SiteConfig = {
   key: 'dangdang_book',
   host: ['product.dangdang.com'],

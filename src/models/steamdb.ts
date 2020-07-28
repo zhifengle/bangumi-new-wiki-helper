@@ -16,7 +16,7 @@ export const steamdbModel: SiteConfig = {
     },
   ],
   controlSelector: {
-    selector: '.pagehead h1',
+    selector: '.pagehead',
   },
   itemList: [],
 };

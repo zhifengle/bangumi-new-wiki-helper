@@ -41,7 +41,7 @@ export async function initCommon(siteConfig: SiteConfig, config: any = {}) {
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
   const { payload = {} } = config;
-  insertControlBtn($title.parentElement, async (e, flag) => {
+  insertControlBtn($title, async (e, flag) => {
     const protocol = GM_getValue(PROTOCOL) || 'https';
     const bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
     const bgmHost = `${protocol}://${bgm_domain}`;

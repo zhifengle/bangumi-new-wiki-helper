@@ -19,7 +19,7 @@ async function initCommon(siteConfig: SiteConfig, config: any = {}) {
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
-  insertControlBtn($title.parentElement, async (e, flag) => {
+  insertControlBtn($title, async (e, flag) => {
     console.info('init');
     const infoList: (SingleInfo | void)[] = await getWikiData(siteConfig);
     console.info('wiki info list: ', infoList);

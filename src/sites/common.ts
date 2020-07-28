@@ -3,7 +3,7 @@ import { findElement, getText } from '../utils/domUtils';
 import { AllSubject, SearchResult, SingleInfo } from '../interface/subject';
 import { getImageDataByURL, convertImgToBase64 } from '../utils/dealImage';
 import { isEqualDate } from '../utils/utils';
-import { dealFuncByCategory } from './index';
+import { dealFuncByCategory, getCover } from './index';
 import { findModelByHost } from '../models';
 import { fetchText } from '../utils/fetchData';
 
@@ -60,31 +60,7 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
   const txt = getText($d as HTMLElement);
   switch (infoConfig.category) {
     case 'cover':
-      let url;
-      if ($d.tagName.toLowerCase() === 'a') {
-        url = $d.getAttribute('href');
-        val = {
-          url: url,
-          dataUrl: url,
-        };
-      } else if ($d.tagName.toLowerCase() === 'img') {
-        url = $d.getAttribute('src');
-        try {
-          val = {
-            url: url,
-            dataUrl: await getImageDataByURL(url),
-            // dataUrl: convertImgToBase64($d as any),
-            height: $d.clientHeight,
-            width: $d.clientWidth,
-          };
-        } catch (e) {
-          console.error(e);
-          val = {
-            url: url,
-            dataUrl: url,
-          };
-        }
-      }
+      val = await getCover($d, site);
       break;
     case 'alias':
     case 'subject_title':

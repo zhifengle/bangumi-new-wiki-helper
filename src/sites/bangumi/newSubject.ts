@@ -2,7 +2,10 @@ import { SingleInfo, SubjectWikiInfo } from '../../interface/subject';
 import { $q, $qa } from '../../utils/domUtils';
 import { sleep } from '../../utils/async/sleep';
 import { dealDate } from '../../utils/utils';
-import { dealImageWidget } from './dealImageWidget';
+import { dealImageWidget, insertLoading } from './dealImageWidget';
+import { fetchText } from '../../utils/fetchData';
+import { sendFormImg, sendForm } from '../../utils/ajax';
+import { getSubjectId } from '.';
 
 /**
  * 转换 wiki 模式下 infobox 内容
@@ -218,6 +221,57 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       $q('#subject_summary').value = '';
     }
   );
+  const coverInfo = wikiInfo.infos.filter(
+    (item: SingleInfo) => item.category === 'cover'
+  )[0];
+  const dataUrl = coverInfo?.value?.dataUrl || '';
+  if (dataUrl.match(/^data:image/)) {
+    dealImageWidget($q('form[name=create_subject]'), dataUrl);
+    // 修改文本
+    setTimeout(() => {
+      const $form = $q('form[name=create_subject]') as HTMLFormElement;
+      const $input = $q(
+        '.e-wiki-cover-container [name=submit]'
+      ) as HTMLInputElement;
+      const $clonedInput = $input.cloneNode(true) as HTMLInputElement;
+      if ($clonedInput) {
+        $clonedInput.value = '添加条目并上传封面';
+      }
+      $input.insertAdjacentElement('afterend', $clonedInput);
+      $input.remove();
+      const $canvas: HTMLCanvasElement = $q('#e-wiki-cover-preview');
+      $clonedInput.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if ($canvas.width > 8 && $canvas.height > 10) {
+          const $el = e.target as HTMLElement;
+          $el.style.display = 'none';
+          $clonedInput.style.display = 'none';
+          const $loading = insertLoading($el);
+          try {
+            try {
+              // 执行标准化表单，避免修改后表单没有更新
+              // @ts-ignore
+              NormaltoWCODE();
+            } catch (e) {}
+            const url = await sendForm($form);
+            const subjectId = getSubjectId(url);
+            if (subjectId) {
+              await uploadSubjectCover(
+                subjectId,
+                $canvas.toDataURL('image/png', 1)
+              );
+            }
+            $loading.remove();
+            $el.style.display = '';
+            $clonedInput.style.display = '';
+            location.assign(url);
+          } catch (e) {
+            console.log('send form err: ', e);
+          }
+        }
+      });
+    }, 300);
+  }
 }
 
 export function initNewCharacter(wikiInfo: SubjectWikiInfo) {
@@ -258,6 +312,30 @@ export function initNewCharacter(wikiInfo: SubjectWikiInfo) {
   }
 }
 
+export async function getFormhash() {
+  const rawText = await fetchText(
+    `${location.protocol}//${location.host}/new_subject/1`
+  );
+  let $doc = new DOMParser().parseFromString(rawText, 'text/html');
+  let formhash = $doc
+    .querySelector('input[name=formhash]')
+    .getAttribute('value');
+  return formhash;
+}
+export async function uploadSubjectCover(
+  subjectId: string,
+  dataUrl: string,
+  bgmHost: string = ''
+) {
+  if (!bgmHost) {
+    bgmHost = `${location.protocol}//${location.host}`;
+  }
+  const url = `${bgmHost}/subject/${subjectId}/upload_img`;
+  const rawText = await fetchText(url);
+  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
+  const $form = $doc.querySelector('form[name=img_upload') as HTMLFormElement;
+  await sendFormImg($form, dataUrl);
+}
 export function initUploadImg(wikiInfo: SubjectWikiInfo) {
   const coverInfo = wikiInfo.infos.filter(
     (item: SingleInfo) => item.category === 'cover'

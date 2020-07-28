@@ -1,18 +1,18 @@
 import * as StackBlur from 'stackblur-canvas';
-import {getImageDataByURL} from '../../utils/dealImage';
-import {sendFormImg} from '../../utils/ajax';
-import {fetchText} from '../../utils/fetchData';
+import { getImageDataByURL } from '../../utils/dealImage';
+import { sendFormImg } from '../../utils/ajax';
+import { fetchText } from '../../utils/fetchData';
 
 interface Pos {
-  x: number,
-  y: number
+  x: number;
+  y: number;
 }
 
 function getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent): Pos {
   const rect = canvas.getBoundingClientRect();
   return {
-    x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
-    y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+    x: ((evt.clientX - rect.left) / (rect.right - rect.left)) * canvas.width,
+    y: ((evt.clientY - rect.top) / (rect.bottom - rect.top)) * canvas.height,
   };
 }
 
@@ -31,15 +31,26 @@ function blur(el: HTMLCanvasElement) {
     const pos = getMousePos(el, e);
     ctx.moveTo(pos.x, pos.y);
   };
-  const $width: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-width');
-  const $radius: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-radius');
+  const $width: HTMLInputElement = document.querySelector(
+    '#e-wiki-cover-slider-width'
+  );
+  const $radius: HTMLInputElement = document.querySelector(
+    '#e-wiki-cover-slider-radius'
+  );
   el.onmousemove = function (e: MouseEvent) {
     if (isDrawing) {
       const pos = getMousePos(el, e);
       const width = +$width.value;
       const radius = +$radius.value;
       // stack blur operation
-      StackBlur.canvasRGBA(el, pos.x - width / 2, pos.y - width / 2, width, width, radius);
+      StackBlur.canvasRGBA(
+        el,
+        pos.x - width / 2,
+        pos.y - width / 2,
+        width,
+        width,
+        radius
+      );
     }
   };
   el.onmouseup = function () {
@@ -67,8 +78,12 @@ function initContainer($target: HTMLElement) {
   $info.classList.add('e-wiki-cover-container');
   $info.innerHTML = rawHTML;
   $target.parentElement.insertBefore($info, $target.nextElementSibling);
-  const $width: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-width');
-  const $radius: HTMLInputElement = document.querySelector('#e-wiki-cover-slider-radius');
+  const $width: HTMLInputElement = document.querySelector(
+    '#e-wiki-cover-slider-width'
+  );
+  const $radius: HTMLInputElement = document.querySelector(
+    '#e-wiki-cover-slider-radius'
+  );
   drawRec($width);
   changeInfo($width, $radius);
   $width.addEventListener('change', (e) => {
@@ -79,7 +94,6 @@ function initContainer($target: HTMLElement) {
     changeInfo($width, $radius);
   });
 }
-
 
 function drawRec($width: HTMLInputElement) {
   // TODO: canvas type
@@ -94,7 +108,6 @@ function drawRec($width: HTMLInputElement) {
   window.dispatchEvent(new Event('resize'));
 }
 
-
 function changeInfo($width: HTMLInputElement, $radius: HTMLInputElement) {
   var $info: HTMLInputElement = document.querySelector('#e-wiki-cover-amount');
   var radius = $radius.value;
@@ -102,21 +115,33 @@ function changeInfo($width: HTMLInputElement, $radius: HTMLInputElement) {
   $info.value = width + ', ' + radius;
 }
 
-function previewFileImage($file: HTMLInputElement, $canvas: HTMLCanvasElement, $img = new Image()) {
+function previewFileImage(
+  $file: HTMLInputElement,
+  $canvas: HTMLCanvasElement,
+  $img = new Image()
+) {
   const ctx = $canvas.getContext('2d');
-  $img.addEventListener('load', function () {
-    $canvas.width = $img.width;
-    $canvas.height = $img.height;
-    ctx.drawImage($img, 0, 0);
-    window.dispatchEvent(new Event('resize'));  // let img cut tool at right position
-  }, false);
+  $img.addEventListener(
+    'load',
+    function () {
+      $canvas.width = $img.width;
+      $canvas.height = $img.height;
+      ctx.drawImage($img, 0, 0);
+      window.dispatchEvent(new Event('resize')); // let img cut tool at right position
+    },
+    false
+  );
 
   function loadImgData() {
     var file = $file.files[0];
     var reader = new FileReader();
-    reader.addEventListener('load', function () {
-      $img.src = reader.result as any;
-    }, false);
+    reader.addEventListener(
+      'load',
+      function () {
+        $img.src = reader.result as any;
+      },
+      false
+    );
     if (file) {
       reader.readAsDataURL(file);
     }
@@ -127,29 +152,36 @@ function previewFileImage($file: HTMLInputElement, $canvas: HTMLCanvasElement, $
   }
 }
 
-
 /**
  * 初始化上传处理图片组件
  * @param {Object} $form - 包含 input file 的 DOM
  * @param {string} base64Data - 图片链接或者 base64 信息
  */
-export async function dealImageWidget($form: HTMLFormElement, base64Data: string) {
+export async function dealImageWidget(
+  $form: HTMLFormElement,
+  base64Data: string
+) {
   if (document.querySelector('.e-wiki-cover-container')) return;
   initContainer($form);
-  const $canvas: HTMLCanvasElement = document.querySelector('#e-wiki-cover-preview');
-  const $img: HTMLImageElement = document.querySelector('.e-wiki-cover-container img.preview');
+  const $canvas: HTMLCanvasElement = document.querySelector(
+    '#e-wiki-cover-preview'
+  );
+  const $img: HTMLImageElement = document.querySelector(
+    '.e-wiki-cover-container img.preview'
+  );
   if (base64Data) {
     if (base64Data.match(/^http/)) {
       // 跨域和refer 的问题，暂时改成链接
       // base64Data = await getImageDataByURL(base64Data);
       const link = document.createElement('a');
-      link.classList.add('preview-fetch-img-link')
+      link.classList.add('preview-fetch-img-link');
       link.href = base64Data;
       link.setAttribute('rel', 'noopener noreferrer nofollow');
       link.setAttribute('target', '_blank');
       link.innerText = '查看抓取封面';
-      document.querySelector('.e-wiki-cover-container').insertBefore(link,
-        document.querySelector('#e-wiki-cover-preview'));
+      document
+        .querySelector('.e-wiki-cover-container')
+        .insertBefore(link, document.querySelector('#e-wiki-cover-preview'));
     } else {
       $img.src = base64Data;
     }
@@ -157,53 +189,67 @@ export async function dealImageWidget($form: HTMLFormElement, base64Data: string
   const $file: HTMLInputElement = $form.querySelector('input[type = file]');
   previewFileImage($file, $canvas, $img);
   blur($canvas);
-  document.querySelector('#e-wiki-cover-reset').addEventListener('click', (e) => {
-    // wiki 填表按钮
-    const $fillForm = document.querySelector('.e-wiki-fill-form');
-    if (base64Data) {
-      $img.dispatchEvent(new Event('load'));
-    } else if ($file && $file.files[0]) {
-      $file.dispatchEvent(new Event('change'));
-    } else if ($fillForm) {
-      $fillForm.dispatchEvent(new Event('click'));
-    }
-  }, false);
-  const $inputBtn: HTMLInputElement = document.querySelector('.e-wiki-cover-container .inputBtn');
-  if ($file) {
-    $inputBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if ($canvas.width > 8 && $canvas.height > 10) {
-        const $el = e.target as HTMLElement;
-        $el.style.display = 'none';
-        const $loading = insertLoading($el);
-        try {
-          try {
-            // 执行标准化表单，避免修改后表单没有更新
-            // @ts-ignore
-            NormaltoWCODE();
-          } catch (e) {
-          }
-          const url = await sendFormImg($form, $canvas.toDataURL('image/png', 1));
-          $el.style.display = '';
-          $loading.remove();
-          location.assign(url);
-        } catch (e) {
-          console.log('send form err: ', e);
-        }
+  document.querySelector('#e-wiki-cover-reset').addEventListener(
+    'click',
+    (e) => {
+      // wiki 填表按钮
+      const $fillForm = document.querySelector('.e-wiki-fill-form');
+      if (base64Data) {
+        $img.dispatchEvent(new Event('load'));
+      } else if ($file && $file.files[0]) {
+        $file.dispatchEvent(new Event('change'));
+      } else if ($fillForm) {
+        $fillForm.dispatchEvent(new Event('click'));
       }
-    }, false);
+    },
+    false
+  );
+  const $inputBtn: HTMLInputElement = document.querySelector(
+    '.e-wiki-cover-container .inputBtn'
+  );
+  if ($file) {
+    $inputBtn.addEventListener(
+      'click',
+      async (e) => {
+        e.preventDefault();
+        if ($canvas.width > 8 && $canvas.height > 10) {
+          const $el = e.target as HTMLElement;
+          $el.style.display = 'none';
+          const $loading = insertLoading($el);
+          try {
+            try {
+              // 执行标准化表单，避免修改后表单没有更新
+              // @ts-ignore
+              NormaltoWCODE();
+            } catch (e) {}
+            const url = await sendFormImg(
+              $form,
+              $canvas.toDataURL('image/png', 1)
+            );
+            $el.style.display = '';
+            $loading.remove();
+            location.assign(url);
+          } catch (e) {
+            console.log('send form err: ', e);
+          }
+        }
+      },
+      false
+    );
   } else {
     $inputBtn.value = '处理图片';
   }
 }
 
-function insertLoading($sibling: Element): Element {
+export function insertLoading($sibling: Element): Element {
   const $loading = document.createElement('div');
-  $loading.setAttribute('style', 'width: 208px; height: 13px; background-image: url("/img/loadingAnimation.gif");');
+  $loading.setAttribute(
+    'style',
+    'width: 208px; height: 13px; background-image: url("/img/loadingAnimation.gif");'
+  );
   $sibling.parentElement.insertBefore($loading, $sibling);
   return $loading;
 }
-
 
 /**
  * upload image form on bangumi.tv
@@ -211,9 +257,11 @@ function insertLoading($sibling: Element): Element {
  */
 export async function uploadImage(subjectId: string) {
   const d = await fetchText(`/${subjectId}/upload_img`, 3000);
-  const $canvas: HTMLCanvasElement = document.querySelector('#e-wiki-cover-preview');
+  const $canvas: HTMLCanvasElement = document.querySelector(
+    '#e-wiki-cover-preview'
+  );
 
-  const $doc = (new DOMParser()).parseFromString(d, "text/html");
+  const $doc = new DOMParser().parseFromString(d, 'text/html');
   const $form: HTMLFormElement = $doc.querySelector('form[name=img_upload]');
   if (!$form) return;
 

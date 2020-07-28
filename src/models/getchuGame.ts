@@ -19,9 +19,6 @@ export const getchuGameModel: SiteConfig = {
   ],
   controlSelector: [
     {
-      selector: '#soft-title > :first-child',
-    },
-    {
       selector: '#soft-title',
     },
   ],
@@ -71,9 +68,14 @@ getchuGameModel.itemList.push(
   },
   {
     name: 'cover',
-    selector: {
-      selector: '#soft_table .highslide',
-    },
+    selector: [
+      {
+        selector: '#soft_table .highslide',
+      },
+      {
+        selector: '#soft_table .highslide img',
+      },
+    ],
     category: 'cover',
   },
   ...configArr,
