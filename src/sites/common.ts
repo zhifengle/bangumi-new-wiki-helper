@@ -1,9 +1,9 @@
 import { InfoConfig, Selector, SiteConfig, ModelKey } from '../interface/wiki';
 import { findElement, getText } from '../utils/domUtils';
 import { AllSubject, SearchResult, SingleInfo } from '../interface/subject';
-import { getImageDataByURL } from '../utils/dealImage';
+import { getImageDataByURL, convertImgToBase64 } from '../utils/dealImage';
 import { isEqualDate } from '../utils/utils';
-import { dealFuncByCategory } from './dealUtils';
+import { dealFuncByCategory } from './index';
 import { findModelByHost } from '../models';
 import { fetchText } from '../utils/fetchData';
 
@@ -69,12 +69,21 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
         };
       } else if ($d.tagName.toLowerCase() === 'img') {
         url = $d.getAttribute('src');
-        val = {
-          url: url,
-          dataUrl: await getImageDataByURL(url),
-          height: $d.clientHeight,
-          width: $d.clientWidth,
-        };
+        try {
+          val = {
+            url: url,
+            dataUrl: await getImageDataByURL(url),
+            // dataUrl: convertImgToBase64($d as any),
+            height: $d.clientHeight,
+            width: $d.clientWidth,
+          };
+        } catch (e) {
+          console.error(e);
+          val = {
+            url: url,
+            dataUrl: url,
+          };
+        }
       }
       break;
     case 'alias':
