@@ -1,18 +1,9 @@
 import { AllSubject, BookSubject, SearchResult } from '../../interface/subject';
 import { sleep } from '../../utils/async/sleep';
-import { fetchText } from '../../utils/fetchData';
+import { fetchText, fetchJson } from '../../utils/fetchData';
 import { SubjectTypeId } from '../../interface/wiki';
 import { dealDate } from '../../utils/utils';
 import { filterResults } from '../common';
-
-const subjectTypeDict = {
-  [SubjectTypeId.game]: 'game',
-  [SubjectTypeId.anime]: 'anime',
-  [SubjectTypeId.music]: 'music',
-  [SubjectTypeId.book]: 'book',
-  [SubjectTypeId.real]: 'real',
-  [SubjectTypeId.all]: 'all',
-};
 
 export enum BangumiDomain {
   chii = 'chii.in',
@@ -229,6 +220,14 @@ async function checkExist(
   type: SubjectTypeId,
   disabelDate?: boolean
 ) {
+  const subjectTypeDict = {
+    [SubjectTypeId.game]: 'game',
+    [SubjectTypeId.anime]: 'anime',
+    [SubjectTypeId.music]: 'music',
+    [SubjectTypeId.book]: 'book',
+    [SubjectTypeId.real]: 'real',
+    [SubjectTypeId.all]: 'all',
+  };
   let searchResult = await searchSubject(subjectInfo, bgmHost, type);
   console.info(`First: search result of bangumi: `, searchResult);
   if (searchResult && searchResult.url) {

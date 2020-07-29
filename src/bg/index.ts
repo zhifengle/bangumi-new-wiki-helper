@@ -3,7 +3,8 @@ import browser from 'webextension-polyfill';
 import { BangumiDomain, checkSubjectExit } from '../sites/bangumi';
 import { SubjectTypeId } from '../interface/wiki';
 import { getWikiDataByURL, combineInfoList } from '../sites/common';
-import { SingleInfo } from '../interface/subject';
+import { setVal } from './utils';
+import { getSubjectId } from '../sites/bangumi/related';
 // import { version as VERSION } from "../../extension/manifest.json";
 
 const VERSION = '0.3.0';
@@ -42,6 +43,7 @@ async function handleMessage(request: any) {
               url: bgmHost + result.url,
               active: activeOpen,
             });
+            setVal('subjectId', getSubjectId(result.url));
           } else {
             payload.auxSite && (await updateAuxData(payload.auxSite));
             createNewSubjectTab(payload.type, bgmHost, activeOpen);
@@ -115,6 +117,7 @@ async function init() {
         activeOpen: false,
         useHttps: true,
         autoFill: false,
+        subjectId: 0,
       },
     });
   } else {

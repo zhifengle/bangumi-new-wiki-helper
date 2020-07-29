@@ -3,24 +3,13 @@ import { $q, $qa } from '../../utils/domUtils';
 import { sleep } from '../../utils/async/sleep';
 import { dealDate } from '../../utils/utils';
 import { dealImageWidget, insertLoading } from './dealImageWidget';
-import { fetchText } from '../../utils/fetchData';
 import { sendFormImg, sendForm } from '../../utils/ajax';
-import { SubjectTypeId } from '../../interface/wiki';
-
-const subjectTypeDict = {
-  [SubjectTypeId.game]: 'game',
-  [SubjectTypeId.anime]: 'anime',
-  [SubjectTypeId.music]: 'music',
-  [SubjectTypeId.book]: 'book',
-  [SubjectTypeId.real]: 'real',
-  [SubjectTypeId.all]: 'all',
-};
-
-export function getSubjectId(url: string) {
-  const m = url.match(/(?:subject|character)\/(\d+)/);
-  if (!m) return '';
-  return m[1];
-}
+import {
+  addPersonRelatedSubject,
+  addPersonRelatedCV,
+  uploadSubjectCover,
+  getSubjectId,
+} from './related';
 
 /**
  * 转换 wiki 模式下 infobox 内容
@@ -289,7 +278,10 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
   }
 }
 
-export function initNewCharacter(wikiInfo: SubjectWikiInfo) {
+export function initNewCharacter(
+  wikiInfo: SubjectWikiInfo,
+  subjectId?: string
+) {
   const $t = $q('form[name=new_character] #crt_name').parentElement;
   const defaultVal = ($q('#subject_infobox') as HTMLTextAreaElement).value;
   insertFillFormBtn(
@@ -314,43 +306,61 @@ export function initNewCharacter(wikiInfo: SubjectWikiInfo) {
     (item: SingleInfo) => item.category === 'crt_cover'
   )[0];
   if (coverInfo && coverInfo.value && coverInfo.value.match(/^data:image/)) {
-    dealImageWidget($q('form[name=new_character]'), coverInfo.value);
+    const $form = $q('form[name=new_character]') as HTMLFormElement;
+    dealImageWidget($form, coverInfo.value);
     // 修改文本
     setTimeout(() => {
       const $input = $q(
         '.e-wiki-cover-container [name=submit]'
       ) as HTMLInputElement;
-      if ($input) {
-        $input.value = '添加人物并上传肖像';
+      const $clonedInput = $input.cloneNode(true) as HTMLInputElement;
+      if ($clonedInput) {
+        $clonedInput.value = '添加人物并上传肖像';
       }
-    }, 200);
+      $input.insertAdjacentElement('afterend', $clonedInput);
+      $input.remove();
+      const $canvas: HTMLCanvasElement = $q('#e-wiki-cover-preview');
+      $clonedInput.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if ($canvas.width > 8 && $canvas.height > 10) {
+          const $el = e.target as HTMLElement;
+          $el.style.display = 'none';
+          $clonedInput.style.display = 'none';
+          const $loading = insertLoading($el);
+          try {
+            const $wikiMode = $q(
+              'table small a:nth-of-type(1)[href="javascript:void(0)"]'
+            ) as HTMLElement;
+            $wikiMode && $wikiMode.click();
+            await sleep(200);
+            const url = await sendFormImg($form, coverInfo.value);
+            const charaId = getSubjectId(url);
+            if (charaId && subjectId) {
+              await addPersonRelatedSubject(
+                [subjectId],
+                charaId,
+                wikiInfo.type
+              );
+              await addPersonRelatedCV(
+                subjectId,
+                charaId,
+                ['1232'],
+                wikiInfo.type
+              );
+            }
+            $loading.remove();
+            $el.style.display = '';
+            $clonedInput.style.display = '';
+            location.assign(url);
+          } catch (e) {
+            console.log('send form err: ', e);
+          }
+        }
+      });
+    }, 300);
   }
 }
 
-export async function getFormhash() {
-  const rawText = await fetchText(
-    `${location.protocol}//${location.host}/new_subject/1`
-  );
-  let $doc = new DOMParser().parseFromString(rawText, 'text/html');
-  let formhash = $doc
-    .querySelector('input[name=formhash]')
-    .getAttribute('value');
-  return formhash;
-}
-export async function uploadSubjectCover(
-  subjectId: string,
-  dataUrl: string,
-  bgmHost: string = ''
-) {
-  if (!bgmHost) {
-    bgmHost = `${location.protocol}//${location.host}`;
-  }
-  const url = `${bgmHost}/subject/${subjectId}/upload_img`;
-  const rawText = await fetchText(url);
-  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
-  const $form = $doc.querySelector('form[name=img_upload') as HTMLFormElement;
-  await sendFormImg($form, dataUrl);
-}
 export function initUploadImg(wikiInfo: SubjectWikiInfo) {
   const coverInfo = wikiInfo.infos.filter(
     (item: SingleInfo) => item.category === 'cover'
@@ -358,64 +368,4 @@ export function initUploadImg(wikiInfo: SubjectWikiInfo) {
   if (coverInfo && coverInfo.value && coverInfo.value.dataUrl) {
     dealImageWidget($q('form[name=img_upload]'), coverInfo.value.dataUrl);
   }
-}
-
-// 未设置域名的兼容，只能在 Bangumi 本身上面使用
-// 添加角色的关联 CV
-export async function addPersonRelatedCV(
-  subjectId: string,
-  charaId: string,
-  personIds: string[],
-  typeId: SubjectTypeId
-) {
-  const bgmHost = `${location.protocol}//${location.host}`;
-  const type = subjectTypeDict[typeId];
-  const url = `${bgmHost}/character/${charaId}/add_related/person/${type}`;
-  const rawText = await fetchText(url);
-  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
-  const $form = $doc.querySelector('.mainWrapper form') as HTMLFormElement;
-  const personInfo = personIds.map((v, i) => ({
-    name: `infoArr[n${i}][prsn_id]`,
-    value: v,
-  }));
-  // {name: 'submit', value: '保存关联数据'}
-  await sendForm($form, [
-    {
-      name: 'infoArr[n0][subject_id]',
-      value: subjectId,
-    },
-    {
-      name: 'infoArr[n${n}][subject_type_id]',
-      value: typeId,
-    },
-    ...personInfo,
-  ]);
-}
-
-// 添加角色的关联条目
-export async function addPersonRelatedSubject(
-  subjectIds: string[],
-  charaId: string,
-  typeId: SubjectTypeId
-) {
-  const bgmHost = `${location.protocol}//${location.host}`;
-  const type = subjectTypeDict[typeId];
-  const url = `${bgmHost}/character/${charaId}/add_related/${type}`;
-  const rawText = await fetchText(url);
-  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
-  const $form = $doc.querySelector('.mainWrapper form') as HTMLFormElement;
-  const extroInfo: any = [];
-  // 1 主角 2 配角 3 客串
-  subjectIds.forEach((v, i) => {
-    extroInfo.push({
-      name: `infoArr[n${i}][crt_type]`,
-      value: 1,
-    });
-    extroInfo.push({
-      name: `infoArr[n${i}][subject_id]`,
-      value: v,
-    });
-  });
-  // {name: 'submit', value: '保存关联数据'}
-  await sendForm($form, [...extroInfo]);
 }

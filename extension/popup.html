@@ -1,55 +1,64 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="css/popup.css"/>
+  <link rel="stylesheet" href="css/popup.css" />
 </head>
+
 <body>
-<div id="app">
-  <h1>设置</h1>
-  <div class="setting-container">
-    <ul>
-      <li class="config-item">
-        <span>Bangumi 域名</span>
-        <select class="select-list" name="domain" id="domain" value="0">
-          <option value="0"}>
-            bangumi.tv
-          </option>
-          <option value="1">
-            bgm.tv
-          </option>
-          <option value="2">
-            chii.tv
-          </option>
-        </select>
-      </li>
-      <li class="config-item check-item">
-        <input name="activeOpen" id="activeOpen" type="checkbox" checked/>
-        <label for="activeOpen">
-          <span>前台打开页面标签</span>
-          <i class="checkbox-circle"></i>
-        </label>
-      </li>
-      <li class="config-item check-item">
-        <input name="useHttps" id="useHttps" type="checkbox" checked/>
-        <label for="useHttps">
-          <span>使用 https</span>
-          <i class="checkbox-circle"></i>
-        </label>
-      </li>
-      <li class="config-item check-item">
-        <input name="autoFill" id="autoFill" type="checkbox" checked/>
-        <label for="autoFill">
-          <span>自动填表</span>
-          <i class="checkbox-circle"></i>
-        </label>
-      </li>
-      <li>
-        <input name="clearBtn" class="clear-btn" type="button" value="清空缓存"/>
-      </li>
-    </ul>
+  <div id="app">
+    <h1>设置</h1>
+    <div class="setting-container">
+      <ul>
+        <li class="config-item">
+          <span>Bangumi 域名</span>
+          <select class="select-list" name="domain" id="domain" value="0">
+            <option value="0" }>
+              bangumi.tv
+            </option>
+            <option value="1">
+              bgm.tv
+            </option>
+            <option value="2">
+              chii.tv
+            </option>
+          </select>
+        </li>
+        <li class="config-item check-item">
+          <input name="activeOpen" id="activeOpen" type="checkbox" checked />
+          <label for="activeOpen">
+            <span>前台打开页面标签</span>
+            <i class="checkbox-circle"></i>
+          </label>
+        </li>
+        <li class="config-item check-item">
+          <input name="useHttps" id="useHttps" type="checkbox" checked />
+          <label for="useHttps">
+            <span>使用 https</span>
+            <i class="checkbox-circle"></i>
+          </label>
+        </li>
+        <li class="config-item check-item">
+          <input name="autoFill" id="autoFill" type="checkbox" checked />
+          <label for="autoFill">
+            <span>自动填表</span>
+            <i class="checkbox-circle"></i>
+          </label>
+        </li>
+        <li class="config-item">
+          <label for="subjetId">
+            <span>主条目id</span>
+          </label>
+          <input name="subjetId" id="subjetId" type="number" />
+        </li>
+        <li>
+          <input name="clearBtn" class="clear-btn" type="button" value="清空缓存" />
+        </li>
+      </ul>
+    </div>
   </div>
-</div>
-<script src="dist/popup.js"></script>
+  <script src="dist/popup.js"></script>
 </body>
+
 </html>

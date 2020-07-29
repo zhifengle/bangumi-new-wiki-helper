@@ -12,6 +12,11 @@ import { configs, findModelByHost } from '../models';
 import { steamdbModel } from '../models/steamdb';
 import { steamModel } from '../models/steam';
 import { getSteamURL, getSteamdbURL } from '../sites/steam';
+import {
+  searchCVByName,
+  addPersonRelatedCV,
+  addPersonRelatedSubject,
+} from '../sites/bangumi/related';
 
 async function initCommon(siteConfig: SiteConfig, config: any = {}) {
   // 查找标志性的元素
@@ -109,3 +114,14 @@ const init = function () {
   }
 };
 init();
+
+async function test() {
+  console.log('test');
+  // const id = await searchCVByName('民安ともえ');
+  // const r = await addPersonRelatedCV('311638', '78659', [id], 4);
+  // const sub = await addPersonRelatedSubject(['311638'], '78659', 4, 2);
+  debugger;
+}
+if (location.href === 'https://bgm.tv/character/78659') {
+  test();
+}
