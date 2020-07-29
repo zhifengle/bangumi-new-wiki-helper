@@ -10,7 +10,7 @@
 // @match      *://*/*
 // @author      22earth
 // @homepage    https://github.com/22earth/bangumi-new-wiki-helper
-// @version     0.3.4
+// @version     0.3.5
 // @note        0.3.0 使用 typescript 重构，浏览器扩展和脚本使用公共代码
 // @run-at      document-end
 // @grant       GM_addStyle
@@ -22,5 +22,6 @@
 // @require     https://cdn.staticfile.org/fuse.js/6.4.0/fuse.min.js
 // ==/UserScript==
 
+// @TODO 更新版本时 不需要修改 header manifest package 的版本
 var __enable_header = ''; // 避免 header 被清除的 hack
 console.info(__enable_header);
