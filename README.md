@@ -1,5 +1,9 @@
 # Bangumi New Wiki Helper
 
+[![Build Status](https://img.shields.io/travis/22earth/bangumi-new-wiki-helper/master.svg?style=flat-square)](https://travis-ci.org/22earth/bangumi-new-wiki-helper)
+[![GitHub release](https://img.shields.io/github/release/22earth/bangumi-new-wiki-helper.svg?style=flat-square)](https://github.com/22earth/bangumi-new-wiki-helper/releases)
+[![license](https://img.shields.io/github/license/22earth/bangumi-new-wiki-helper.svg?style=flat-square)](https://github.com/22earth/bangumi-new-wiki-helper/blob/master/LICENSE)
+
 辅助在 bangumi.tv 或者 bgm.tv 上创建新的条目
 
 支持日亚的图书、getchu 的游戏 steam 、steamdb 、jd 图书、当当图书。
@@ -52,7 +56,6 @@ Chrome: 由于没有发布账号，没法在 Chrome 的 APP Store 里面发布�
 脚本构建输出
 
     npm run build:script
-
 
 `src/index.js` 是输出用户脚本的入口
 
