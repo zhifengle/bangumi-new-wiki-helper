@@ -56,12 +56,51 @@ describe('test common', () => {
         },
       ]
     );
-    console.log(a);
+    expect(a).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'website',
+          value: '123',
+        }),
+        expect.objectContaining({
+          name: '别名',
+          value: 'b1',
+        }),
+        expect.objectContaining({
+          name: '别名',
+          value: 'b2',
+        }),
+        expect.objectContaining({
+          name: '平台',
+          value: 'PC',
+        }),
+        expect.objectContaining({
+          name: '平台',
+          value: 'PC3',
+        }),
+        expect.objectContaining({
+          name: '名称',
+          value: 'test',
+        }),
+      ])
+    );
     const b = combineInfoList(
       [{ name: '游戏名', value: 'en', category: 'subject_title' }],
       [{ name: '游戏名', value: '中文', category: 'subject_title' }]
     );
-    console.log(b);
+    expect(b).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '游戏名',
+          value: 'en',
+          category: 'subject_title',
+        }),
+        expect.objectContaining({
+          name: '中文名',
+          value: '中文',
+        }),
+      ])
+    );
     const c = combineInfoList(
       [
         {
@@ -72,7 +111,19 @@ describe('test common', () => {
       ],
       [{ name: '游戏名', value: '中文', category: 'subject_title' }]
     );
-    console.log(c);
+    expect(c).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '游戏名',
+          value: '蒼の彼方のフォーリズム',
+          category: 'subject_title',
+        }),
+        expect.objectContaining({
+          name: '中文名',
+          value: '中文',
+        }),
+      ])
+    );
     const d = combineInfoList(
       [
         {
@@ -84,6 +135,18 @@ describe('test common', () => {
       [{ name: '游戏名', value: 'en', category: 'subject_title' }]
     );
     // 日日 ----> title + 别名
-    console.log(d);
+    expect(d).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '游戏名',
+          value: '蒼の彼方のフォーリズム',
+          category: 'subject_title',
+        }),
+        expect.objectContaining({
+          name: '别名',
+          value: 'en',
+        }),
+      ])
+    );
   });
 });

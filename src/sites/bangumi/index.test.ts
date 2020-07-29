@@ -116,5 +116,24 @@ test('test new game', () => {
       category: 'platform',
     },
   ];
-  console.log(convertInfoValue(str, infos));
+  expect(convertInfoValue(str, infos)).toEqual(`{{Infobox Game
+|中文名=
+|平台={
+[PC]
+[PS4]
+}
+|游戏类型=ADV
+|游戏开发商=
+|游戏出版商=
+|发行商=
+|游戏设计师=
+|游戏引擎=
+|游玩人数=
+|发行日期=2020-08-28
+|售价=￥9,800
+|官方网站=
+|开发=jj
+|原画=123
+|剧本=xxxx xx
+}}`);
 });
