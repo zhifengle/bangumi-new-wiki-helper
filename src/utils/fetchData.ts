@@ -1,11 +1,14 @@
 // support GM_XMLHttpRequest
 const ENV_FLAG = '__ENV_EXT__';
 
-export function fetchBinary(
+type IAjaxType = 'text' | 'json' | 'blob';
+
+export function fetchInfo(
   url: string,
-  opts: {} = {},
+  type: IAjaxType,
+  opts: any = {},
   TIMEOUT = 10 * 1000
-): Promise<Blob> {
+): Promise<any> {
   // @ts-ignore
   if (ENV_FLAG === '__ENV_GM__') {
     return new Promise((resolve, reject) => {
@@ -14,7 +17,7 @@ export function fetchBinary(
         method: 'GET',
         timeout: TIMEOUT,
         url,
-        responseType: 'blob',
+        responseType: type,
         onload: function (res: any) {
           resolve(res.response);
         },
@@ -33,49 +36,20 @@ export function fetchBinary(
     }),
     TIMEOUT
   ).then(
-    (response) => response.blob(),
+    (response) => response[type](),
     (err) => console.log('fetch err: ', err)
   );
 }
 
+export function fetchBinary(url: string, opts: any = {}): Promise<Blob> {
+  return fetchInfo(url, 'blob', opts);
+}
+
 export function fetchText(url: string, TIMEOUT = 10 * 1000): Promise<string> {
-  // @ts-ignore
-  if (ENV_FLAG === '__ENV_GM__') {
-    return new Promise((resolve, reject) => {
-      // @ts-ignore
-      GM_xmlhttpRequest({
-        method: 'GET',
-        timeout: TIMEOUT || 10 * 1000,
-        url: url,
-        // @ts-ignore
-        onreadystatechange: function (response) {
-          if (response.readyState === 4 && response.status === 200) {
-            resolve(response.responseText);
-          }
-        },
-        // @ts-ignore
-        onerror: function (err) {
-          reject(err);
-        },
-        // @ts-ignore
-        ontimeout: function (err) {
-          reject(err);
-        },
-      });
-    });
-  }
-  return internalFetch(
-    fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-      // mode: 'cors',
-      // cache: 'default'
-    }),
-    TIMEOUT
-  ).then(
-    (response) => response.text(),
-    (err) => console.log('fetch err: ', err)
-  );
+  return fetchInfo(url, 'text', {}, TIMEOUT);
+}
+export function fetchJson(url: string, opts: any = {}): Promise<any> {
+  return fetchInfo(url, 'json', opts);
 }
 
 // TODO: promise type

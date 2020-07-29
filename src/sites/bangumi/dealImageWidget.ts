@@ -1,7 +1,7 @@
 import * as StackBlur from 'stackblur-canvas';
-import { getImageDataByURL } from '../../utils/dealImage';
 import { sendFormImg } from '../../utils/ajax';
 import { fetchText } from '../../utils/fetchData';
+import { sleep } from '../../utils/async/sleep';
 
 interface Pos {
   x: number;
@@ -217,11 +217,11 @@ export async function dealImageWidget(
           $el.style.display = 'none';
           const $loading = insertLoading($el);
           try {
-            try {
-              // 执行标准化表单，避免修改后表单没有更新
-              // @ts-ignore
-              NormaltoWCODE();
-            } catch (e) {}
+            const $wikiMode = document.querySelector(
+              'table small a:nth-of-type(1)[href="javascript:void(0)"]'
+            ) as HTMLElement;
+            $wikiMode && $wikiMode.click();
+            await sleep(200);
             const url = await sendFormImg(
               $form,
               $canvas.toDataURL('image/png', 1)

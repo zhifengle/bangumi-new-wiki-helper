@@ -1,7 +1,7 @@
 import { BangumiDomain, changeDomain, Protocol } from './index';
 import { randomNum } from '../../utils/utils';
 import { book } from '../../data/subject';
-import { convertInfoValue } from './newSubject';
+import { convertInfoValue, getSubjectId } from './newSubject';
 
 describe('test bangumi sites function', () => {
   it('test convert info', () => {
@@ -55,6 +55,10 @@ describe('test bangumi sites function', () => {
         Protocol.http
       )
     ).toEqual(`http://${target}/new_subject/4`);
+  });
+  test('test get subject id', () => {
+    expect(getSubjectId('https://bgm.tv/character/78638')).toEqual('78638');
+    expect(getSubjectId('https://bgm.tv/subject/311538')).toEqual('311538');
   });
 });
 

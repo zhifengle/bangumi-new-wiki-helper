@@ -3,7 +3,7 @@ import { ITiming, IFuncPromise } from '../interface/types';
 import { amazonTools } from './amazon';
 import { dealDate, formatDate } from '../utils/utils';
 import { getchuTools } from './getchu';
-import { getImageDataByURL, convertImgToBase64 } from '../utils/dealImage';
+import { getImageDataByURL } from '../utils/dealImage';
 
 type FuncDict = {
   hooks?: {
@@ -37,18 +37,24 @@ export async function getCover($d: Element, site: ModelKey) {
   let dataUrl = '';
   if ($d.tagName.toLowerCase() === 'a') {
     url = $d.getAttribute('href');
-    dataUrl = await getImageDataByURL(url);
   } else if ($d.tagName.toLowerCase() === 'img') {
     url = $d.getAttribute('src');
+  }
+  if (!url) return;
+  try {
+    // 跨域的图片不能用这种方式
     // dataUrl = convertImgToBase64($d as any);
     dataUrl = await getImageDataByURL(url);
-  }
-  if (dataUrl) {
+    if (dataUrl) {
+      return {
+        dataUrl,
+      };
+    }
+  } catch (error) {
     return {
-      dataUrl,
+      dataUrl: url,
     };
   }
-  return;
 }
 
 export function dealFuncByCategory(

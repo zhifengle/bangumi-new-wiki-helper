@@ -5,7 +5,22 @@ import { dealDate } from '../../utils/utils';
 import { dealImageWidget, insertLoading } from './dealImageWidget';
 import { fetchText } from '../../utils/fetchData';
 import { sendFormImg, sendForm } from '../../utils/ajax';
-import { getSubjectId } from '.';
+import { SubjectTypeId } from '../../interface/wiki';
+
+const subjectTypeDict = {
+  [SubjectTypeId.game]: 'game',
+  [SubjectTypeId.anime]: 'anime',
+  [SubjectTypeId.music]: 'music',
+  [SubjectTypeId.book]: 'book',
+  [SubjectTypeId.real]: 'real',
+  [SubjectTypeId.all]: 'all',
+};
+
+export function getSubjectId(url: string) {
+  const m = url.match(/(?:subject|character)\/(\d+)/);
+  if (!m) return '';
+  return m[1];
+}
 
 /**
  * 转换 wiki 模式下 infobox 内容
@@ -248,11 +263,11 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
           $clonedInput.style.display = 'none';
           const $loading = insertLoading($el);
           try {
-            try {
-              // 执行标准化表单，避免修改后表单没有更新
-              // @ts-ignore
-              NormaltoWCODE();
-            } catch (e) {}
+            const $wikiMode = $q(
+              'table small a:nth-of-type(1)[href="javascript:void(0)"]'
+            ) as HTMLElement;
+            $wikiMode && $wikiMode.click();
+            await sleep(200);
             const url = await sendForm($form);
             const subjectId = getSubjectId(url);
             if (subjectId) {
@@ -286,7 +301,7 @@ export function initNewCharacter(wikiInfo: SubjectWikiInfo) {
       const $wikiMode = $q(
         'table small a:nth-of-type(1)[href="javascript:void(0)"]'
       ) as HTMLElement;
-      $wikiMode.click();
+      $wikiMode && $wikiMode.click();
       // @ts-ignore
       $q('#subject_infobox').value = defaultVal;
       // @ts-ignore
@@ -343,4 +358,64 @@ export function initUploadImg(wikiInfo: SubjectWikiInfo) {
   if (coverInfo && coverInfo.value && coverInfo.value.dataUrl) {
     dealImageWidget($q('form[name=img_upload]'), coverInfo.value.dataUrl);
   }
+}
+
+// 未设置域名的兼容，只能在 Bangumi 本身上面使用
+// 添加角色的关联 CV
+export async function addPersonRelatedCV(
+  subjectId: string,
+  charaId: string,
+  personIds: string[],
+  typeId: SubjectTypeId
+) {
+  const bgmHost = `${location.protocol}//${location.host}`;
+  const type = subjectTypeDict[typeId];
+  const url = `${bgmHost}/character/${charaId}/add_related/person/${type}`;
+  const rawText = await fetchText(url);
+  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
+  const $form = $doc.querySelector('.mainWrapper form') as HTMLFormElement;
+  const personInfo = personIds.map((v, i) => ({
+    name: `infoArr[n${i}][prsn_id]`,
+    value: v,
+  }));
+  // {name: 'submit', value: '保存关联数据'}
+  await sendForm($form, [
+    {
+      name: 'infoArr[n0][subject_id]',
+      value: subjectId,
+    },
+    {
+      name: 'infoArr[n${n}][subject_type_id]',
+      value: typeId,
+    },
+    ...personInfo,
+  ]);
+}
+
+// 添加角色的关联条目
+export async function addPersonRelatedSubject(
+  subjectIds: string[],
+  charaId: string,
+  typeId: SubjectTypeId
+) {
+  const bgmHost = `${location.protocol}//${location.host}`;
+  const type = subjectTypeDict[typeId];
+  const url = `${bgmHost}/character/${charaId}/add_related/${type}`;
+  const rawText = await fetchText(url);
+  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
+  const $form = $doc.querySelector('.mainWrapper form') as HTMLFormElement;
+  const extroInfo: any = [];
+  // 1 主角 2 配角 3 客串
+  subjectIds.forEach((v, i) => {
+    extroInfo.push({
+      name: `infoArr[n${i}][crt_type]`,
+      value: 1,
+    });
+    extroInfo.push({
+      name: `infoArr[n${i}][subject_id]`,
+      value: v,
+    });
+  });
+  // {name: 'submit', value: '保存关联数据'}
+  await sendForm($form, [...extroInfo]);
 }
