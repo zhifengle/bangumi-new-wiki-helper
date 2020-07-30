@@ -5,6 +5,25 @@ import { sendForm, sendFormImg } from '../../utils/ajax';
 export function getBgmHost() {
   return `${location.protocol}//${location.host}`;
 }
+
+export function genLinkText(url: string, text: string = '地址') {
+  const $div = document.createElement('div');
+  const $link = document.createElement('a');
+  $link.href = url;
+  $link.innerText = text;
+  $div.appendChild($link);
+  return $div.innerHTML;
+}
+
+export function insertLogInfo($sibling: Element, txt: string): Element {
+  const $log = document.createElement('div');
+  $log.classList.add('.e-wiki-log-info');
+  $log.setAttribute('style', 'color: tomato;');
+  $log.innerHTML = txt;
+  $sibling.parentElement.insertBefore($log, $sibling);
+  $sibling.insertAdjacentElement('afterend', $log);
+  return $log;
+}
 export function getSubjectId(url: string) {
   const m = url.match(/(?:subject|character)\/(\d+)/);
   if (!m) return '';
@@ -35,9 +54,12 @@ export async function uploadSubjectCover(
   await sendFormImg($form, dataUrl);
 }
 
-export async function searchCVByName(name: string) {
+export async function searchCVByName(name: string, charaId: string = '') {
   const bgmHost = getBgmHost();
-  const url = `${bgmHost}/json/search-cv_person/${name}`;
+  let url = `${bgmHost}/json/search-cv_person/${name.replace(/\s/g, '')}`;
+  if (charaId) {
+    url = `${url}?character_id=${charaId}`;
+  }
   const res = await fetchJson(url, 'json');
   return Object.keys(res)[0];
 }

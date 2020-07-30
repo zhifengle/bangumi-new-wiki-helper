@@ -50,7 +50,7 @@ export const getchuTools = {
     if (cvMatch) {
       charaData.push({
         name: 'CV',
-        value: cvMatch[0],
+        value: cvMatch[0].replace(/\s/g, ''),
       });
     }
     const $img = $t.closest('tr').querySelector('td > img');

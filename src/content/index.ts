@@ -118,9 +118,11 @@ init();
 async function test() {
   console.log('test');
   // const id = await searchCVByName('民安ともえ');
+  const id = await searchCVByName('葵時緒');
+  console.log(id);
   // const r = await addPersonRelatedCV('311638', '78659', [id], 4);
   // const sub = await addPersonRelatedSubject(['311638'], '78659', 4, 2);
-  debugger;
+  // debugger;
 }
 if (location.href === 'https://bgm.tv/character/78659') {
   test();

@@ -9,6 +9,10 @@ import {
   addPersonRelatedCV,
   uploadSubjectCover,
   getSubjectId,
+  searchCVByName,
+  insertLogInfo,
+  getBgmHost,
+  genLinkText,
 } from './related';
 
 /**
@@ -333,20 +337,43 @@ export function initNewCharacter(
             ) as HTMLElement;
             $wikiMode && $wikiMode.click();
             await sleep(200);
+            const currentHost = getBgmHost();
             const url = await sendFormImg($form, coverInfo.value);
+            insertLogInfo($el, `新建角色成功: ${genLinkText(url, '角色地址')}`);
             const charaId = getSubjectId(url);
             if (charaId && subjectId) {
+              insertLogInfo($el, '存在条目 id, 开始关联条目');
               await addPersonRelatedSubject(
                 [subjectId],
                 charaId,
                 wikiInfo.type
               );
-              await addPersonRelatedCV(
-                subjectId,
-                charaId,
-                ['1232'],
-                wikiInfo.type
+              insertLogInfo(
+                $el,
+                `关联条目成功: ${genLinkText(
+                  `${currentHost}/subject/${subjectId}`,
+                  '条目地址'
+                )}`
               );
+              const cvInfo = wikiInfo.infos.filter(
+                (item: SingleInfo) => item.name.toUpperCase() === 'CV'
+              )[0];
+              if (cvInfo) {
+                const cvId = await searchCVByName(cvInfo.value, charaId);
+                cvId &&
+                  (await addPersonRelatedCV(
+                    subjectId,
+                    charaId,
+                    [cvId],
+                    wikiInfo.type
+                  ));
+                insertLogInfo(
+                  $el,
+                  `关联 CV 成功: ${genLinkText(
+                    `${currentHost}/person/${cvId}`
+                  )}`
+                );
+              }
             }
             $loading.remove();
             $el.style.display = '';
@@ -354,6 +381,7 @@ export function initNewCharacter(
             location.assign(url);
           } catch (e) {
             console.log('send form err: ', e);
+            insertLogInfo($el, `出错了: ${e}`);
           }
         }
       });
