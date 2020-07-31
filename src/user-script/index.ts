@@ -10,7 +10,15 @@ import {
 } from '../sites/common';
 import { SubjectWikiInfo } from '../interface/subject';
 import { checkSubjectExit } from '../sites/bangumi';
-import { AUTO_FILL_FORM, BGM_DOMAIN, PROTOCOL, WIKI_DATA } from './constraints';
+import {
+  AUTO_FILL_FORM,
+  BGM_DOMAIN,
+  PROTOCOL,
+  WIKI_DATA,
+  SUBJECT_ID,
+} from './constraints';
+import { getSubjectId } from '../sites/bangumi/related';
+import { sleep } from '../utils/async/sleep';
 
 async function updateAuxData(auxSite: string) {
   try {
@@ -63,6 +71,8 @@ export async function initCommon(siteConfig: SiteConfig, config: any = {}) {
       );
       console.info('search results: ', result);
       if (result && result.url) {
+        GM_setValue(SUBJECT_ID, getSubjectId(result.url));
+        await sleep(100);
         GM_openInTab(bgmHost + result.url);
       } else {
         payload.auxSite && (await updateAuxData(payload.auxSite));
