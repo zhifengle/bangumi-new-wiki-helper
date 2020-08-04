@@ -1,2 +1,2 @@
-extension/lib/* linguist-vendored=false
-src/data/* linguist-vendored=false
+extension/lib/* linguist-vendored=true
+src/data/* linguist-vendored=true
