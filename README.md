@@ -31,6 +31,10 @@
 
 ### 浏览器扩展
 
+Firefox: [扩展商店安装地址](https://addons.mozilla.org/developers/addon/bangumi-new-wiki-helper)
+
+#### 手动安装
+
 地址： [Github release](https://github.com/22earth/bangumi-new-wiki-helper/releases)
 
 Firefox: 下载 xpi 文件，拖进浏览器安装。
