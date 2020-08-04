@@ -133,6 +133,7 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
     'table small a:nth-of-type(2)[href="javascript:void(0)"]'
   ) as HTMLElement;
   for (let i = 0, len = infos.length; i < len; i++) {
+    const currentInfo = infos[i];
     if (infos[i].category === 'subject_title') {
       let $title = $q('input[name=subject_title]') as HTMLInputElement;
       $title.value = (infos[i].value || '').trim();
@@ -151,6 +152,11 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
     if (infos[i].category === 'crt_name') {
       let $t = $q('#crt_name') as HTMLInputElement;
       $t.value = (infos[i].value || '').trim();
+      continue;
+    }
+    if (currentInfo.category === 'checkbox') {
+      const $t = $q(`input[name=${currentInfo.name}]`) as HTMLInputElement;
+      $t.checked = currentInfo.value ? true : false;
       continue;
     }
     // 有名称并且category不在特定列表里面

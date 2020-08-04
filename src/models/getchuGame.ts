@@ -105,4 +105,9 @@ getchuGameModel.defaultInfos = [
     value: 'PC',
     category: 'platform',
   },
+  {
+    name: 'subject_nsfw',
+    value: '1',
+    category: 'checkbox',
+  },
 ];
