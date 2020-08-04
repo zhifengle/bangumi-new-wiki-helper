@@ -20,7 +20,7 @@ export const getchu = {
     const bgmHost = `${protocol}://${bgm_domain}`;
 
     Array.prototype.forEach.call($qa('h2.chara-name'), (node: HTMLElement) => {
-      insertControlBtnChara(node.parentElement, async (e: Event) => {
+      insertControlBtnChara(node, async (e: Event) => {
         const charaInfo = getchuTools.getCharacterInfo(e.target as HTMLElement);
         console.info('character info list: ', charaInfo);
         const charaData: SubjectWikiInfo = {

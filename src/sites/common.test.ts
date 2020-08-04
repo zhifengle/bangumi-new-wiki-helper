@@ -1,4 +1,6 @@
-import { dealItemText, combineInfoList } from './common';
+import { dealItemText, combineInfoList, getWikiData } from './common';
+import { getchuGameModel } from '../models/getchuGame';
+import { steamdbModel } from '../models/steamdb';
 
 describe('test common', () => {
   test('deal text', () => {
@@ -148,5 +150,17 @@ describe('test common', () => {
         }),
       ])
     );
+  });
+});
+
+describe('test get wiki data', () => {
+  test('get wiki data', async () => {
+    // getWikiData(getchuGameModel)
+    const rawHtml = require('../data/SteamDB.html');
+    const jsdom = require('jsdom');
+    const { JSDOM } = jsdom;
+    const dom = new JSDOM(rawHtml);
+    const infos = await getWikiData(steamdbModel, dom.window.document);
+    console.log(infos);
   });
 });

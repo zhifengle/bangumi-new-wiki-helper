@@ -215,11 +215,13 @@ export function insertControlBtnChara(
   cb: (...args: any) => Promise<any>
 ) {
   if (!$t) return;
+  const $div = document.createElement('div');
   const $s = document.createElement('a');
   $s.classList.add('e-wiki-new-character');
   // $s.setAttribute('target', '_blank')
   $s.innerHTML = '添加新虚拟角色';
-  $t.appendChild($s);
+  $div.appendChild($s);
+  $t.insertAdjacentElement('afterend', $div);
   $s.addEventListener('click', async (e) => {
     await cb(e);
   });

@@ -6,6 +6,7 @@ import { steamModel } from './models/steam';
 import { getchuGameModel } from './models/getchuGame';
 import { dangdangBookModel } from './models/dangdangBook';
 import { jdBookModel } from './models/jdBook';
+import { getchuTools } from './sites/getchu';
 
 // links
 // https://store.steampowered.com/app/1044620/_/?l=schinese&curator_clanid=30614503
@@ -29,7 +30,6 @@ const getInfoList = async (siteConfig: SiteConfig) => {
   return infoList;
 };
 
-getInfoList(steamdbModel);
-getInfoList(steamModel);
-getInfoList(dangdangBookModel);
-getInfoList(jdBookModel);
+// getInfoList(steamdbModel);
+
+const getCharacterInfo = getchuTools.getCharacterInfo;
