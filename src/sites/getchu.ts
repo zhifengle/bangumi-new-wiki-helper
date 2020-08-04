@@ -14,6 +14,23 @@ export const getchuTools = {
       ''
     );
   },
+  getExtraCharaInfo(txt: string): SingleInfo[] {
+    const re = /[^\s]+?[:：]/g;
+    const matchedArr = txt.match(re);
+    if (!matchedArr) return [];
+    const infoArr = txt.split(re);
+    const res: SingleInfo[] = [];
+    matchedArr.forEach((item: string, idx: number) => {
+      const val = (infoArr[idx + 1] || '').trim();
+      if (val) {
+        res.push({
+          name: item.replace(/:|：/, ''),
+          value: val,
+        });
+      }
+    });
+    return res;
+  },
   getCharacterInfo($t: Element): SingleInfo[] {
     const charaData: SingleInfo[] = [];
     const $name = $t.closest('dt').querySelector('h2');
@@ -62,8 +79,9 @@ export const getchuTools = {
       });
     }
 
-    // 处理杂项 参考 id=1074002 id=735329
+    // 处理杂项 参考 id=1074002 id=735329 id=1080370
     // id=1080431
+    // id=840936
     // dd tag
     const $dd = $t.closest('dt').nextElementSibling;
     const $clonedDd = $dd.cloneNode(true) as HTMLElement;
@@ -72,12 +90,9 @@ export const getchuTools = {
       (node: HTMLElement) => {
         const t = getText(node).trim();
         t.split(/\n/g).forEach((el: string) => {
-          const alist = el.trim().split(/：|:/);
-          if (alist && alist.length === 2) {
-            charaData.push({
-              name: alist[0].trim(),
-              value: alist[1],
-            });
+          const extraInfo = getchuTools.getExtraCharaInfo(el);
+          if (extraInfo.length) {
+            charaData.push(...extraInfo);
           } else {
             const c = el.match(/B.*W.*H\d+/);
             if (c) {
@@ -97,9 +112,16 @@ export const getchuTools = {
       value: getText($clonedDd).trim(),
       category: 'crt_summary',
     });
+    const dict: any = {
+      誕生日: '生日',
+      '3サイズ': 'BWH',
+      スリーサイズ: 'BWH',
+      身長: '身高',
+      血液型: '血型',
+    };
     charaData.forEach((item) => {
-      if (item.name === '3サイズ') {
-        item.name = 'BWH';
+      if (dict[item.name]) {
+        item.name = dict[item.name];
       }
     });
 
