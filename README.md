@@ -31,7 +31,7 @@
 
 ### 浏览器扩展
 
-Firefox: [扩展商店安装地址](https://addons.mozilla.org/developers/addon/bangumi-new-wiki-helper)
+Firefox: [扩展商店安装地址](https://addons.mozilla.org/zh-CN/firefox/addon/bangumi-new-wiki-helper/)
 
 #### 手动安装
 
