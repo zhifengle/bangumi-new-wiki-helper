@@ -150,6 +150,24 @@ describe('test common', () => {
         }),
       ])
     );
+    const e = combineInfoList(
+      [
+        {
+          name: '游戏名',
+          value: '蒼の彼方のフォーリズム',
+          category: 'subject_title',
+        },
+      ],
+      [{ name: '游戏名', value: '蒼の彼方のフォーリズム', category: 'alias' }]
+    );
+    //
+    expect(e).toEqual([
+      {
+        name: '游戏名',
+        value: '蒼の彼方のフォーリズム',
+        category: 'subject_title',
+      },
+    ]);
   });
 });
 

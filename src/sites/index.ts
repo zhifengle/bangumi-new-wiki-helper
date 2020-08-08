@@ -4,17 +4,8 @@ import { amazonTools } from './amazon';
 import { dealDate, formatDate } from '../utils/utils';
 import { getchuTools } from './getchu';
 import { getImageDataByURL } from '../utils/dealImage';
-
-type FuncDict = {
-  hooks?: {
-    beforeCreate?: IFuncPromise;
-    afterCreate?: IFuncPromise;
-  };
-  filters?: {
-    category: string;
-    dealFunc: (...args: any) => string;
-  }[];
-};
+import { SiteTools } from './types';
+import { doubanTools } from './douban';
 
 export function trimParenthesis(str: string) {
   const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
@@ -24,7 +15,7 @@ export function trimParenthesis(str: string) {
 export function identity<T>(x: T): T {
   return x;
 }
-const noOps = () => Promise.resolve();
+const noOps = () => Promise.resolve(true);
 export function getHooks(
   siteConfig: SiteConfig,
   timing: ITiming
@@ -74,12 +65,12 @@ export function dealFuncByCategory(
 }
 
 export const sitesFuncDict: {
-  [key in ModelKey]?: FuncDict;
+  [key in ModelKey]?: SiteTools;
 } = {
   amazon_jp_book: {
     hooks: {
       async beforeCreate() {
-        console.info('create');
+        return true;
       },
     },
     filters: [
@@ -97,6 +88,16 @@ export const sitesFuncDict: {
           return dealDate(str.replace(/出版时间[:：]/, '').trim());
         },
       },
+      {
+        category: 'subject_title',
+        dealFunc(str: string) {
+          return trimParenthesis(str);
+        },
+      },
+    ],
+  },
+  jd_book: {
+    filters: [
       {
         category: 'subject_title',
         dealFunc(str: string) {
@@ -146,4 +147,5 @@ export const sitesFuncDict: {
       },
     ],
   },
+  douban_game: doubanTools,
 };

@@ -2,7 +2,6 @@ import { SiteConfig } from '../interface/wiki';
 import { findElement } from '../utils/domUtils';
 import {
   getQueryInfo,
-  getWikiItem,
   insertControlBtn,
   getWikiData,
   getWikiDataByURL,
@@ -19,6 +18,7 @@ import {
 } from './constraints';
 import { getSubjectId } from '../sites/bangumi/related';
 import { sleep } from '../utils/async/sleep';
+import { getHooks } from '../sites';
 
 async function updateAuxData(auxSite: string) {
   try {
@@ -48,6 +48,8 @@ export async function initCommon(siteConfig: SiteConfig, config: any = {}) {
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
+  const bcRes = await getHooks(siteConfig, 'beforeCreate')();
+  if (!bcRes) return;
   const { payload = {} } = config;
   insertControlBtn($title, async (e, flag) => {
     const protocol = GM_getValue(PROTOCOL) || 'https';

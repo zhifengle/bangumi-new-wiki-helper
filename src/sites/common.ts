@@ -3,7 +3,7 @@ import { findElement, getText } from '../utils/domUtils';
 import { AllSubject, SearchResult, SingleInfo } from '../interface/subject';
 import { getImageDataByURL, convertImgToBase64 } from '../utils/dealImage';
 import { isEqualDate } from '../utils/utils';
-import { dealFuncByCategory, getCover } from './index';
+import { dealFuncByCategory, getCover, getHooks } from './index';
 import { findModelByHost } from '../models';
 import { fetchText } from '../utils/fetchData';
 
@@ -100,7 +100,12 @@ export async function getWikiData(siteConfig: SiteConfig, el?: Document) {
   );
   delete window._parsedEl;
   const defaultInfos = siteConfig.defaultInfos || [];
-  return [...r.filter((i) => i), ...defaultInfos];
+  let rawInfo = r.filter((i) => i);
+  const hookRes = await getHooks(siteConfig, 'afterGetWikiData')(rawInfo);
+  if (Array.isArray(hookRes)) {
+    rawInfo = hookRes;
+  }
+  return [...rawInfo, ...defaultInfos];
 }
 
 /**
@@ -251,7 +256,7 @@ function combineObj(current: SingleInfo, target: SingleInfo): SingleInfo[] {
     // 中日  日英  中英
     let cnName = { name: '中文名', value: '' };
     let titleObj = { ...current };
-    let otherName = { name: '别名', value: '' };
+    let otherName = { name: '别名', value: '', category: 'alias' };
     let chineseStr = getTargetStr(current.value, target.value, isChineseStr);
     let jpStr = getTargetStr(current.value, target.value, hasJpStr);
     // TODO 状态机？
@@ -326,10 +331,17 @@ export function combineInfoList(
   }
   const noEmptyArr = res.filter((v) => v.value);
   // ref: https://stackoverflow.com/questions/2218999/remove-duplicates-from-an-array-of-objects-in-javascript
-  return noEmptyArr.filter(
-    (v, i, a) =>
-      a.findIndex((t) => t.value === v.value && t.name === v.name) === i
-  );
+  return noEmptyArr
+    .filter(
+      (v, i, a) =>
+        a.findIndex((t) => t.value === v.value && t.name === v.name) === i
+    )
+    .filter((v, i, a) => {
+      if (v.name !== '别名') return true;
+      else {
+        return a.findIndex((t) => t.value === v.value) === i;
+      }
+    });
 }
 
 // 后台抓取其它网站的 wiki 信息

@@ -12,11 +12,7 @@ import { configs, findModelByHost } from '../models';
 import { steamdbModel } from '../models/steamdb';
 import { steamModel } from '../models/steam';
 import { getSteamURL, getSteamdbURL } from '../sites/steam';
-import {
-  searchCVByName,
-  addPersonRelatedCV,
-  addPersonRelatedSubject,
-} from '../sites/bangumi/related';
+import { getHooks } from '../sites';
 
 async function initCommon(siteConfig: SiteConfig, config: any = {}) {
   // 查找标志性的元素
@@ -24,6 +20,8 @@ async function initCommon(siteConfig: SiteConfig, config: any = {}) {
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
+  const bcRes = await getHooks(siteConfig, 'beforeCreate')();
+  if (!bcRes) return;
   insertControlBtn($title, async (e, flag) => {
     console.info('init');
     const infoList: (SingleInfo | void)[] = await getWikiData(siteConfig);

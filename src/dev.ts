@@ -18,11 +18,12 @@ import { getchuTools } from './sites/getchu';
 // https://www.amazon.co.jp/dp/4757556977
 
 // http://product.dangdang.com/27914599.html
+// https://item.jd.com/12816538.html
 // http://www.getchu.com/soft.phtml?id=1080370
 
-const getData = async (list: Promise<any>[]) => {
-  return await Promise.all(list);
-};
+// const getData = async (list: Promise<any>[]) => {
+//   return await Promise.all(list);
+// };
 
 const getInfoList = async (siteConfig: SiteConfig) => {
   const infoList = await getWikiData(siteConfig);
@@ -30,6 +31,4 @@ const getInfoList = async (siteConfig: SiteConfig) => {
   return infoList;
 };
 
-// getInfoList(steamdbModel);
-
-const getCharacterInfo = getchuTools.getCharacterInfo;
+getInfoList(steamdbModel);

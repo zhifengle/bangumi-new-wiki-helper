@@ -103,6 +103,7 @@ steamdbModel.itemList.push(
         },
       },
     ],
+    category: 'alias',
   },
   {
     name: '别名',
@@ -114,6 +115,9 @@ steamdbModel.itemList.push(
           ...subTableSelector,
           keyWord: 'english',
         },
+      },
+      {
+        selector: '.pagehead h1',
       },
     ],
     category: 'alias',

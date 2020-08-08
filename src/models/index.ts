@@ -3,10 +3,11 @@ import { amazonSubjectModel } from './amazonJpBook';
 import { erogamescapeModel } from './erogamescape';
 import { steamdbModel } from './steamdb';
 import { steamModel } from './steam';
-import { InfoConfig, SiteConfig } from '../interface/wiki';
 import { dangdangBookModel } from './dangdangBook';
 import { jdBookModel } from './jdBook';
+import { doubanGameModel } from './doubanGame';
 
+// 新增的 site model 需要在这里配置
 export const configs = {
   [getchuGameModel.key]: getchuGameModel,
   [erogamescapeModel.key]: erogamescapeModel,
@@ -15,6 +16,7 @@ export const configs = {
   [steamModel.key]: steamModel,
   [dangdangBookModel.key]: dangdangBookModel,
   [jdBookModel.key]: jdBookModel,
+  [doubanGameModel.key]: doubanGameModel,
 };
 
 export function findModelByHost(host: string) {

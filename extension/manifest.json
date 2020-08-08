@@ -2,8 +2,7 @@
   "manifest_version": 2,
   "name": "bangumi new wiki helper",
   "description": "辅助创建 bangumi.tv 上的条目",
-  "version": "0.3.5",
-
+  "version": "0.3.6",
   "browser_action": {
     "browser_style": true,
     "default_icon": {
@@ -18,19 +17,41 @@
     "96": "images/Watermelon-96.png"
   },
   "background": {
-    "scripts": ["lib/fuse.js", "dist/background.js"]
+    "scripts": [
+      "lib/fuse.js",
+      "dist/background.js"
+    ]
   },
   "content_scripts": [
     {
-      "matches": ["*://bgm.tv/*", "*://bangumi.tv/*", "*://chii.tv/*"],
-      "css": ["css/bangumi.css"],
-      "js": ["dist/bangumi.js"]
+      "matches": [
+        "*://bgm.tv/*",
+        "*://bangumi.tv/*",
+        "*://chii.tv/*"
+      ],
+      "css": [
+        "css/bangumi.css"
+      ],
+      "js": [
+        "dist/bangumi.js"
+      ]
     },
     {
-      "matches": ["*://*/*"],
-      "css": ["css/bangumi.css"],
-      "js": ["dist/content.js"]
+      "matches": [
+        "*://*/*"
+      ],
+      "css": [
+        "css/bangumi.css"
+      ],
+      "js": [
+        "dist/content.js"
+      ]
     }
   ],
-  "permissions": ["tabs", "storage", "webRequest", "<all_urls>"]
+  "permissions": [
+    "tabs",
+    "storage",
+    "webRequest",
+    "<all_urls>"
+  ]
 }
