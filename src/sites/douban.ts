@@ -24,7 +24,7 @@ export const doubanTools: SiteTools = {
           if (val && typeof val === 'string') {
             const v = info.value.split('/');
             if (v && v.length > 1) {
-              val = v.map((s: string) => s.trim()).join('/');
+              val = v.map((s: string) => s.trim()).join(',');
             }
           }
           res.push({

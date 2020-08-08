@@ -32,10 +32,16 @@ doubanGameModel.itemList.push(
   },
   {
     name: '发行日期',
-    selector: {
-      ...gameAttr,
-      keyWord: '发行日期',
-    },
+    selector: [
+      {
+        ...gameAttr,
+        keyWord: '发行日期',
+      },
+      {
+        ...gameAttr,
+        keyWord: '预计上市时间',
+      },
+    ],
     category: 'date',
   },
   {
