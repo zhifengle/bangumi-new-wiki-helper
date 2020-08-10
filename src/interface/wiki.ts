@@ -35,6 +35,7 @@ export type ModelKey =
   | 'steamdb_game'
   | 'dangdang_book'
   | 'jd_book'
+  | 'douban_game_edit'
   | 'douban_game';
 
 export interface SiteConfig {

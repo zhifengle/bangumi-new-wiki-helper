@@ -82,9 +82,11 @@ const init = async () => {
         bangumi.init();
         break;
       default:
-        const model = findModelByHost(page[0]);
-        if (model) {
-          initCommon(model);
+        const modelArr = findModelByHost(page[0]);
+        if (modelArr && modelArr.length) {
+          modelArr.forEach((m) => {
+            initCommon(m);
+          });
         }
     }
   }

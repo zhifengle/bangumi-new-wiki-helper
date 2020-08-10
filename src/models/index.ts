@@ -6,6 +6,8 @@ import { steamModel } from './steam';
 import { dangdangBookModel } from './dangdangBook';
 import { jdBookModel } from './jdBook';
 import { doubanGameModel } from './doubanGame';
+import { doubanGameEditModel } from './doubanGameEdit';
+import { SiteConfig } from '../interface/wiki';
 
 // 新增的 site model 需要在这里配置
 export const configs = {
@@ -17,14 +19,18 @@ export const configs = {
   [dangdangBookModel.key]: dangdangBookModel,
   [jdBookModel.key]: jdBookModel,
   [doubanGameModel.key]: doubanGameModel,
+  [doubanGameEditModel.key]: doubanGameEditModel,
 };
 
 export function findModelByHost(host: string) {
   const keys = Object.keys(configs);
+  const models: SiteConfig[] = [];
   for (let i = 0; i < keys.length; i++) {
     const hosts = configs[keys[i]].host;
     if (hosts.includes(host)) {
-      return configs[keys[i]];
+      models.push(configs[keys[i]]);
+      // return configs[keys[i]];
     }
   }
+  return models;
 }

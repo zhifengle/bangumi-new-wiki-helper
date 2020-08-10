@@ -1,11 +1,12 @@
 import { SiteConfig, ModelKey } from '../interface/wiki';
 import { ITiming, IFuncPromise } from '../interface/types';
-import { amazonTools } from './amazon';
+import { amazonUtils, amazonJpBookTools } from './amazon';
 import { dealDate, formatDate } from '../utils/utils';
 import { getchuTools } from './getchu';
 import { getImageDataByURL } from '../utils/dealImage';
 import { SiteTools } from './types';
 import { doubanTools } from './douban';
+import { steamTools, steamdbTools } from './steam';
 
 export function trimParenthesis(str: string) {
   const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
@@ -38,11 +39,13 @@ export async function getCover($d: Element, site: ModelKey) {
     dataUrl = await getImageDataByURL(url);
     if (dataUrl) {
       return {
+        url,
         dataUrl,
       };
     }
   } catch (error) {
     return {
+      url,
       dataUrl: url,
     };
   }
@@ -67,19 +70,7 @@ export function dealFuncByCategory(
 export const sitesFuncDict: {
   [key in ModelKey]?: SiteTools;
 } = {
-  amazon_jp_book: {
-    hooks: {
-      async beforeCreate() {
-        return true;
-      },
-    },
-    filters: [
-      {
-        category: 'subject_title',
-        dealFunc: amazonTools.dealTitle,
-      },
-    ],
-  },
+  amazon_jp_book: amazonJpBookTools,
   dangdang_book: {
     filters: [
       {
@@ -114,38 +105,7 @@ export const sitesFuncDict: {
       },
     ],
   },
-  steam_game: {
-    filters: [
-      {
-        category: 'website',
-        dealFunc(str: string) {
-          // https://steamcommunity.com/linkfilter/?url=https://www.koeitecmoamerica.com/ryza/
-          const arr = str.split('?url=');
-          return arr[1] || '';
-        },
-      },
-      {
-        category: 'date',
-        dealFunc(str: string) {
-          if (/年/.test(str)) {
-            return dealDate(str);
-          }
-          return formatDate(str);
-        },
-      },
-    ],
-  },
-  steamdb_game: {
-    filters: [
-      {
-        category: 'date',
-        dealFunc(str: string) {
-          const arr = str.split('–');
-          if (!arr[0]) return '';
-          return formatDate(arr[0].trim());
-        },
-      },
-    ],
-  },
+  steam_game: steamTools,
+  steamdb_game: steamdbTools,
   douban_game: doubanTools,
 };

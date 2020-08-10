@@ -19,6 +19,9 @@ export function getText(elem: HTMLElement): string {
   if (elem.tagName.toLowerCase() === 'meta') {
     return (elem as any).content;
   }
+  if (elem.tagName.toLowerCase() === 'input') {
+    return (elem as any).value;
+  }
   return elem.textContent || elem.innerText || '';
 }
 

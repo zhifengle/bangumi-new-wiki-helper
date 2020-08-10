@@ -348,9 +348,9 @@ export function combineInfoList(
 export async function getWikiDataByURL(url: string) {
   const urlObj = new URL(url);
   const model = findModelByHost(urlObj.hostname);
-  if (model) {
+  if (model && model.length) {
     const rawText = await fetchText(url, 4 * 1000);
     let $doc = new DOMParser().parseFromString(rawText, 'text/html');
-    return await getWikiData(model, $doc);
+    return await getWikiData(model[0], $doc);
   }
 }
