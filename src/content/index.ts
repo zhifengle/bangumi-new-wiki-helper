@@ -18,6 +18,8 @@ async function initCommon(siteConfig: SiteConfig) {
   if (bcRes === true) {
     bcRes = {};
   }
+  const { payload = {} } = bcRes;
+  console.info(siteConfig.description, ' content script init');
   insertControlBtn($title, async (e, flag) => {
     console.info('init');
     const infoList: (SingleInfo | void)[] = await getWikiData(siteConfig);
@@ -31,21 +33,21 @@ async function initCommon(siteConfig: SiteConfig) {
       wikiData,
     });
     if (flag) {
-      let payload: any = {
+      let msgPayload: any = {
         subjectInfo: getQueryInfo(infoList as SingleInfo[]),
         type: siteConfig.type,
-        ...bcRes?.payload,
+        ...payload,
       };
       await browser.runtime.sendMessage({
         action: 'check_subject_exist',
-        payload,
+        payload: msgPayload,
       });
     } else {
       await browser.runtime.sendMessage({
         action: 'create_new_subject',
         payload: {
           type: siteConfig.type,
-          ...bcRes?.payload,
+          ...payload,
         },
       });
     }
@@ -53,10 +55,9 @@ async function initCommon(siteConfig: SiteConfig) {
 }
 
 const init = function () {
-  const modelArr = findModelByHost(document.location.host);
+  const modelArr = findModelByHost(window.location.hostname);
   if (modelArr && modelArr.length) {
     modelArr.forEach((m) => {
-      console.info(m.description, ' content script init');
       initCommon(m);
     });
   }

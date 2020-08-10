@@ -42,6 +42,7 @@ export interface SiteConfig {
   key: ModelKey;
   description: string;
   host: string[];
+  urlRules?: RegExp[];
   // 区分页面是目标的选择器
   pageSelectors: Selector[];
   // 插入控制按钮位置的元素选择器

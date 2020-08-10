@@ -10,3 +10,8 @@ export type SiteTools = {
     dealFunc: (...args: any) => string;
   }[];
 };
+
+export type IAuxPrefs = {
+  originNames?: string[] | 'all';
+  targetNames?: string[] | 'all';
+};

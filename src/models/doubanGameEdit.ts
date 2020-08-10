@@ -3,7 +3,8 @@ import { SiteConfig, SubjectTypeId, Selector } from '../interface/wiki';
 export const doubanGameEditModel: SiteConfig = {
   key: 'douban_game_edit',
   description: 'douban game edit',
-  host: ['douban.com'],
+  host: ['douban.com', 'www.douban.com'],
+  urlRules: [/\/game\/\d+\/edit/],
   type: SubjectTypeId.game,
   pageSelectors: [
     {
@@ -17,8 +18,8 @@ export const doubanGameEditModel: SiteConfig = {
 };
 
 const gameAttr: Selector = {
-  selector: '#thing-modify .thing-item .operation',
-  subSelector: '.label',
+  selector: '#thing-modify',
+  subSelector: '.thing-item .desc-item .label',
   sibling: true,
 };
 

@@ -1,6 +1,7 @@
 import { dealItemText, combineInfoList, getWikiData } from './common';
 import { getchuGameModel } from '../models/getchuGame';
 import { steamdbModel } from '../models/steamdb';
+import { amazonSubjectModel } from '../models/amazonJpBook';
 
 describe('test common', () => {
   test('deal text', () => {
@@ -160,8 +161,27 @@ describe('test common', () => {
       ],
       [{ name: '游戏名', value: '蒼の彼方のフォーリズム', category: 'alias' }]
     );
-    //
     expect(e).toEqual([
+      {
+        name: '游戏名',
+        value: '蒼の彼方のフォーリズム',
+        category: 'subject_title',
+      },
+    ]);
+    const f = combineInfoList(
+      [
+        {
+          name: '游戏名',
+          value: '蒼の彼方のフォーリズム',
+          category: 'subject_title',
+        },
+      ],
+      [{ name: '游戏名', value: '蒼の彼方のフォーリズム' }],
+      {
+        originNames: ['游戏名'],
+      }
+    );
+    expect(f).toEqual([
       {
         name: '游戏名',
         value: '蒼の彼方のフォーリズム',
@@ -172,13 +192,75 @@ describe('test common', () => {
 });
 
 describe('test get wiki data', () => {
-  test('get wiki data', async () => {
+  test('get steam db wiki data', async () => {
     // getWikiData(getchuGameModel)
     const rawHtml = require('../data/SteamDB.html');
     const jsdom = require('jsdom');
     const { JSDOM } = jsdom;
     const dom = new JSDOM(rawHtml);
     const infos = await getWikiData(steamdbModel, dom.window.document);
-    console.log(infos);
+    expect(infos).toHaveLength(10);
+    expect(infos).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '游戏名',
+          value: 'ライザのアトリエ ～常闇の女王と秘密の隠れ家～',
+          category: 'subject_title',
+        }),
+      ])
+    );
+  });
+  test('get amazon book wiki data', async () => {
+    // getWikiData(getchuGameModel)
+    const rawHtml = require('../data/amazon-book.html');
+    const jsdom = require('jsdom');
+    const { JSDOM } = jsdom;
+    const dom = new JSDOM(rawHtml);
+    const infos = await getWikiData(amazonSubjectModel, dom.window.document);
+    expect(infos).toHaveLength(9);
+    expect(infos).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '名称',
+          value: '大蜘蛛ちゃんフラッシュ・バック(2)',
+          category: 'subject_title',
+        }),
+        expect.objectContaining({
+          name: 'ISBN',
+          value: '978-4065111819',
+          category: 'ISBN',
+        }),
+        expect.objectContaining({
+          name: '发售日',
+          value: '2018/4/23',
+          category: 'date',
+        }),
+        expect.objectContaining({
+          name: '作者',
+          value: '植芝理一',
+          category: 'creator',
+        }),
+        expect.objectContaining({
+          name: '出版社',
+          value: '講談社',
+          category: undefined,
+        }),
+        expect.objectContaining({
+          name: '页数',
+          value: '192',
+          category: undefined,
+        }),
+        expect.objectContaining({
+          name: '价格',
+          value: '￥660',
+          category: undefined,
+        }),
+        expect.objectContaining({
+          name: 'ASIN',
+          value: '4065111811',
+          category: 'ASIN',
+        }),
+      ])
+    );
   });
 });

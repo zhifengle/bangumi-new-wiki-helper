@@ -19,13 +19,15 @@ import {
 import { getSubjectId } from '../sites/bangumi/related';
 import { sleep } from '../utils/async/sleep';
 import { getHooks } from '../sites';
+import { IAuxPrefs } from '../sites/types';
 
-async function updateAuxData(auxSite: string) {
+async function updateAuxData(auxSite: string, auxPrefs: IAuxPrefs = {}) {
   try {
     console.info('the start of updating aux data');
     const auxData = await getWikiDataByURL(auxSite);
+    console.info('auxiliary data: ', auxData);
     const wikiData = JSON.parse(GM_getValue(WIKI_DATA) || null);
-    let infos = combineInfoList(wikiData.infos, auxData);
+    let infos = combineInfoList(wikiData.infos, auxData, auxPrefs);
     if (auxSite.match(/store\.steampowered\.com/)) {
       infos = combineInfoList(auxData, wikiData.infos);
     }
@@ -43,14 +45,18 @@ async function updateAuxData(auxSite: string) {
   }
 }
 
-export async function initCommon(siteConfig: SiteConfig, config: any = {}) {
+export async function initCommon(siteConfig: SiteConfig) {
   const $page = findElement(siteConfig.pageSelectors);
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
-  const bcRes = await getHooks(siteConfig, 'beforeCreate')();
+  let bcRes = await getHooks(siteConfig, 'beforeCreate')();
   if (!bcRes) return;
-  const { payload = {} } = config;
+  if (bcRes === true) {
+    bcRes = {};
+  }
+  const { payload = {} } = bcRes;
+  console.info(siteConfig.description, ' content script init');
   insertControlBtn($title, async (e, flag) => {
     const protocol = GM_getValue(PROTOCOL) || 'https';
     const bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
@@ -69,7 +75,7 @@ export async function initCommon(siteConfig: SiteConfig, config: any = {}) {
         getQueryInfo(infoList),
         bgmHost,
         wikiData.type,
-        config?.payload?.disableDate
+        payload?.disableDate
       );
       console.info('search results: ', result);
       if (result && result.url) {
@@ -77,7 +83,8 @@ export async function initCommon(siteConfig: SiteConfig, config: any = {}) {
         await sleep(100);
         GM_openInTab(bgmHost + result.url);
       } else {
-        payload.auxSite && (await updateAuxData(payload.auxSite));
+        payload.auxSite &&
+          (await updateAuxData(payload.auxSite, payload.auxPrefs || {}));
         // 重置自动填表
         GM_setValue(AUTO_FILL_FORM, 1);
         setTimeout(() => {
@@ -87,7 +94,8 @@ export async function initCommon(siteConfig: SiteConfig, config: any = {}) {
     } else {
       // 重置自动填表
       GM_setValue(AUTO_FILL_FORM, 1);
-      payload.auxSite && (await updateAuxData(payload.auxSite));
+      payload.auxSite &&
+        (await updateAuxData(payload.auxSite, payload.auxPrefs || {}));
       setTimeout(() => {
         GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`);
       }, 200);

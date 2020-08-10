@@ -5,6 +5,7 @@ import { SubjectTypeId } from '../interface/wiki';
 import { getWikiDataByURL, combineInfoList } from '../sites/common';
 import { setVal } from './utils';
 import { getSubjectId } from '../sites/bangumi/related';
+import { IAuxPrefs } from '../sites/types';
 // import { version as VERSION } from "../../extension/manifest.json";
 
 const VERSION = '0.3.0';
@@ -45,7 +46,8 @@ async function handleMessage(request: any) {
             });
             setVal('subjectId', getSubjectId(result.url));
           } else {
-            payload.auxSite && (await updateAuxData(payload.auxSite));
+            payload.auxSite &&
+              (await updateAuxData(payload.auxSite, payload.auxPrefs || {}));
             createNewSubjectTab(payload.type, bgmHost, activeOpen);
           }
         } else {
@@ -57,7 +59,8 @@ async function handleMessage(request: any) {
       }
       break;
     case 'create_new_subject':
-      payload.auxSite && (await updateAuxData(payload.auxSite));
+      payload.auxSite &&
+        (await updateAuxData(payload.auxSite, payload.auxPrefs || {}));
       createNewSubjectTab(payload.type, bgmHost, activeOpen);
       break;
     case 'create_new_character':
@@ -82,13 +85,15 @@ function createNewSubjectTab(
   });
 }
 
-async function updateAuxData(auxSite: string) {
+async function updateAuxData(auxSite: string, auxPrefs: IAuxPrefs = {}) {
   try {
+    console.info('the start of updating aux data');
     const auxData = await getWikiDataByURL(auxSite);
     const obj = await browser.storage.local.get(['wikiData']);
     console.info('current wikiData: ', obj.wikiData);
+    console.info('auxiliary data: ', auxData);
     const { wikiData } = obj;
-    let infos = combineInfoList(wikiData.infos, auxData);
+    let infos = combineInfoList(wikiData.infos, auxData, auxPrefs);
     if (auxSite.match(/store\.steampowered\.com/)) {
       infos = combineInfoList(auxData, wikiData.infos);
     }

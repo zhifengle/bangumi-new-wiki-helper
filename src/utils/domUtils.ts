@@ -117,7 +117,7 @@ export function findElement(
     if (selector instanceof Array) {
       let i = 0;
       let targetSelector = selector[i];
-      while (targetSelector && !(r = findElement(targetSelector))) {
+      while (targetSelector && !(r = findElement(targetSelector, $parent))) {
         targetSelector = selector[++i];
       }
     } else {

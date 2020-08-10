@@ -3,7 +3,7 @@ import { SiteConfig, SubjectTypeId, Selector } from '../interface/wiki';
 export const doubanGameModel: SiteConfig = {
   key: 'douban_game',
   description: 'douban game',
-  host: ['douban.com'],
+  host: ['douban.com', 'www.douban.com'],
   type: SubjectTypeId.game,
   pageSelectors: [
     {
@@ -44,14 +44,15 @@ doubanGameModel.itemList.push(
     ],
     category: 'date',
   },
-  {
-    name: '平台',
-    selector: {
-      ...gameAttr,
-      keyWord: '平台',
-    },
-    category: 'platform',
-  },
+  // 平台特殊处理
+  // {
+  //   name: '平台',
+  //   selector: {
+  //     ...gameAttr,
+  //     keyWord: '平台',
+  //   },
+  //   category: 'platform',
+  // },
   {
     name: '别名',
     selector: {

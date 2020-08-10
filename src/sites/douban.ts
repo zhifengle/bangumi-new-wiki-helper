@@ -1,16 +1,28 @@
 import { SiteTools } from './types';
 import { SingleInfo } from '../interface/subject';
 import { getImageDataByURL } from '../utils/dealImage';
+import { findElement, getText } from '../utils/domUtils';
 
 export const doubanTools: SiteTools = {
   hooks: {
     async beforeCreate() {
       const href = window.location.href;
-      return /\/game\//.test(href) && !/\/game\/\d+\/edit/.test(href);
+      if (/\/game\//.test(href) && !/\/game\/\d+\/edit/.test(href)) {
+        return {
+          payload: {
+            auxSite: (document.querySelector(
+              '.th-modify > a'
+            ) as HTMLAnchorElement).href,
+            auxPrefs: {
+              targetNames: 'all',
+            },
+          },
+        };
+      }
     },
     async afterGetWikiData(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
-      infos.forEach((info) => {
+      for (const info of infos) {
         if (['平台', '别名'].includes(info.name)) {
           const pArr = info.value.split('/').map((i: string) => {
             return {
@@ -26,15 +38,36 @@ export const doubanTools: SiteTools = {
           if (val && typeof val === 'string') {
             const v = info.value.split('/');
             if (v && v.length > 1) {
-              val = v.map((s: string) => s.trim()).join(',');
+              val = v.map((s: string) => s.trim()).join(', ');
             }
+          }
+          if (info.name === '游戏类型' && val) {
+            val = val.replace('游戏, ', '').trim();
           }
           res.push({
             ...info,
             value: val,
           });
         }
+      }
+      // 特殊处理平台
+      const $plateform = findElement({
+        selector: '#content .game-attr',
+        subSelector: 'dt',
+        sibling: true,
+        keyWord: '平台',
       });
+      if ($plateform) {
+        const aList: any = $plateform.querySelectorAll('a') || [];
+        const arr = [];
+        for (const $a of aList) {
+          res.push({
+            name: '平台',
+            value: getText($a).replace(/\/.*/, '').trim(),
+            category: 'platform',
+          });
+        }
+      }
       return res;
     },
   },
@@ -49,18 +82,51 @@ export const doubanGameEditTools: SiteTools = {
     },
     async afterGetWikiData(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
-      infos.forEach(async (info) => {
+      for (const info of infos) {
         const arr: SingleInfo = { ...info };
-        if (arr.category === 'cover' && arr.value && arr.value.url) {
+        if (['平台', '别名'].includes(info.name)) {
+          const plateformDict: any = {
+            ARC: 'Arcade',
+            NES: 'FC',
+            红白机: 'FC',
+            街机: 'Arcade',
+          };
+          const pArr = info.value.split(',').map((i: string) => {
+            let v = i.trim();
+            if (plateformDict[v]) {
+              v = plateformDict[v];
+            }
+            return {
+              ...info,
+              value: v,
+            };
+          });
+          res.push(...pArr);
+        } else if (arr.category === 'cover' && arr.value && arr.value.url) {
           try {
-            console.info('fetch lpic', arr.value);
-            arr.value.dataUrl = await getImageDataByURL(
-              arr.value.url.replace('/spic/', '/lpic/')
-            );
-          } catch (error) {}
+            const url = arr.value.url.replace('/spic/', '/lpic/');
+            const dataUrl = await getImageDataByURL(url);
+            const coverItem = {
+              ...arr,
+              value: {
+                dataUrl,
+                url,
+              },
+            };
+            res.push(coverItem);
+          } catch (error) {
+            console.error(error);
+          }
+        } else if (arr.name === '游戏类型') {
+          arr.value = arr.value.replace(/,(?!\s)/g, ', ');
+          res.push(arr);
+        } else if (arr.name === '开发') {
+          arr.value = arr.value.replace(/,(?!\s)/g, ', ');
+          res.push(arr);
+        } else {
+          res.push(arr);
         }
-        res.push(arr);
-      });
+      }
       // 描述
       const inputList = document.querySelectorAll(
         'input[name="target"][type="hidden"]'

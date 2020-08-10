@@ -6,6 +6,7 @@ import { isEqualDate } from '../utils/utils';
 import { dealFuncByCategory, getCover, getHooks } from './index';
 import { findModelByHost } from '../models';
 import { fetchText } from '../utils/fetchData';
+import { IAuxPrefs } from './types';
 
 /**
  * 处理单项 wiki 信息
@@ -102,7 +103,7 @@ export async function getWikiData(siteConfig: SiteConfig, el?: Document) {
   const defaultInfos = siteConfig.defaultInfos || [];
   let rawInfo = r.filter((i) => i);
   const hookRes = await getHooks(siteConfig, 'afterGetWikiData')(rawInfo);
-  if (Array.isArray(hookRes)) {
+  if (Array.isArray(hookRes) && hookRes.length) {
     rawInfo = hookRes;
   }
   return [...rawInfo, ...defaultInfos];
@@ -250,7 +251,22 @@ function getTargetStr(
   return '';
 }
 // 综合两个单项信息
-function combineObj(current: SingleInfo, target: SingleInfo): SingleInfo[] {
+function combineObj(
+  current: SingleInfo,
+  target: SingleInfo,
+  auxPrefs: IAuxPrefs = {}
+): SingleInfo[] {
+  if (
+    auxPrefs.originNames === 'all' ||
+    (auxPrefs.originNames && auxPrefs.originNames.includes(current.name))
+  ) {
+    return [{ ...current }];
+  } else if (
+    auxPrefs.targetNames === 'all' ||
+    (auxPrefs.targetNames && auxPrefs.targetNames.includes(target.name))
+  ) {
+    return [{ ...target }];
+  }
   const obj = { ...current, ...target };
   if (current.category === 'subject_title') {
     // 中日  日英  中英
@@ -298,7 +314,8 @@ function combineObj(current: SingleInfo, target: SingleInfo): SingleInfo[] {
  */
 export function combineInfoList(
   infoList: SingleInfo[],
-  otherInfoList: SingleInfo[]
+  otherInfoList: SingleInfo[],
+  auxPrefs: IAuxPrefs = {}
 ): SingleInfo[] {
   const multipleNames = ['平台', '别名'];
   const res: SingleInfo[] = [];
@@ -315,7 +332,7 @@ export function combineInfoList(
     if (idxOther === -1) {
       res.push(current);
     } else {
-      const objArr = combineObj(current, otherInfoList[idxOther]);
+      const objArr = combineObj(current, otherInfoList[idxOther], auxPrefs);
       res.push(...objArr);
       idxSetOther.add(idxOther);
     }
@@ -347,10 +364,24 @@ export function combineInfoList(
 // 后台抓取其它网站的 wiki 信息
 export async function getWikiDataByURL(url: string) {
   const urlObj = new URL(url);
-  const model = findModelByHost(urlObj.hostname);
-  if (model && model.length) {
+  const models = findModelByHost(urlObj.hostname);
+  if (models && models.length) {
     const rawText = await fetchText(url, 4 * 1000);
     let $doc = new DOMParser().parseFromString(rawText, 'text/html');
-    return await getWikiData(model[0], $doc);
+    let model = models[0];
+    if (models.length > 1) {
+      for (const m of models) {
+        if (m.urlRules && m.urlRules.some((r) => r.test(url))) {
+          model = m;
+        }
+      }
+    }
+    // 查找标志性的元素
+    const $page = findElement(model.pageSelectors, $doc as any);
+    if (!$page) return [];
+    const $title = findElement(model.controlSelector, $doc as any);
+    if (!$title) return [];
+    return await getWikiData(model, $doc);
   }
+  return [];
 }

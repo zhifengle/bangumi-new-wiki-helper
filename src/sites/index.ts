@@ -5,7 +5,7 @@ import { dealDate, formatDate } from '../utils/utils';
 import { getchuTools } from './getchu';
 import { getImageDataByURL } from '../utils/dealImage';
 import { SiteTools } from './types';
-import { doubanTools } from './douban';
+import { doubanTools, doubanGameEditTools } from './douban';
 import { steamTools, steamdbTools } from './steam';
 
 export function trimParenthesis(str: string) {
@@ -108,4 +108,5 @@ export const sitesFuncDict: {
   steam_game: steamTools,
   steamdb_game: steamdbTools,
   douban_game: doubanTools,
+  douban_game_edit: doubanGameEditTools,
 };
