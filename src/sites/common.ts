@@ -317,12 +317,23 @@ export function combineInfoList(
   otherInfoList: SingleInfo[],
   auxPrefs: IAuxPrefs = {}
 ): SingleInfo[] {
-  const multipleNames = ['平台', '别名'];
+  // 合并数组为空时
+  if (!otherInfoList || !otherInfoList.length) {
+    return infoList;
+  }
+  if (!infoList || !infoList.length) {
+    return otherInfoList;
+  }
+  const multipleNames: string[] = ['平台', '别名'];
+  const { targetNames = [], originNames = [] } = auxPrefs;
   const res: SingleInfo[] = [];
   const idxSetOther = new Set();
   for (let i = 0; i < infoList.length; i++) {
     const current = infoList[i];
-    if (multipleNames.includes(current.name)) {
+    const targetFirst: boolean = targetNames.includes(current.name);
+    if (targetFirst) {
+      continue;
+    } else if (!targetFirst && multipleNames.includes(current.name)) {
       res.push(current);
       continue;
     }
@@ -339,7 +350,10 @@ export function combineInfoList(
   }
   for (let j = 0; j < otherInfoList.length; j++) {
     const other = otherInfoList[j];
-    if (multipleNames.includes(other.name)) {
+    const originFirst: boolean = originNames.includes(other.name);
+    if (originFirst) {
+      continue;
+    } else if (!originFirst && multipleNames.includes(other.name)) {
       res.push(other);
       continue;
     }
@@ -376,12 +390,16 @@ export async function getWikiDataByURL(url: string) {
         }
       }
     }
-    // 查找标志性的元素
-    const $page = findElement(model.pageSelectors, $doc as any);
-    if (!$page) return [];
-    const $title = findElement(model.controlSelector, $doc as any);
-    if (!$title) return [];
-    return await getWikiData(model, $doc);
+    try {
+      // 查找标志性的元素
+      const $page = findElement(model.pageSelectors, $doc as any);
+      if (!$page) return [];
+      const $title = findElement(model.controlSelector, $doc as any);
+      if (!$title) return [];
+      return await getWikiData(model, $doc);
+    } catch (error) {
+      return [];
+    }
   }
   return [];
 }

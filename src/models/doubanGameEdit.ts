@@ -66,6 +66,7 @@ doubanGameEditModel.itemList.push(
       ...gameAttr,
       keyWord: '中文名',
     },
+    category: 'alias',
   },
   {
     name: '别名',

@@ -189,6 +189,14 @@ describe('test common', () => {
       },
     ]);
   });
+  test('combine info list when empty', () => {
+    expect(
+      combineInfoList([{ name: '游戏名', value: '蒼の彼方のフォーリズム' }], [])
+    ).toEqual([{ name: '游戏名', value: '蒼の彼方のフォーリズム' }]);
+    expect(
+      combineInfoList([], [{ name: '游戏名', value: '蒼の彼方のフォーリズム' }])
+    ).toEqual([{ name: '游戏名', value: '蒼の彼方のフォーリズム' }]);
+  });
 });
 
 describe('test get wiki data', () => {

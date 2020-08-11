@@ -14,6 +14,7 @@ export const doubanTools: SiteTools = {
               '.th-modify > a'
             ) as HTMLAnchorElement).href,
             auxPrefs: {
+              originNames: ['平台'],
               targetNames: 'all',
             },
           },
