@@ -6,7 +6,7 @@
 
 辅助在 bangumi.tv 或者 bgm.tv 上创建新的条目
 
-支持日亚的图书、getchu 的游戏 steam 、steamdb 、jd 图书、当当图书。
+支持日亚的图书、getchu 的游戏 steam 、steamdb 、jd 图书、当当图书、豆瓣游戏。
 
 考虑到信息的准确性，未做成一键新建和提交的模式。
 
