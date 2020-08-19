@@ -1,44 +1,8 @@
 import { fetchJson, fetchText } from '../../utils/fetchData';
 import { SubjectTypeId } from '../../interface/wiki';
 import { sendForm, sendFormImg } from '../../utils/ajax';
+import { getBgmHost } from './common';
 
-export function getBgmHost() {
-  return `${location.protocol}//${location.host}`;
-}
-
-export function genLinkText(url: string, text: string = '地址') {
-  const $div = document.createElement('div');
-  const $link = document.createElement('a');
-  $link.href = url;
-  $link.innerText = text;
-  $div.appendChild($link);
-  return $div.innerHTML;
-}
-
-export function insertLogInfo($sibling: Element, txt: string): Element {
-  const $log = document.createElement('div');
-  $log.classList.add('.e-wiki-log-info');
-  $log.setAttribute('style', 'color: tomato;');
-  $log.innerHTML = txt;
-  $sibling.parentElement.insertBefore($log, $sibling);
-  $sibling.insertAdjacentElement('afterend', $log);
-  return $log;
-}
-export function getSubjectId(url: string) {
-  const m = url.match(/(?:subject|character)\/(\d+)/);
-  if (!m) return '';
-  return m[1];
-}
-export async function getFormhash() {
-  const rawText = await fetchText(
-    `${location.protocol}//${location.host}/new_subject/1`
-  );
-  let $doc = new DOMParser().parseFromString(rawText, 'text/html');
-  let formhash = $doc
-    .querySelector('input[name=formhash]')
-    .getAttribute('value');
-  return formhash;
-}
 export async function uploadSubjectCover(
   subjectId: string,
   dataUrl: string,

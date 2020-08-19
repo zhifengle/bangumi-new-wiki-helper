@@ -4,8 +4,8 @@ import { BangumiDomain, checkSubjectExit } from '../sites/bangumi';
 import { SubjectTypeId } from '../interface/wiki';
 import { getWikiDataByURL, combineInfoList } from '../sites/common';
 import { setVal } from './utils';
-import { getSubjectId } from '../sites/bangumi/related';
 import { IAuxPrefs } from '../sites/types';
+import { getSubjectId } from '../sites/bangumi/common';
 // import { version as VERSION } from "../../extension/manifest.json";
 
 const VERSION = '0.3.0';

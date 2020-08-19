@@ -8,12 +8,9 @@ import {
   addPersonRelatedSubject,
   addPersonRelatedCV,
   uploadSubjectCover,
-  getSubjectId,
   searchCVByName,
-  insertLogInfo,
-  getBgmHost,
-  genLinkText,
 } from './related';
+import { getBgmHost, getSubjectId, insertLogInfo, genLinkText } from './common';
 
 /**
  * 转换 wiki 模式下 infobox 内容

@@ -16,10 +16,10 @@ import {
   WIKI_DATA,
   SUBJECT_ID,
 } from './constraints';
-import { getSubjectId } from '../sites/bangumi/related';
 import { sleep } from '../utils/async/sleep';
 import { getHooks } from '../sites';
 import { IAuxPrefs } from '../sites/types';
+import { getSubjectId } from '../sites/bangumi/common';
 
 async function updateAuxData(auxSite: string, auxPrefs: IAuxPrefs = {}) {
   try {

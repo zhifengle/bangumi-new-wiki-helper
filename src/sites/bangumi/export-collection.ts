@@ -1,5 +1,4 @@
-import { getAllPageInfo } from './common';
-import { getBgmHost } from './related';
+import { getAllPageInfo, getBgmHost } from './common';
 import { downloadFile, htmlToElement } from '../../utils/domUtils';
 import { formatDate } from '../../utils/utils';
 
