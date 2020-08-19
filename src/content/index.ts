@@ -6,6 +6,8 @@ import { getQueryInfo, getWikiData, insertControlBtn } from '../sites/common';
 import { SingleInfo, SubjectWikiInfo } from '../interface/subject';
 import { findModelByHost } from '../models';
 import { getHooks } from '../sites';
+import { getchu } from './getchu';
+import { getchuGameModel } from '../models/getchuGame';
 
 async function initCommon(siteConfig: SiteConfig) {
   // 查找标志性的元素
@@ -60,6 +62,10 @@ const init = function () {
     modelArr.forEach((m) => {
       initCommon(m);
     });
+  }
+  // @TODO remove check
+  if (location.hostname === 'www.getchu.com') {
+    getchu.init(getchuGameModel);
   }
 };
 init();
