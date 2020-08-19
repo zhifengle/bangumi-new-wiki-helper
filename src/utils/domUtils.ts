@@ -170,3 +170,15 @@ export function downloadFile(
   a.click();
   document.body.removeChild(a);
 }
+
+/**
+ * @param {String} HTML 字符串
+ * @return {Element}
+ */
+export function htmlToElement(html: string) {
+  var template = document.createElement('template');
+  html = html.trim();
+  template.innerHTML = html;
+  // template.content.childNodes;
+  return template.content.firstChild;
+}

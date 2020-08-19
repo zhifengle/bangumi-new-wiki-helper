@@ -1,4 +1,6 @@
 import { dealDate } from '../../utils/utils';
+import { fetchText } from '../../utils/fetchData';
+import { sleep } from '../../utils/async/sleep';
 
 interface SubjectItem {
   name: string;
@@ -14,6 +16,7 @@ interface SubjectItem {
   };
   collectInfo?: {
     date: string;
+    score?: string;
     tags?: string;
     comment?: string;
   };
@@ -65,7 +68,7 @@ export function convertItemInfo($item: HTMLElement): SubjectItem {
     });
     const $comment = $item.querySelector('#comment_box');
     if ($comment) {
-      collectInfo.comment = $comment.textContent;
+      collectInfo.comment = $comment.textContent.trim();
     }
     const $starlight = $collectInfo.querySelector('.starlight');
     if ($starlight) {
@@ -78,11 +81,61 @@ export function convertItemInfo($item: HTMLElement): SubjectItem {
     itemSubject.collectInfo = collectInfo;
   }
   const $cover = $item.querySelector('.subjectCover img');
-  if ($cover) {
+  if ($cover && $cover.tagName.toLowerCase() === 'img') {
     // 替换 cover/s --->  cover/l 是大图
-    itemSubject.cover = $cover
-      .getAttribute('src')
-      .replace('pic/cover/s', 'pic/cover/l');
+    const src = $cover.getAttribute('src') || $cover.getAttribute('data-cfsrc');
+    if (src) {
+      itemSubject.cover = src.replace('pic/cover/s', 'pic/cover/l');
+    }
   }
   return itemSubject;
+}
+
+export function getItemInfos($doc: Document | Element = document) {
+  const items = $doc.querySelectorAll('#browserItemList>li');
+  const res = [];
+  for (const item of Array.from(items)) {
+    res.push(convertItemInfo(item as HTMLElement));
+  }
+  return res;
+}
+
+export function getTotalPageNum($doc: Document | Element = document) {
+  const $multipage = $doc.querySelector('#multipage');
+  let totalPageNum = 1;
+  const pList = $multipage.querySelectorAll('.page_inner>.p');
+  if (pList && pList.length) {
+    let tempNum = parseInt(
+      pList[pList.length - 2].getAttribute('href').match(/page=(\d*)/)[1]
+    );
+    totalPageNum = parseInt(
+      pList[pList.length - 1].getAttribute('href').match(/page=(\d*)/)[1]
+    );
+    totalPageNum = totalPageNum > tempNum ? totalPageNum : tempNum;
+  }
+  return totalPageNum;
+}
+
+export async function getAllPageInfo(url: string) {
+  const rawText = await fetchText(url);
+  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
+  const totalPageNum = getTotalPageNum($doc);
+  const res = [...getItemInfos($doc)];
+  let page = 2;
+  while (page <= totalPageNum) {
+    let reqUrl = url;
+    const m = url.match(/page=(\d*)/);
+    if (m) {
+      reqUrl = reqUrl.replace(m[0], `page=${page}`);
+    } else {
+      reqUrl = `${reqUrl}?page=${page}`;
+    }
+    await sleep(500);
+    console.info('fetch info: ', reqUrl);
+    const rawText = await fetchText(reqUrl);
+    const $doc = new DOMParser().parseFromString(rawText, 'text/html');
+    res.push(...getItemInfos($doc));
+    page += 1;
+  }
+  return res;
 }
