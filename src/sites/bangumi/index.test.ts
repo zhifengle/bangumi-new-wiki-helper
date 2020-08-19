@@ -2,7 +2,7 @@ import { BangumiDomain, changeDomain, Protocol } from './index';
 import { randomNum } from '../../utils/utils';
 import { book } from '../../data/subject';
 import { convertInfoValue } from './newSubject';
-import { getSubjectId } from './related';
+import { getSubjectId } from './common';
 
 describe('test bangumi sites function', () => {
   it('test convert info', () => {
