@@ -1,9 +1,9 @@
-import { AllSubject, BookSubject, SearchResult } from '../../interface/subject';
-import { sleep } from '../../utils/async/sleep';
-import { fetchText, fetchJson } from '../../utils/fetchData';
-import { SubjectTypeId } from '../../interface/wiki';
-import { dealDate } from '../../utils/utils';
-import { filterResults } from '../common';
+import {AllSubject, BookSubject, SearchResult} from '../../interface/subject';
+import {sleep} from '../../utils/async/sleep';
+import {fetchText} from '../../utils/fetchData';
+import {SubjectTypeId} from '../../interface/wiki';
+import {dealDate} from '../../utils/utils';
+import {filterResults} from '../common';
 
 export enum BangumiDomain {
   chii = 'chii.in',

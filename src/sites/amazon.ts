@@ -1,4 +1,4 @@
-import { SiteTools } from './types';
+import {SiteTools} from './types';
 
 export const amazonUtils = {
   dealTitle(str: string): string {

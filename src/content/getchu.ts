@@ -1,10 +1,10 @@
 // @ts-ignore
 import browser from 'webextension-polyfill';
-import { SiteConfig } from '../interface/wiki';
-import { $qa, findElement } from '../utils/domUtils';
-import { insertControlBtnChara } from '../sites/common';
-import { getchuTools } from '../sites/getchu';
-import { SingleInfo, SubjectWikiInfo } from '../interface/subject';
+import {SiteConfig} from '../interface/wiki';
+import {$qa, findElement} from '../utils/domUtils';
+import {insertControlBtnChara} from '../sites/common';
+import {getchuTools} from '../sites/getchu';
+import {SubjectWikiInfo} from '../interface/subject';
 
 export const getchu = {
   init(siteConfig: SiteConfig) {

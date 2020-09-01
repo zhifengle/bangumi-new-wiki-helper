@@ -1,12 +1,12 @@
-import { SiteConfig, ModelKey } from '../interface/wiki';
-import { ITiming, IFuncPromise } from '../interface/types';
-import { amazonUtils, amazonJpBookTools } from './amazon';
-import { dealDate, formatDate } from '../utils/utils';
-import { getchuTools } from './getchu';
-import { getImageDataByURL } from '../utils/dealImage';
-import { SiteTools } from './types';
-import { doubanTools, doubanGameEditTools } from './douban';
-import { steamTools, steamdbTools } from './steam';
+import {ModelKey, SiteConfig} from '../interface/wiki';
+import {IFuncPromise, ITiming} from '../interface/types';
+import {amazonJpBookTools} from './amazon';
+import {dealDate} from '../utils/utils';
+import {getchuTools} from './getchu';
+import {getImageDataByURL} from '../utils/dealImage';
+import {SiteTools} from './types';
+import {doubanGameEditTools, doubanTools} from './douban';
+import {steamdbTools, steamTools} from './steam';
 
 export function trimParenthesis(str: string) {
   const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
