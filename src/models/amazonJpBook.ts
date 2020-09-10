@@ -78,6 +78,19 @@ amazonSubjectModel.itemList.push(
     name: '作者',
     selector: [
       {
+        selector: '#bylineInfo',
+        subSelector: '.author',
+        keyWord: '著',
+        nextSelector: [
+          {
+            selector: '.contributorNameID',
+          },
+          {
+            selector: 'a',
+          },
+        ],
+      },
+      {
         selector: '#byline .author span.a-size-medium',
       },
       {
@@ -85,6 +98,25 @@ amazonSubjectModel.itemList.push(
       },
       {
         selector: '#bylineInfo .contributorNameID',
+      },
+    ],
+    category: 'creator',
+  },
+  {
+    name: '插图',
+    selector: [
+      {
+        selector: '#bylineInfo',
+        subSelector: '.author',
+        keyWord: 'イラスト',
+        nextSelector: [
+          {
+            selector: '.contributorNameID',
+          },
+          {
+            selector: 'a',
+          },
+        ],
       },
     ],
     category: 'creator',
