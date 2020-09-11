@@ -10,7 +10,7 @@ function setDomain() {
     '预设bangumi的地址是 "' + 'bgm.tv' + '". 根据需要输入bangumi.tv',
     'bgm.tv'
   );
-  GM_setValue('bgm', bgm_domain);
+  GM_setValue(BGM_DOMAIN, bgm_domain);
   return bgm_domain;
 }
 
@@ -20,12 +20,14 @@ function setProtocol() {
 }
 
 var bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
+
 // if (!bgm_domain.length || !bgm_domain.match(/bangumi\.tv|bgm\.tv/)) {
 //   bgm_domain = setDomain();
 //   bgm_domain = GM_getValue(BGM_DOMAIN);
 // }
+
 if (GM_registerMenuCommand) {
-  GM_registerMenuCommand('\u8bbe\u7f6e\u57df\u540d', setDomain, 'b');
+  GM_registerMenuCommand('设置 Bangumi 域名', setDomain, 'b');
   GM_registerMenuCommand('新建条目页面(http 或者 https)', setProtocol, 'h');
 }
 
