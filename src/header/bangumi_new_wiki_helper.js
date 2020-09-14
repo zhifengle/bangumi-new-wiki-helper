@@ -21,7 +21,3 @@
 // @grant       GM_setValue
 // @require     https://cdn.staticfile.org/fuse.js/6.4.0/fuse.min.js
 // ==/UserScript==
-
-// @TODO 更新版本时 不需要修改 header manifest package 的版本
-var __enable_header = ''; // 避免 header 被清除的 hack
-console.info(__enable_header);
