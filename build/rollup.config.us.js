@@ -1,4 +1,4 @@
-import fsPromises from 'fs/promises';
+import fs from 'fs';
 import { resolve as pathResolve } from 'path';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -14,7 +14,7 @@ function addScriptHeader(name) {
     name: 'add_script_header',
     async intro() {
       const header = pathResolve(__dirname, `../src/header/${name}.js`);
-      const headerStr = (await fsPromises.readFile(header)).toString();
+      const headerStr = (await fs.promises.readFile(header)).toString();
       return headerStr.replace(
         /@version(\s+)([\.\d]+)/,
         `@version$1${version}`
