@@ -1,6 +1,7 @@
 import { dealDate } from '../../utils/utils';
 import { fetchText } from '../../utils/fetchData';
 import { sleep } from '../../utils/async/sleep';
+import { SubjectItem } from '../../interface/types';
 
 export function getBgmHost() {
   return `${location.protocol}//${location.host}`;
@@ -42,25 +43,6 @@ export async function getFormhash() {
   return formhash;
 }
 
-interface SubjectItem {
-  name: string;
-  url: string;
-  rawInfos: string;
-  rank?: string;
-  releaseDate?: string;
-  greyName?: string;
-  cover?: string;
-  rateInfo?: {
-    score?: number | string;
-    count?: number | string;
-  };
-  collectInfo?: {
-    date: string;
-    score?: string;
-    tags?: string;
-    comment?: string;
-  };
-}
 export function convertItemInfo($item: HTMLElement): SubjectItem {
   let $subjectTitle = $item.querySelector('h3>a.l');
   let itemSubject: SubjectItem = {
@@ -178,4 +160,66 @@ export async function getAllPageInfo(url: string) {
     page += 1;
   }
   return res;
+}
+
+function loadIframe($iframe: HTMLIFrameElement, subjectId: string) {
+  return new Promise((resolve, reject) => {
+    $iframe.src = `/update/${subjectId}`;
+    let timer = setTimeout(() => {
+      timer = null;
+      reject('iframe timeout');
+    }, 5000);
+    $iframe.onload = () => {
+      clearTimeout(timer);
+      $iframe.onload = null;
+      resolve();
+    };
+  });
+}
+
+export async function getFormAction(subjectId: string) {
+  const iframeId = 'e-userjs-update-interest';
+  let $iframe = document.querySelector(`#${iframeId}`) as HTMLIFrameElement;
+  if (!$iframe) {
+    $iframe = document.createElement('iframe');
+    $iframe.style.display = 'none';
+    $iframe.id = iframeId;
+    document.body.appendChild($iframe);
+  }
+  await loadIframe($iframe, subjectId);
+  const $form = $iframe.contentDocument.querySelector(
+    '#collectBoxForm'
+  ) as HTMLFormElement;
+  return $form.action;
+}
+
+type IInterestData = {
+  // 想看 看过 在看 搁置 抛弃
+  interest: '1' | '2' | '3' | '4' | '5';
+  tags?: string;
+  comment?: string;
+  rating?: string;
+  // 1 为自己可见
+  privacy?: '1' | '0';
+};
+/**
+ * 更新用户收藏
+ * @param subjectId 条目 id
+ * @param data 更新数据
+ */
+export async function updateInterest(subjectId: string, data: IInterestData) {
+  // gh 暂时不知道如何获取，直接拿 action 了
+  const action = await getFormAction(subjectId);
+  const formData = new FormData();
+  const obj = Object.assign(
+    { referer: 'ajax', tags: '', comment: '', upate: '保存' },
+    data
+  );
+  for (let [key, val] of Object.entries(obj)) {
+    formData.append(key, val);
+  }
+  await fetch(action, {
+    method: 'POST',
+    body: formData,
+  });
 }
