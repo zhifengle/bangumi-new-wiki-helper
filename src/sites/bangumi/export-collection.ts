@@ -1,9 +1,9 @@
 import { getAllPageInfo, getBgmHost } from './common';
 import { downloadFile, htmlToElement } from '../../utils/domUtils';
 import { formatDate } from '../../utils/utils';
+import { SubjectItem } from '../../interface/types';
 
-async function genCSVContent(url: string = location.href) {
-  const res = await getAllPageInfo(url);
+function genCSVContent(res: SubjectItem[]) {
   const hostUrl = getBgmHost();
   let csvContent =
     '\ufeff名称,别名,发行日期,地址,封面地址,收藏日期,我的评分,标签,吐槽,其它信息';
@@ -44,7 +44,8 @@ export function addExportBtn() {
     if ($username) {
       name = $username.textContent;
     }
-    const csv = await genCSVContent();
+    const res = await getAllPageInfo(location.href);
+    const csv = genCSVContent(res);
     $text.innerText = '导出完成';
     downloadFile(csv, `${name}-${type}-${formatDate(new Date())}.csv`);
   });

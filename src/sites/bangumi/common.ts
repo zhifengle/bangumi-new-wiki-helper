@@ -24,8 +24,8 @@ export function genLinkText(url: string, text: string = '地址') {
 
 export function insertLogInfo($sibling: Element, txt: string): Element {
   const $log = document.createElement('div');
-  $log.classList.add('.e-wiki-log-info');
-  $log.setAttribute('style', 'color: tomato;');
+  $log.classList.add('e-wiki-log-info');
+  // $log.setAttribute('style', 'color: tomato;');
   $log.innerHTML = txt;
   $sibling.parentElement.insertBefore($log, $sibling);
   $sibling.insertAdjacentElement('afterend', $log);
@@ -177,7 +177,7 @@ function loadIframe($iframe: HTMLIFrameElement, subjectId: string) {
   });
 }
 
-export async function getFormAction(subjectId: string) {
+export async function getUpdateForm(subjectId: string) {
   const iframeId = 'e-userjs-update-interest';
   let $iframe = document.querySelector(`#${iframeId}`) as HTMLIFrameElement;
   if (!$iframe) {
@@ -190,7 +190,8 @@ export async function getFormAction(subjectId: string) {
   const $form = $iframe.contentDocument.querySelector(
     '#collectBoxForm'
   ) as HTMLFormElement;
-  return $form.action;
+  return $form;
+  // return $form.action;
 }
 
 type IInterestData = {
@@ -209,16 +210,18 @@ type IInterestData = {
  */
 export async function updateInterest(subjectId: string, data: IInterestData) {
   // gh 暂时不知道如何获取，直接拿 action 了
-  const action = await getFormAction(subjectId);
-  const formData = new FormData();
+  const $form = await getUpdateForm(subjectId);
+  const formData = new FormData($form);
   const obj = Object.assign(
-    { referer: 'ajax', tags: '', comment: '', upate: '保存' },
+    { referer: 'ajax', tags: '', comment: '', update: '保存' },
     data
   );
   for (let [key, val] of Object.entries(obj)) {
-    formData.append(key, val);
+    if (!formData.has(key)) {
+      formData.append(key, val);
+    }
   }
-  await fetch(action, {
+  await fetch($form.action, {
     method: 'POST',
     body: formData,
   });
