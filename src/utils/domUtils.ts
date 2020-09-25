@@ -182,3 +182,46 @@ export function htmlToElement(html: string) {
   // template.content.childNodes;
   return template.content.firstChild;
 }
+
+export function createFetchDataIframe(): HTMLIFrameElement {
+  const iframeId = 'e-userjs-fetch-data';
+  let $iframe = document.querySelector(`#${iframeId}`) as HTMLIFrameElement;
+  if (!$iframe) {
+    $iframe = document.createElement('iframe');
+    $iframe.setAttribute(
+      'sandbox',
+      'allow-forms allow-same-origin allow-scripts'
+    );
+    // @ts-ignore
+    $iframe.style.display = 'none';
+    $iframe.id = iframeId;
+    document.body.appendChild($iframe);
+  }
+  return $iframe;
+}
+
+/**
+ * 载入 iframe
+ * @param $iframe iframe DOM
+ * @param src iframe URL
+ * @param TIMEOUT time out
+ */
+export function loadIframe(
+  $iframe: HTMLIFrameElement,
+  src: string,
+  TIMEOUT = 5000
+) {
+  return new Promise((resolve, reject) => {
+    $iframe.src = src;
+    let timer = setTimeout(() => {
+      timer = null;
+      $iframe.onload = undefined;
+      reject('iframe timeout');
+    }, TIMEOUT);
+    $iframe.onload = () => {
+      clearTimeout(timer);
+      $iframe.onload = null;
+      resolve();
+    };
+  });
+}
