@@ -110,7 +110,7 @@ amazonSubjectModel.itemList.push(
       {
         selector: '#bylineInfo',
         subSelector: '.author',
-        keyWord: '著',
+        keyWord: '\\(著\\)',
         nextSelector: [
           {
             selector: '.contributorNameID',
