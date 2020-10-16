@@ -1,4 +1,5 @@
-import {SiteTools} from './types';
+import { SingleInfo } from '../interface/subject';
+import { SiteTools } from './types';
 
 export const amazonUtils = {
   dealTitle(str: string): string {
@@ -17,4 +18,26 @@ export const amazonJpBookTools: SiteTools = {
       dealFunc: amazonUtils.dealTitle,
     },
   ],
+  hooks: {
+    async afterGetWikiData(infos: SingleInfo[]) {
+      const res: SingleInfo[] = [];
+      for (const info of infos) {
+        let newInfo: null | SingleInfo = { ...info };
+        if (info.name === '页数') {
+          let val = (info.value || '').trim().replace('ページ', '');
+          if (val && val.length < 8 && val.indexOf('予約商品') === -1) {
+            newInfo.value = val;
+          } else {
+            newInfo = null;
+          }
+        }
+        if (newInfo) {
+          res.push({
+            ...newInfo,
+          });
+        }
+      }
+      return res;
+    },
+  },
 };
