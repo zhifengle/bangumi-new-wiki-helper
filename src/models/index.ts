@@ -7,7 +7,7 @@ import { dangdangBookModel } from './dangdangBook';
 import { jdBookModel } from './jdBook';
 import { doubanGameModel } from './doubanGame';
 import { doubanGameEditModel } from './doubanGameEdit';
-import { SiteConfig } from '../interface/wiki';
+import { InfoConfig, SiteConfig } from '../interface/wiki';
 
 // 新增的 site model 需要在这里配置
 export const configs = {
@@ -33,4 +33,16 @@ export function findModelByHost(host: string) {
     }
   }
   return models;
+}
+
+export function findInfoConfigByName(
+  itemList: InfoConfig[],
+  name: string
+): InfoConfig {
+  for (let i = 0; i < itemList.length; i++) {
+    const item = itemList[i];
+    if (item.name === name) {
+      return item;
+    }
+  }
 }

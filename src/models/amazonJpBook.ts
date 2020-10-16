@@ -1,4 +1,4 @@
-import { SiteConfig, SubjectTypeId } from '../interface/wiki';
+import { Selector, SiteConfig, SubjectTypeId } from '../interface/wiki';
 
 // TODO: 区分 kindle 页面和 纸质书页面
 export const amazonSubjectModel: SiteConfig = {
@@ -24,6 +24,18 @@ export const amazonSubjectModel: SiteConfig = {
   },
   itemList: [],
 };
+
+const commonSelectors: Selector[] = [
+  {
+    selector: '#detailBullets_feature_div .detail-bullet-list',
+    subSelector: 'li .a-list-item',
+  },
+  {
+    selector: '#detail_bullets_id .bucket .content',
+    subSelector: 'li',
+    separator: ':',
+  },
+];
 amazonSubjectModel.itemList.push(
   {
     name: '名称',
@@ -46,33 +58,51 @@ amazonSubjectModel.itemList.push(
   },
   {
     name: 'ASIN',
-    selector: {
-      selector: '#detail_bullets_id .bucket .content',
-      subSelector: 'li',
-      keyWord: 'ISBN-10',
-      separator: ':',
-    },
+    selector: commonSelectors.map((s) => {
+      return {
+        ...s,
+        keyWord: 'ISBN-10',
+      };
+    }),
     category: 'ASIN',
   },
   {
     name: 'ISBN',
-    selector: {
-      selector: '#detail_bullets_id .bucket .content',
-      subSelector: 'li',
-      keyWord: 'ISBN-13',
-      separator: ':',
-    },
+    selector: commonSelectors.map((s) => {
+      return {
+        ...s,
+        keyWord: 'ISBN-13',
+      };
+    }),
     category: 'ISBN',
   },
   {
     name: '发售日',
-    selector: {
-      selector: '#detail_bullets_id .bucket .content',
-      subSelector: 'li',
-      keyWord: '発売日',
-      separator: ':',
-    },
+    selector: commonSelectors.map((s) => {
+      return {
+        ...s,
+        keyWord: '発売日',
+      };
+    }),
     category: 'date',
+  },
+  {
+    name: '出版社',
+    selector: commonSelectors.map((s) => {
+      return {
+        ...s,
+        keyWord: '出版社',
+      };
+    }),
+  },
+  {
+    name: '页数',
+    selector: commonSelectors.map((s) => {
+      return {
+        ...s,
+        keyWord: 'ページ',
+      };
+    }),
   },
   {
     name: '作者',
@@ -120,24 +150,6 @@ amazonSubjectModel.itemList.push(
       },
     ],
     category: 'creator',
-  },
-  {
-    name: '出版社',
-    selector: {
-      selector: '#detail_bullets_id .bucket .content',
-      subSelector: 'li',
-      separator: ':',
-      keyWord: '出版社',
-    },
-  },
-  {
-    name: '页数',
-    selector: {
-      selector: '#detail_bullets_id .bucket .content',
-      subSelector: 'li',
-      separator: ':',
-      keyWord: 'ページ',
-    },
   },
   {
     name: '价格',
