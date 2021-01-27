@@ -10,13 +10,13 @@ export const amazonSubjectModel: SiteConfig = {
     {
       selector: '#nav-subnav .nav-a:first-child',
       subSelector: '.nav-a-content',
-      keyWord: '(?<!Kindle)本',
+      keyWord: ['本', '书'],
     },
     {
       selector:
         '#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child',
       subSelector: '.a-link-normal',
-      keyWord: '(?<!Kindle)本',
+      keyWord: ['本', '书'],
     },
   ],
   controlSelector: {
@@ -100,7 +100,7 @@ amazonSubjectModel.itemList.push(
     selector: commonSelectors.map((s) => {
       return {
         ...s,
-        keyWord: 'ページ',
+        keyWord: ['ページ', '页'],
       };
     }),
   },
