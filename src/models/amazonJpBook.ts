@@ -53,6 +53,9 @@ amazonSubjectModel.itemList.push(
       {
         selector: 'img#imgBlkFront',
       },
+      {
+        selector: 'img#ebooksImgBlkFront',
+      },
     ],
     category: 'cover',
   },
