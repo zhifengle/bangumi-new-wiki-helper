@@ -14,7 +14,7 @@ export const getchuGameModel: SiteConfig = {
     {
       selector: '.genretab.current',
       subSelector: 'a',
-      keyWord: 'ゲーム',
+      keyWord: ['ゲーム', '同人'],
     },
   ],
   controlSelector: [

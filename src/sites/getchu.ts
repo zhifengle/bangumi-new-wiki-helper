@@ -1,6 +1,7 @@
 import { SingleInfo } from '../interface/subject';
 import { getText } from '../utils/domUtils';
 import { convertImgToBase64 } from '../utils/dealImage';
+import { SiteTools } from './types';
 
 export const getchuTools = {
   dealTitle(str: string): string {
@@ -127,4 +128,22 @@ export const getchuTools = {
 
     return charaData;
   },
+};
+
+export const getchuSiteTools: SiteTools = {
+  hooks: {
+    async beforeCreate() {
+      const $t = document.querySelector('#soft-title');
+      if (!$t) return false;
+      const rawTitle = $t.textContent.trim();
+      if (/［同人グッズ|同人誌|同人音楽］/.test(rawTitle)) return false;
+      return true;
+    },
+  },
+  filters: [
+    {
+      category: 'subject_title',
+      dealFunc: getchuTools.dealTitle,
+    },
+  ],
 };

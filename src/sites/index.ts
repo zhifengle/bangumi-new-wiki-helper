@@ -1,12 +1,12 @@
-import {ModelKey, SiteConfig} from '../interface/wiki';
-import {IFuncPromise, ITiming} from '../interface/types';
-import {amazonJpBookTools} from './amazon';
-import {dealDate} from '../utils/utils';
-import {getchuTools} from './getchu';
-import {getImageDataByURL} from '../utils/dealImage';
-import {SiteTools} from './types';
-import {doubanGameEditTools, doubanTools} from './douban';
-import {steamdbTools, steamTools} from './steam';
+import { ModelKey, SiteConfig } from '../interface/wiki';
+import { IFuncPromise, ITiming } from '../interface/types';
+import { amazonJpBookTools } from './amazon';
+import { dealDate } from '../utils/utils';
+import { getchuSiteTools } from './getchu';
+import { getImageDataByURL } from '../utils/dealImage';
+import { SiteTools } from './types';
+import { doubanGameEditTools, doubanTools } from './douban';
+import { steamdbTools, steamTools } from './steam';
 
 export function trimParenthesis(str: string) {
   const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
@@ -97,14 +97,7 @@ export const sitesFuncDict: {
       },
     ],
   },
-  getchu_game: {
-    filters: [
-      {
-        category: 'subject_title',
-        dealFunc: getchuTools.dealTitle,
-      },
-    ],
-  },
+  getchu_game: getchuSiteTools,
   steam_game: steamTools,
   steamdb_game: steamdbTools,
   douban_game: doubanTools,
