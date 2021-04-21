@@ -16,6 +16,7 @@
 
 - 提取信息网站的信息，填写新建条目的表单并上传封面
 - 检测条目是否在 bangumi 上存在
+- 支持创建 Getchu 上面的游戏角色，并自动关联 CV。使用扩展时，可以在设置页面修改 Bangumi 对应条目 ID。脚本暂时未开发修改条目 ID 的功能，需要点击 “新建并查重” 后抓取到条目 ID 才能自动关联 CV。
 - 处理封面，支持图片打码
 
 ## 安装和使用
@@ -36,8 +37,6 @@ Firefox: [扩展商店安装地址](https://addons.mozilla.org/zh-CN/firefox/add
 #### 手动安装
 
 地址： [Github release](https://github.com/22earth/bangumi-new-wiki-helper/releases)
-
-Firefox: 下载 xpi 文件，拖进浏览器安装。
 
 Chrome: 由于没有发布账号，没法在 Chrome 的 APP Store 里面发布。只有下载 crx 文件，使用开发者模式试用
 
