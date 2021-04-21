@@ -71,6 +71,7 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
       val = dealFuncByCategory(site, 'website')($d.getAttribute('href'));
       break;
     case 'date':
+      // 日期预处理，不能删除
       val = dealItemText(txt, infoConfig.category, keyWords);
       val = dealFuncByCategory(site, infoConfig.category)(val);
       break;

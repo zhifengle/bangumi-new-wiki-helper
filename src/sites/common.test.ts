@@ -271,4 +271,57 @@ describe('test get wiki data', () => {
       ])
     );
   });
+  test('get amazon book wiki cn data', async () => {
+    // getWikiData(getchuGameModel)
+    const rawHtml = require('../data/amazon-book-cn.html');
+    const jsdom = require('jsdom');
+    const { JSDOM } = jsdom;
+    const dom = new JSDOM(rawHtml);
+    const infos = await getWikiData(amazonSubjectModel, dom.window.document);
+    expect(infos).toHaveLength(10);
+    expect(infos).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '名称',
+          value: 'たゆたいエマノン',
+          category: 'subject_title',
+        }),
+        expect.objectContaining({
+          name: 'ISBN',
+          value: '978-4198643829',
+          category: 'ISBN',
+        }),
+        expect.objectContaining({
+          name: '发售日',
+          value: '2017年4月7日',
+          category: 'date',
+        }),
+        expect.objectContaining({
+          name: '作者',
+          value: '梶尾真治',
+          category: 'creator',
+        }),
+        expect.objectContaining({
+          name: '出版社',
+          value: '徳間書店',
+          category: undefined,
+        }),
+        expect.objectContaining({
+          name: '页数',
+          value: '221',
+          category: undefined,
+        }),
+        expect.objectContaining({
+          name: '价格',
+          value: 'JP¥1,760',
+          category: undefined,
+        }),
+        expect.objectContaining({
+          name: 'ASIN',
+          value: '4198643822',
+          category: 'ASIN',
+        }),
+      ])
+    );
+  });
 });

@@ -84,7 +84,7 @@ amazonSubjectModel.itemList.push(
     selector: commonSelectors.map((s) => {
       return {
         ...s,
-        keyWord: '発売日',
+        keyWord: ['発売日', '出版日期'],
       };
     }),
     category: 'date',

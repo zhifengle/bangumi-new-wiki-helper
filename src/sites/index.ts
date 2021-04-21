@@ -63,7 +63,7 @@ export function dealFuncByCategory(
   if (fn) {
     return fn;
   } else {
-    return (str: string) => identity(str.trim());
+    return (str: string = '') => identity(str.trim());
   }
 }
 
