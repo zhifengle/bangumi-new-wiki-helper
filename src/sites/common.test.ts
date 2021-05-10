@@ -278,7 +278,8 @@ describe('test get wiki data', () => {
     const { JSDOM } = jsdom;
     const dom = new JSDOM(rawHtml);
     const infos = await getWikiData(amazonSubjectModel, dom.window.document);
-    expect(infos).toHaveLength(10);
+    // 内容简介在 iframe 里面
+    expect(infos).toHaveLength(9);
     expect(infos).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

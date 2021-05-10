@@ -92,11 +92,9 @@ export function contains(
 
 function findElementByKeyWord(selector: Selector, $parent?: Element): Element {
   let res: Element = null;
-  const targets = contains(
-    selector.subSelector,
-    selector.keyWord,
-    $parent ? $parent : $q(selector.selector)
-  );
+  $parent = $parent ? $parent : $q(selector.selector);
+  if (!$parent) return res;
+  const targets = contains(selector.subSelector, selector.keyWord, $parent);
   if (targets && targets.length) {
     let $t = targets[targets.length - 1];
     // 相邻节点
