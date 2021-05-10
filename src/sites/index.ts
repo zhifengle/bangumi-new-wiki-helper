@@ -7,6 +7,7 @@ import { getImageDataByURL } from '../utils/dealImage';
 import { SiteTools } from './types';
 import { doubanGameEditTools, doubanTools } from './douban';
 import { steamdbTools, steamTools } from './steam';
+import { dlsiteTools } from './dlsite';
 
 export function trimParenthesis(str: string) {
   const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
@@ -102,4 +103,5 @@ export const sitesFuncDict: {
   steamdb_game: steamdbTools,
   douban_game: doubanTools,
   douban_game_edit: doubanGameEditTools,
+  dlsite_game: dlsiteTools,
 };

@@ -53,6 +53,14 @@ const arrDict = [
     name: '剧本',
     key: ['シナリオ', '剧情'],
   },
+  {
+    name: '声优',
+    key: ['声優', '声优'],
+  },
+  {
+    name: '音乐',
+    key: ['音乐', '音楽'],
+  },
 ];
 
 const configArr = arrDict.map((obj) => {

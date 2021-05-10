@@ -54,4 +54,12 @@ export const testUrls: string[] = [
   'http://product.dangdang.com/27914599.html',
   'https://item.jd.com/12816538.html',
   'http://www.getchu.com/soft.phtml?id=1080370',
+  // getchu doujin
+  'http://www.getchu.com/soft.phtml?id=1121555',
+  // pray game
+  'https://www.dlsite.com/maniax/work/=/product_id/RJ266116.html',
+  // 魔法少女セレスフォニア
+  'https://www.dlsite.com/maniax/work/=/product_id/RJ297120.html',
+  // 死神教団
+  'https://www.dlsite.com/maniax/work/=/product_id/RJ309886.html',
 ];
