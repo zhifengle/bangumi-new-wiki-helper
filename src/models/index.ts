@@ -8,6 +8,7 @@ import { jdBookModel } from './jdBook';
 import { doubanGameModel } from './doubanGame';
 import { doubanGameEditModel } from './doubanGameEdit';
 import { InfoConfig, SiteConfig } from '../interface/wiki';
+import { dlsiteGameModel } from './dlsiteGame';
 
 // 新增的 site model 需要在这里配置
 export const configs = {
@@ -20,6 +21,7 @@ export const configs = {
   [jdBookModel.key]: jdBookModel,
   [doubanGameModel.key]: doubanGameModel,
   [doubanGameEditModel.key]: doubanGameEditModel,
+  [dlsiteGameModel.key]: dlsiteGameModel,
 };
 
 export function findModelByHost(host: string) {

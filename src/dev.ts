@@ -1,8 +1,12 @@
-import { updateInterest } from './sites/bangumi/common';
+import { dlsiteGameModel } from './models/dlsiteGame';
+import { getWikiData } from './sites/common';
+import { findElement } from './utils/domUtils';
 
-updateInterest('2045', {
-  interest: '4',
-  rating: '7',
-  privacy: '0',
-  tags: 'anime tv',
-});
+async function test() {
+  // const d = await getWikiData(dlsiteGameModel);
+  // console.log(d);
+  debugger;
+  const p = findElement(dlsiteGameModel.pageSelectors);
+  console.log(p);
+}
+test();

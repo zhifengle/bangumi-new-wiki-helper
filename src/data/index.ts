@@ -13,3 +13,7 @@
 
 // 同人
 // http://www.getchu.com/soft.phtml?id=1121555
+
+// dlsite
+// https://www.dlsite.com/maniax/work/=/product_id/RJ266116.html
+// RJ297120
