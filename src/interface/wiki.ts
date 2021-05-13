@@ -45,6 +45,9 @@ export type ModelKey =
   | 'dlsite_game'
   | 'dlsite_manga';
 
+export type CharaType = 'person' | 'character';
+export type CharaModelKey = 'dlsite_game_chara';
+
 export interface SiteConfig {
   key: ModelKey;
   description: string;
@@ -55,6 +58,25 @@ export interface SiteConfig {
   // 插入控制按钮位置的元素选择器
   controlSelector: Selector | Selector[];
   type: SubjectTypeId;
+  subType?: number;
+  itemList: InfoConfig[];
+  defaultInfos?: SingleInfo[];
+}
+
+export interface CharaModel {
+  key: CharaModelKey;
+  // 使用同一个 key 用来关联游戏页面
+  siteKey: ModelKey;
+  description: string;
+  host?: string[];
+  urlRules?: RegExp[];
+  // 区分页面是目标的选择器. 默认使用关联页面的数据
+  pageSelectors?: Selector[];
+  // 插入控制按钮位置的元素选择器
+  controlSelector: Selector | Selector[];
+  // @TODO person character
+  type: CharaType;
+  // @TODO 角色、组织机构
   subType?: number;
   itemList: InfoConfig[];
   defaultInfos?: SingleInfo[];
