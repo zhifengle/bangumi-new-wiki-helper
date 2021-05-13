@@ -1,13 +1,14 @@
-import { ModelKey, SiteConfig } from '../interface/wiki';
 import { IFuncPromise, ITiming } from '../interface/types';
-import { amazonJpBookTools } from './amazon';
-import { dealDate } from '../utils/utils';
-import { getchuSiteTools } from './getchu';
+import { ModelKey, SiteConfig } from '../interface/wiki';
 import { getImageDataByURL } from '../utils/dealImage';
-import { SiteTools } from './types';
-import { doubanGameEditTools, doubanTools } from './douban';
-import { steamdbTools, steamTools } from './steam';
+import { dealDate } from '../utils/utils';
+import { amazonJpBookTools } from './amazon';
 import { dlsiteTools } from './dlsite';
+import { dmmTools } from './dmm';
+import { doubanGameEditTools, doubanTools } from './douban';
+import { getchuSiteTools } from './getchu';
+import { steamdbTools, steamTools } from './steam';
+import { SiteTools } from './types';
 
 export function trimParenthesis(str: string) {
   const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
@@ -104,4 +105,5 @@ export const sitesFuncDict: {
   douban_game: doubanTools,
   douban_game_edit: doubanGameEditTools,
   dlsite_game: dlsiteTools,
+  dmm_game: dmmTools,
 };

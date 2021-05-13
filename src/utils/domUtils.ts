@@ -125,9 +125,9 @@ export function findElement(
           : $q(selector.selector);
       } else if (selector.isIframe) {
         // iframe 暂时不支持 parent
-        const $iframeDoc: Document = ($q(
-          selector.selector
-        ) as HTMLIFrameElement)?.contentDocument;
+        const $iframeDoc: Document = (
+          $q(selector.selector) as HTMLIFrameElement
+        )?.contentDocument;
         r = $iframeDoc?.querySelector(selector.subSelector);
       } else {
         r = findElementByKeyWord(selector, $parent);
@@ -219,7 +219,7 @@ export function loadIframe(
     $iframe.onload = () => {
       clearTimeout(timer);
       $iframe.onload = null;
-      resolve();
+      resolve(null);
     };
   });
 }

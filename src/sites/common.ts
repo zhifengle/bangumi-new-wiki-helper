@@ -1,11 +1,10 @@
-import { InfoConfig, Selector, SiteConfig, ModelKey } from '../interface/wiki';
-import { findElement, getText } from '../utils/domUtils';
 import { AllSubject, SearchResult, SingleInfo } from '../interface/subject';
-import { getImageDataByURL, convertImgToBase64 } from '../utils/dealImage';
+import { InfoConfig, ModelKey, Selector, SiteConfig } from '../interface/wiki';
+import { findModelByHost } from '../models';
+import { findElement, getInnerText, getText } from '../utils/domUtils';
+import { fetchText } from '../utils/fetchData';
 import { isEqualDate } from '../utils/utils';
 import { dealFuncByCategory, getCover, getHooks } from './index';
-import { findModelByHost } from '../models';
-import { fetchText } from '../utils/fetchData';
 import { IAuxPrefs } from './types';
 
 /**
@@ -58,11 +57,17 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
     keyWords = [targetSelector.keyWord];
   }
   let val: any;
-  const txt = getText($d as HTMLElement);
+  let txt = getText($d as HTMLElement);
   switch (infoConfig.category) {
     case 'cover':
       val = await getCover($d, site);
       break;
+    case 'subject_summary':
+      // 优先使用 innerText
+      const innerTxt = getInnerText($d as HTMLElement);
+      if (innerTxt) {
+        txt = innerTxt;
+      }
     case 'alias':
     case 'subject_title':
       val = dealFuncByCategory(site, infoConfig.category)(txt);

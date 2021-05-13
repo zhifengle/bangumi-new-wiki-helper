@@ -62,4 +62,8 @@ export const testUrls: string[] = [
   'https://www.dlsite.com/maniax/work/=/product_id/RJ297120.html',
   // 死神教団
   'https://www.dlsite.com/maniax/work/=/product_id/RJ309886.html',
+  // 小粥姉妹
+  'https://dlsoft.dmm.co.jp/detail/akbs_0126/',
+  // スタディ§ステディ
+  'https://dlsoft.dmm.co.jp/detail/russ_0307',
 ];

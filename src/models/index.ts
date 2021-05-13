@@ -9,6 +9,7 @@ import { doubanGameModel } from './doubanGame';
 import { doubanGameEditModel } from './doubanGameEdit';
 import { InfoConfig, SiteConfig } from '../interface/wiki';
 import { dlsiteGameModel } from './dlsiteGame';
+import { dmmGameModel } from './dmmGame';
 
 // 新增的 site model 需要在这里配置
 export const configs = {
@@ -22,6 +23,7 @@ export const configs = {
   [doubanGameModel.key]: doubanGameModel,
   [doubanGameEditModel.key]: doubanGameEditModel,
   [dlsiteGameModel.key]: dlsiteGameModel,
+  [dmmGameModel.key]: dmmGameModel,
 };
 
 export function findModelByHost(host: string) {

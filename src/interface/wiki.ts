@@ -40,6 +40,8 @@ export type ModelKey =
   | 'jd_book'
   | 'douban_game_edit'
   | 'douban_game'
+  | 'dmm_game'
+  | 'dmm_manga'
   | 'dlsite_game'
   | 'dlsite_manga';
 
