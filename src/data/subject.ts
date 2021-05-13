@@ -66,4 +66,6 @@ export const testUrls: string[] = [
   'https://dlsoft.dmm.co.jp/detail/akbs_0126/',
   // スタディ§ステディ
   'https://dlsoft.dmm.co.jp/detail/russ_0307',
+  // ゆびさきコネクション
+  'https://dlsoft.dmm.co.jp/detail/has_0091',
 ];
