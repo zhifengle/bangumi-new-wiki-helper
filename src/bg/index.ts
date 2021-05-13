@@ -6,6 +6,7 @@ import { getWikiDataByURL, combineInfoList } from '../sites/common';
 import { setVal } from './utils';
 import { IAuxPrefs } from '../sites/types';
 import { getSubjectId } from '../sites/bangumi/common';
+import { getImageBase64, getImageDataByURL } from '../utils/dealImage';
 // import { version as VERSION } from "../../extension/manifest.json";
 
 const VERSION = '0.3.0';
@@ -69,6 +70,12 @@ async function handleMessage(request: any) {
         active: activeOpen,
       });
       break;
+    case 'fetch_data_bg':
+      let resData = '';
+      if (payload.type == 'img') {
+        resData = await getImageDataByURL(payload.url);
+      }
+      return resData;
     default:
   }
 }

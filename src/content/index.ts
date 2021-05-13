@@ -9,6 +9,33 @@ import { getHooks } from '../sites';
 import { getchu } from './getchu';
 import { getchuGameModel } from '../models/getchuGame';
 
+async function fetchCover(infoList: SingleInfo[]) {
+  // 封面有 url 但是获取失败。尝试使用 background 获取
+  for (let i = 0; i < infoList.length; i++) {
+    const info = infoList[i];
+    if (info.category == 'cover') {
+      const dataUrl = info?.value?.dataUrl || '';
+      const url = info?.value?.url || '';
+      if (!/^data:image/.test(dataUrl) && url) {
+        console.log('fetch cover by background');
+        const dataUrl = await browser.runtime.sendMessage({
+          action: 'fetch_data_bg',
+          payload: {
+            type: 'img',
+            url: url,
+          },
+        });
+        if (dataUrl) {
+          info.value = {
+            url,
+            dataUrl,
+          };
+        }
+      }
+    }
+  }
+}
+
 async function initCommon(siteConfig: SiteConfig) {
   // 查找标志性的元素
   const $page = findElement(siteConfig.pageSelectors);
@@ -25,6 +52,7 @@ async function initCommon(siteConfig: SiteConfig) {
   insertControlBtn($title, async (e, flag) => {
     console.info('init');
     const infoList: (SingleInfo | void)[] = await getWikiData(siteConfig);
+    await fetchCover(infoList as SingleInfo[]);
     console.info('wiki info list: ', infoList);
     const wikiData: SubjectWikiInfo = {
       type: siteConfig.type,
