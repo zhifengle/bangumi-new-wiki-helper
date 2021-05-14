@@ -11,6 +11,9 @@ export const dlsiteGameCharaModel: CharaModel = {
   },
   controlSelector: [
     {
+      selector: '.work_parts.type_multiimages *:first-child',
+    },
+    {
       selector: '#work_name',
     },
   ],
@@ -18,19 +21,10 @@ export const dlsiteGameCharaModel: CharaModel = {
 };
 
 // 限定父节点
-// dlsiteGameCharaModel.itemList.push({
-//   name: '姓名',
-//   selector: {
-//     selector: 'p',
-//   },
-//   pipes: [
-//     function (pipe: ITextPipe): ITextPipe {
-//       let str = getStr(pipe);
-//       return {
-//         ...pipe,
-//         out: str.split('\n')[0],
-//       };
-//     },
-//   ],
-//   category: 'crt_name',
-// });
+dlsiteGameCharaModel.itemList.push({
+  name: 'cover',
+  selector: {
+    selector: '.image img',
+  },
+  category: 'crt_cover',
+});

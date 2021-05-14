@@ -48,7 +48,7 @@ export const dlsiteCharaTools: SiteTools = {
       model: CharaModel,
       el: Element
     ) {
-      const res: SingleInfo[] = [];
+      const res: SingleInfo[] = [...infos];
       const txt = el.querySelector('p')?.textContent || '';
       res.push({
         name: '姓名',

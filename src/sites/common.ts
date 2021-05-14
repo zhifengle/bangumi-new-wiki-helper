@@ -74,6 +74,7 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
   let txt = getText($d as HTMLElement);
   switch (infoConfig.category) {
     case 'cover':
+    case 'crt_cover':
       val = await getCover($d, site);
       break;
     case 'subject_summary':

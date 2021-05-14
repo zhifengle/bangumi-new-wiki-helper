@@ -312,9 +312,17 @@ export function initNewCharacter(
   const coverInfo = wikiInfo.infos.filter(
     (item: SingleInfo) => item.category === 'crt_cover'
   )[0];
-  if (coverInfo && coverInfo.value && coverInfo.value.match(/^data:image/)) {
+  let dataUrl = '';
+  if (coverInfo && coverInfo.value) {
+    if (typeof coverInfo.value !== 'string') {
+      dataUrl = coverInfo?.value?.dataUrl || '';
+    } else {
+      dataUrl = coverInfo.value;
+    }
+  }
+  if (dataUrl.match(/^data:image/)) {
     const $form = $q('form[name=new_character]') as HTMLFormElement;
-    dealImageWidget($form, coverInfo.value);
+    dealImageWidget($form, dataUrl);
     // 修改文本
     setTimeout(() => {
       const $input = $q(
@@ -341,7 +349,7 @@ export function initNewCharacter(
             $wikiMode && $wikiMode.click();
             await sleep(200);
             const currentHost = getBgmHost();
-            const url = await sendFormImg($form, coverInfo.value);
+            const url = await sendFormImg($form, dataUrl);
             insertLogInfo($el, `新建角色成功: ${genLinkText(url, '角色地址')}`);
             const charaId = getSubjectId(url);
             if (charaId && subjectId) {
