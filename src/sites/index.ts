@@ -1,9 +1,13 @@
 import { IFuncPromise, ITiming } from '../interface/types';
-import { ModelKey, SiteConfig } from '../interface/wiki';
-import { getImageDataByURL } from '../utils/dealImage';
+import {
+  CharaModel,
+  CharaModelKey,
+  ModelKey,
+  SiteConfig,
+} from '../interface/wiki';
 import { dealDate } from '../utils/utils';
 import { amazonJpBookTools } from './amazon';
-import { dlsiteTools } from './dlsite';
+import { dlsiteCharaTools, dlsiteTools } from './dlsite';
 import { dmmTools } from './dmm';
 import { doubanGameEditTools, doubanTools } from './douban';
 import { getchuSiteTools } from './getchu';
@@ -15,10 +19,11 @@ export function trimParenthesis(str: string) {
   return str.replace(new RegExp(textList.join('|'), 'g'), '').trim();
 }
 
-export function identity<T>(x: T): T {
+function identity<T>(x: T): T {
   return x;
 }
 const noOps = () => Promise.resolve(true);
+
 export function getHooks(
   siteConfig: SiteConfig,
   timing: ITiming
@@ -26,33 +31,13 @@ export function getHooks(
   const hooks: any = sitesFuncDict[siteConfig.key]?.hooks || {};
   return hooks[timing] || noOps;
 }
-export async function getCover($d: Element, site: ModelKey) {
-  let url;
-  let dataUrl = '';
-  if ($d.tagName.toLowerCase() === 'a') {
-    url = $d.getAttribute('href');
-  } else if ($d.tagName.toLowerCase() === 'img') {
-    url = $d.getAttribute('src');
-  }
-  if (!url) return;
-  try {
-    // 跨域的图片不能用这种方式
-    // dataUrl = convertImgToBase64($d as any);
-    dataUrl = await getImageDataByURL(url);
-    if (dataUrl) {
-      return {
-        url,
-        dataUrl,
-      };
-    }
-  } catch (error) {
-    return {
-      url,
-      dataUrl: url,
-    };
-  }
+export function getCharaHooks(
+  config: CharaModel,
+  timing: ITiming
+): IFuncPromise {
+  const hooks: any = charaFuncDict[config.key]?.hooks || {};
+  return hooks[timing] || noOps;
 }
-
 export function dealFuncByCategory(
   key: ModelKey,
   category: string
@@ -106,4 +91,12 @@ export const sitesFuncDict: {
   douban_game_edit: doubanGameEditTools,
   dlsite_game: dlsiteTools,
   dmm_game: dmmTools,
+};
+
+// 存储新建角色的钩子函数和 filters
+export const charaFuncDict: {
+  [key in CharaModelKey]?: SiteTools;
+} = {
+  // for test
+  dlsite_game_chara: dlsiteCharaTools,
 };

@@ -1,4 +1,5 @@
 import { SingleInfo } from '../interface/subject';
+import { CharaModel } from '../interface/wiki';
 import { dealDate } from '../utils/utils';
 import { SiteTools } from './types';
 
@@ -38,4 +39,40 @@ export const dlsiteTools: SiteTools = {
       },
     },
   ],
+};
+
+export const dlsiteCharaTools: SiteTools = {
+  hooks: {
+    async afterGetWikiData(
+      infos: SingleInfo[],
+      model: CharaModel,
+      el: Element
+    ) {
+      const res: SingleInfo[] = [];
+      const txt = el.querySelector('p')?.textContent || '';
+      res.push({
+        name: '姓名',
+        value: txt.split('\n')[0],
+        category: 'crt_name',
+      });
+      res.push({
+        name: 'CV',
+        value: (txt.split('\n').find((s) => s.includes('CV')) || '')
+          .replace('CV:', '')
+          .trim(),
+      });
+      let idx = txt.indexOf('\n\n');
+      if (idx === -1) {
+        idx = 0;
+      } else {
+        idx = idx + 2;
+      }
+      res.push({
+        name: '人物简介',
+        value: txt.slice(idx),
+        category: 'crt_summary',
+      });
+      return res;
+    },
+  },
 };

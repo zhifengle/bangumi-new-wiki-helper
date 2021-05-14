@@ -1,7 +1,10 @@
 /* new subject */
+/* 没有在构建上实现 css用同一个文件。新增的 css 需要在 content-script 里面新增 */
 .e-wiki-control-btn,
 .e-wiki-new-character,
-.e-wiki-new-subject, .e-wiki-search-subject, .e-wiki-fill-form {
+.e-wiki-new-subject,
+.e-wiki-search-subject,
+.e-wiki-fill-form {
   color: rgb(0, 180, 30) !important;
   margin-left: 4px !important;
 }
@@ -66,10 +69,15 @@
 .e-wiki-cover-blur-loading {
   width: 208px;
   height: 13px;
-  background-image: url("https://bgm.tv/img/loadingAnimation.gif");
+  background-image: url('https://bgm.tv/img/loadingAnimation.gif');
 }
 
 .e-wiki-search-cover {
   width: 84px;
   height: auto;
+}
+
+.e-bnwh-add-chara-wrap {
+  margin-top: 6px;
+  margin-bottom: 6px;
 }

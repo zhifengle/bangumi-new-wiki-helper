@@ -184,5 +184,9 @@ export function addStyle() {
   color: #149bff !important;
   text-decoration: none;
 }
+.e-bnwh-add-chara-wrap {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
   `);
 }

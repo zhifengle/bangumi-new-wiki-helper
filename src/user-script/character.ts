@@ -1,10 +1,15 @@
-// @ts-ignore
-import browser from 'webextension-polyfill';
 import { SingleInfo, SubjectWikiInfo } from '../interface/subject';
 import { InfoConfig, SiteConfig } from '../interface/wiki';
 import { getCharaModel } from '../models';
 import { addCharaUI, getCharaData } from '../sites/common';
+import { sleep } from '../utils/async/sleep';
 import { findAllElement, findElement } from '../utils/domUtils';
+import {
+  AUTO_FILL_FORM,
+  BGM_DOMAIN,
+  CHARA_DATA,
+  PROTOCOL,
+} from './constraints';
 
 export async function initChara(siteConfig: SiteConfig) {
   // 查找标志性的元素
@@ -14,6 +19,9 @@ export async function initChara(siteConfig: SiteConfig) {
   if (!charaModel) return;
   const $el = findElement(charaModel.controlSelector);
   if (!$el) return;
+  const protocol = GM_getValue(PROTOCOL) || 'https';
+  const bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
+  const bgmHost = `${protocol}://${bgm_domain}`;
   const itemArr = findAllElement(charaModel.itemSelector);
   // 获取名字列表
   const names = await Promise.all(
@@ -49,12 +57,12 @@ export async function initChara(siteConfig: SiteConfig) {
         type: siteConfig.type,
         infos: charaInfo,
       };
-      await browser.storage.local.set({
-        charaData,
-      });
-      await browser.runtime.sendMessage({
-        action: 'create_new_character',
-      });
+      // 重置自动填表
+      GM_setValue(AUTO_FILL_FORM, 1);
+      GM_setValue(CHARA_DATA, JSON.stringify(charaData));
+      // @TODO 不使用定时器
+      await sleep(200);
+      GM_openInTab(`${bgmHost}/character/new`);
     }
   });
 }

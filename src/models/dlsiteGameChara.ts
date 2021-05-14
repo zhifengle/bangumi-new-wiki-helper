@@ -6,14 +6,9 @@ export const dlsiteGameCharaModel: CharaModel = {
   description: 'dlsite游戏角色',
   host: ['dlsite.com', 'www.dlsite.com'],
   type: 'character',
-  pageSelectors: [
-    {
-      selector: '.floorTab-item.type-doujin.is-active',
-    },
-    {
-      selector: '.floorTab-item.type-com.is-active',
-    },
-  ],
+  itemSelector: {
+    selector: '.work_parts_multiimage_item',
+  },
   controlSelector: [
     {
       selector: '#work_name',
@@ -22,18 +17,20 @@ export const dlsiteGameCharaModel: CharaModel = {
   itemList: [],
 };
 
-dlsiteGameCharaModel.itemList.push({
-  name: '姓名',
-  selector: {
-    selector: '#work_name',
-  },
-  category: 'crt_name',
-});
-
-// dlsiteGameCharaModel.defaultInfos = [
-//   {
-//     name: '平台',
-//     value: 'PC',
-//     category: 'platform',
+// 限定父节点
+// dlsiteGameCharaModel.itemList.push({
+//   name: '姓名',
+//   selector: {
+//     selector: 'p',
 //   },
-// ];
+//   pipes: [
+//     function (pipe: ITextPipe): ITextPipe {
+//       let str = getStr(pipe);
+//       return {
+//         ...pipe,
+//         out: str.split('\n')[0],
+//       };
+//     },
+//   ],
+//   category: 'crt_name',
+// });

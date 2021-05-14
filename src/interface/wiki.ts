@@ -1,3 +1,4 @@
+import { IPipeArr } from '../utils/textPipe';
 import { SingleInfo } from './subject';
 
 export interface Selector {
@@ -28,6 +29,8 @@ export interface InfoConfig {
   name: string;
   selector: Selector | Selector[];
   category?: string;
+  // 2021-05-14 兼容之前的代码. 在 getWikiItem 里面
+  pipes?: IPipeArr;
 }
 
 export type ModelKey =
@@ -43,6 +46,7 @@ export type ModelKey =
   | 'dmm_game'
   | 'dmm_manga'
   | 'dlsite_game'
+  | 'dlsite_game_chara'
   | 'dlsite_manga';
 
 export type CharaType = 'person' | 'character';
@@ -70,8 +74,8 @@ export interface CharaModel {
   description: string;
   host?: string[];
   urlRules?: RegExp[];
-  // 区分页面是目标的选择器. 默认使用关联页面的数据
-  pageSelectors?: Selector[];
+  // 包含角色信息的父节点
+  itemSelector: Selector | Selector[];
   // 插入控制按钮位置的元素选择器
   controlSelector: Selector | Selector[];
   // @TODO person character

@@ -8,6 +8,7 @@ import { findModelByHost } from '../models';
 import { getHooks } from '../sites';
 import { getchu } from './getchu';
 import { getchuGameModel } from '../models/getchuGame';
+import { initChara } from './character';
 
 async function fetchCover(infoList: SingleInfo[]) {
   // 封面有 url 但是获取失败。尝试使用 background 获取
@@ -89,6 +90,7 @@ const init = function () {
   if (modelArr && modelArr.length) {
     modelArr.forEach((m) => {
       initCommon(m);
+      initChara(m);
     });
   }
   // @TODO remove check

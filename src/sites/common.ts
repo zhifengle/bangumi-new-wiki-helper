@@ -1,10 +1,23 @@
 import { AllSubject, SearchResult, SingleInfo } from '../interface/subject';
-import { InfoConfig, ModelKey, Selector, SiteConfig } from '../interface/wiki';
+import {
+  CharaModel,
+  InfoConfig,
+  ModelKey,
+  Selector,
+  SiteConfig,
+} from '../interface/wiki';
 import { findModelByHost } from '../models';
-import { findElement, getInnerText, getText } from '../utils/domUtils';
+import {
+  findElement,
+  getInnerText,
+  getText,
+  htmlToElement,
+} from '../utils/domUtils';
 import { fetchText } from '../utils/fetchData';
+import { dealTextByPipe } from '../utils/textPipe';
 import { isEqualDate } from '../utils/utils';
-import { dealFuncByCategory, getCover, getHooks } from './index';
+import { dealFuncByCategory, getCharaHooks, getHooks } from './index';
+import { getCover } from './lib';
 import { IAuxPrefs } from './types';
 
 /**
@@ -36,6 +49,7 @@ export function dealItemText(
 }
 
 export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
+  if (!infoConfig) return;
   const sl = infoConfig.selector;
   let $d: Element;
   let targetSelector: Selector;
@@ -70,18 +84,33 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
       }
     case 'alias':
     case 'subject_title':
-      val = dealFuncByCategory(site, infoConfig.category)(txt);
+      // 有管道优先使用管道处理数据. 兼容之前使用写法
+      if (infoConfig.pipes) {
+        val = dealTextByPipe(txt, infoConfig.pipes);
+      } else {
+        val = dealFuncByCategory(site, infoConfig.category)(txt);
+      }
       break;
     case 'website':
       val = dealFuncByCategory(site, 'website')($d.getAttribute('href'));
       break;
     case 'date':
-      // 日期预处理，不能删除
-      val = dealItemText(txt, infoConfig.category, keyWords);
-      val = dealFuncByCategory(site, infoConfig.category)(val);
+      // 有管道优先使用管道处理数据. 兼容之前使用写法
+      if (infoConfig.pipes) {
+        val = dealTextByPipe(txt, infoConfig.pipes);
+      } else {
+        // 日期预处理，不能删除
+        val = dealItemText(txt, infoConfig.category, keyWords);
+        val = dealFuncByCategory(site, infoConfig.category)(val);
+      }
       break;
     default:
-      val = dealItemText(txt, infoConfig.category, keyWords);
+      // 有管道优先使用管道处理数据. 兼容之前使用写法
+      if (infoConfig.pipes) {
+        val = dealTextByPipe(txt, infoConfig.pipes);
+      } else {
+        val = dealItemText(txt, infoConfig.category, keyWords);
+      }
   }
   // 信息后处理
   if (infoConfig.category === 'creator') {
@@ -111,6 +140,29 @@ export async function getWikiData(siteConfig: SiteConfig, el?: Document) {
   const hookRes = await getHooks(siteConfig, 'afterGetWikiData')(
     rawInfo,
     siteConfig
+  );
+  if (Array.isArray(hookRes) && hookRes.length) {
+    rawInfo = hookRes;
+  }
+  return [...rawInfo, ...defaultInfos];
+}
+
+export async function getCharaData(model: CharaModel, el?: Document | Element) {
+  if (el) {
+    window._parsedEl = el;
+  } else {
+    window._parsedEl = null;
+  }
+  const r = await Promise.all(
+    model.itemList.map((item) => getWikiItem(item, model.key))
+  );
+  delete window._parsedEl;
+  const defaultInfos = model.defaultInfos || [];
+  let rawInfo = r.filter((i) => i);
+  const hookRes = await getCharaHooks(model, 'afterGetWikiData')(
+    rawInfo,
+    model,
+    el
   );
   if (Array.isArray(hookRes) && hookRes.length) {
     rawInfo = hookRes;
@@ -240,6 +292,34 @@ export function insertControlBtnChara(
   $s.addEventListener('click', async (e) => {
     await cb(e);
   });
+}
+
+export function addCharaUI(
+  $t: Element,
+  names: string[],
+  cb: (...args: any) => Promise<any>
+) {
+  if (!$t) return;
+  // @TODO 增加全部
+  // <option value="all">全部</option>
+  const btn = `<a class="e-wiki-new-character">添加新虚拟角色</a>`;
+  const $div = htmlToElement(`
+  <div class="e-bnwh-add-chara-wrap">
+  ${btn}
+<select class="e-bnwh-select">
+${names.map((n) => `<option value="${n}">${n}</option>`)}
+</select>
+  </div>
+  `) as Element;
+  $t.insertAdjacentElement('afterend', $div);
+  $div
+    .querySelector('.e-wiki-new-character')
+    .addEventListener('click', async (e) => {
+      // 获取下拉选项
+      const $sel = $div.querySelector('.e-bnwh-select') as HTMLSelectElement;
+      const val = $sel.value;
+      await cb(e, val);
+    });
 }
 
 function isChineseStr(str: string) {

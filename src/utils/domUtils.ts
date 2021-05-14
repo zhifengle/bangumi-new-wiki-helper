@@ -141,6 +141,56 @@ export function findElement(
   return r;
 }
 
+export function findAllElement(
+  selector: Selector | Selector[],
+  $parent?: Element
+): Element[] {
+  let res: Element[] = [];
+  if (selector instanceof Array) {
+    let i = 0;
+    let targetSelector = selector[i];
+    while (targetSelector) {
+      const arr = findAllElement(targetSelector, $parent);
+      if (arr.length) {
+        res.push(...arr);
+        break;
+      }
+      targetSelector = selector[++i];
+    }
+  } else {
+    // 没有下一步的选择器
+    if (!selector.nextSelector) {
+      // 没子选择器
+      if (!selector.subSelector) {
+        res = Array.from(
+          $parent
+            ? $parent.querySelectorAll(selector.selector)
+            : $qa(selector.selector)
+        );
+      } else if (selector.isIframe) {
+        // TODO 暂时忽略
+      } else {
+        $parent = $parent ? $parent : $q(selector.selector);
+        if (!$parent) return res;
+        res = contains(selector.subSelector, selector.keyWord, $parent);
+        if (selector.sibling) {
+          res = res.map(($t) => $t.nextElementSibling);
+        }
+      }
+    } else {
+      // 有下一步的选择器时，selector 是用来定位父节点的
+      const localSel = { ...selector };
+      delete localSel.nextSelector;
+      const $p = findElement(selector);
+      if ($p) {
+        res = findAllElement(selector.nextSelector, $p);
+      }
+    }
+  }
+
+  return res;
+}
+
 /**
  * 下载内容
  * https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side

@@ -1,10 +1,12 @@
 import { dlsiteGameModel } from './models/dlsiteGame';
+import { dlsiteGameCharaModel } from './models/dlsiteGameChara';
 import { dmmGameModel } from './models/dmmGame';
 import { getWikiData } from './sites/common';
-import { findElement } from './utils/domUtils';
+import { findAllElement, findElement } from './utils/domUtils';
 
 async function test() {
-  const d = await getWikiData(dmmGameModel);
+  // let d = await getWikiData(dmmGameModel);
+  var d = findAllElement(dlsiteGameCharaModel.controlSelector);
   console.log(d);
   // debugger;
   // const p = findElement(dlsiteGameModel.pageSelectors);

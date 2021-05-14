@@ -4,6 +4,7 @@ import { BGM_DOMAIN, PROTOCOL } from './user-script/constraints';
 import { findModelByHost } from './models';
 import { getchuGameModel } from './models/getchuGame';
 import { getchu } from './user-script/getchu';
+import { initChara } from './user-script/character';
 
 function setDomain() {
   bgm_domain = prompt(
@@ -38,6 +39,7 @@ const init = async () => {
     addStyle();
     modelArr.forEach((m) => {
       initCommon(m);
+      initChara(m);
     });
   }
   if (['bangumi.tv', 'chii.tv', 'bgm.tv'].includes(host)) {

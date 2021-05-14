@@ -7,9 +7,16 @@ import { dangdangBookModel } from './dangdangBook';
 import { jdBookModel } from './jdBook';
 import { doubanGameModel } from './doubanGame';
 import { doubanGameEditModel } from './doubanGameEdit';
-import { InfoConfig, SiteConfig } from '../interface/wiki';
+import {
+  CharaModel,
+  CharaModelKey,
+  InfoConfig,
+  ModelKey,
+  SiteConfig,
+} from '../interface/wiki';
 import { dlsiteGameModel } from './dlsiteGame';
 import { dmmGameModel } from './dmmGame';
+import { dlsiteGameCharaModel } from './dlsiteGameChara';
 
 // 新增的 site model 需要在这里配置
 export const configs = {
@@ -26,7 +33,11 @@ export const configs = {
   [dmmGameModel.key]: dmmGameModel,
 };
 
-export function findModelByHost(host: string) {
+export const charaModelDict = {
+  [dlsiteGameCharaModel.key]: dlsiteGameCharaModel,
+};
+
+export function findModelByHost(host: string): SiteConfig[] {
   const keys = Object.keys(configs);
   const models: SiteConfig[] = [];
   for (let i = 0; i < keys.length; i++) {
@@ -49,4 +60,17 @@ export function findInfoConfigByName(
       return item;
     }
   }
+}
+
+export function getModelByKey(key: ModelKey): SiteConfig {
+  return configs[key];
+}
+
+export function getCharaModel(key: ModelKey): CharaModel {
+  const keys = Object.keys(charaModelDict);
+  const targetKey = keys.find(
+    (k) => charaModelDict[k as CharaModelKey]?.siteKey == key
+  );
+  if (!targetKey) return null;
+  return charaModelDict[targetKey as CharaModelKey];
 }
