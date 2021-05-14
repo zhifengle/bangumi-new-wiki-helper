@@ -108,7 +108,10 @@ export async function getWikiData(siteConfig: SiteConfig, el?: Document) {
   delete window._parsedEl;
   const defaultInfos = siteConfig.defaultInfos || [];
   let rawInfo = r.filter((i) => i);
-  const hookRes = await getHooks(siteConfig, 'afterGetWikiData')(rawInfo);
+  const hookRes = await getHooks(siteConfig, 'afterGetWikiData')(
+    rawInfo,
+    siteConfig
+  );
   if (Array.isArray(hookRes) && hookRes.length) {
     rawInfo = hookRes;
   }

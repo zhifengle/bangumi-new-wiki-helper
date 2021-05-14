@@ -42,7 +42,7 @@ async function initCommon(siteConfig: SiteConfig) {
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
-  let bcRes = await getHooks(siteConfig, 'beforeCreate')();
+  let bcRes = await getHooks(siteConfig, 'beforeCreate')(siteConfig);
   if (!bcRes) return;
   if (bcRes === true) {
     bcRes = {};
