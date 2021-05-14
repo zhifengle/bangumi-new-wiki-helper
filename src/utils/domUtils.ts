@@ -168,9 +168,20 @@ export function findAllElement(
             : $qa(selector.selector)
         );
       } else if (selector.isIframe) {
-        // TODO 暂时忽略
+        const $iframeDoc: Document = (
+          $q(selector.selector) as HTMLIFrameElement
+        )?.contentDocument;
+        res = Array.from($iframeDoc?.querySelectorAll(selector.subSelector));
       } else {
-        $parent = $parent ? $parent : $q(selector.selector);
+        if (selector.isIframe) {
+          const $iframeDoc: Document = (
+            $q(selector.selector) as HTMLIFrameElement
+          )?.contentDocument;
+          // iframe 时不需要 keyWord
+          $parent = $iframeDoc?.querySelector(selector.subSelector);
+        } else {
+          $parent = $parent ? $parent : $q(selector.selector);
+        }
         if (!$parent) return res;
         res = contains(selector.subSelector, selector.keyWord, $parent);
         if (selector.sibling) {

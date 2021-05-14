@@ -33,6 +33,8 @@ export interface InfoConfig {
   pipes?: IPipeArr;
 }
 
+export type CharaModelKey = 'dlsite_game_chara' | 'dmm_game_chara';
+
 export type ModelKey =
   | 'amazon_jp_book'
   | 'erogamescape'
@@ -46,11 +48,10 @@ export type ModelKey =
   | 'dmm_game'
   | 'dmm_manga'
   | 'dlsite_game'
-  | 'dlsite_game_chara'
-  | 'dlsite_manga';
+  | 'dlsite_manga'
+  | CharaModelKey;
 
 export type CharaType = 'person' | 'character';
-export type CharaModelKey = 'dlsite_game_chara';
 
 export interface SiteConfig {
   key: ModelKey;
