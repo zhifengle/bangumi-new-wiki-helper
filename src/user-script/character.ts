@@ -4,6 +4,7 @@ import { getCharaModel } from '../models';
 import { addCharaUI, getCharaData } from '../sites/common';
 import { sleep } from '../utils/async/sleep';
 import { findAllElement, findElement } from '../utils/domUtils';
+import { fetchText } from '../utils/fetchData';
 import {
   AUTO_FILL_FORM,
   BGM_DOMAIN,
@@ -19,6 +20,28 @@ export async function initChara(siteConfig: SiteConfig) {
   if (!charaModel) return;
   const $el = findElement(charaModel.controlSelector);
   if (!$el) return;
+  // 判断是否在 iframe 里面
+  let iframeSel = '';
+  let $doc: any;
+  if (charaModel.itemSelector instanceof Array) {
+    iframeSel = charaModel.itemSelector.find(
+      (i) => i.isIframe === true
+    )?.selector;
+  } else if (charaModel.itemSelector.isIframe) {
+    iframeSel = charaModel.itemSelector.selector;
+  }
+  if (iframeSel) {
+    console.log('fetch html by background');
+    const url = findElement({
+      selector: iframeSel,
+    }).getAttribute('src');
+    if (url) {
+      const rawHtml = await fetchText(url);
+      $doc = new DOMParser().parseFromString(rawHtml, 'text/html');
+    } else {
+      return;
+    }
+  }
   const protocol = GM_getValue(PROTOCOL) || 'https';
   const bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
   const bgmHost = `${protocol}://${bgm_domain}`;
