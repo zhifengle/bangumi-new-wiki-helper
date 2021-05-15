@@ -44,9 +44,10 @@ export async function initChara(siteConfig: SiteConfig) {
   let iframeSel = '';
   let $doc: any;
   if (charaModel.itemSelector instanceof Array) {
-    iframeSel = charaModel.itemSelector.find((i) => i.isIframe === true)
-      ?.selector;
-  } else {
+    iframeSel = charaModel.itemSelector.find(
+      (i) => i.isIframe === true
+    )?.selector;
+  } else if (charaModel.itemSelector.isIframe) {
     iframeSel = charaModel.itemSelector.selector;
   }
   if (iframeSel) {
