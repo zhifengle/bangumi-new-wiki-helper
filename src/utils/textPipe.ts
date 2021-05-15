@@ -4,7 +4,7 @@ export interface ITextPipe {
 }
 
 export type IFuncPipe = (pipe: ITextPipe, ...args: any) => ITextPipe;
-export type IPipe = 't' | 'k' | 'p' | 'pn' | 'num';
+export type IPipe = 't' | 'ta' | 'k' | 'p' | 'pn' | 'num';
 export type IPipeArr = (IPipe | IFuncPipe)[];
 
 export const pipeFnDict: {
@@ -12,6 +12,8 @@ export const pipeFnDict: {
 } = {
   // t: 去除开头和结尾的空格
   t: trimSpace,
+  // ta: 去除所有空格
+  ta: trimAllSpace,
   // k: 去除关键字;
   k: trimKeywords,
   // p: 括号
@@ -34,6 +36,13 @@ export function trim(pipe: ITextPipe, textList: string[]): ITextPipe {
   };
 }
 
+function trimAllSpace(pipe: ITextPipe): ITextPipe {
+  let str = getStr(pipe);
+  return {
+    ...pipe,
+    out: str.replace(/\s/g, ''),
+  };
+}
 function trimSpace(pipe: ITextPipe): ITextPipe {
   let str = getStr(pipe);
   return {

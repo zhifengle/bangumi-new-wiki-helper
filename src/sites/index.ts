@@ -8,7 +8,7 @@ import {
 import { dealDate } from '../utils/utils';
 import { amazonJpBookTools } from './amazon';
 import { dlsiteCharaTools, dlsiteTools } from './dlsite';
-import { dmmTools } from './dmm';
+import { dmmCharaTools, dmmTools } from './dmm';
 import { doubanGameEditTools, doubanTools } from './douban';
 import { getchuSiteTools } from './getchu';
 import { steamdbTools, steamTools } from './steam';
@@ -97,6 +97,6 @@ export const sitesFuncDict: {
 export const charaFuncDict: {
   [key in CharaModelKey]?: SiteTools;
 } = {
-  // for test
   dlsite_game_chara: dlsiteCharaTools,
+  dmm_game_chara: dmmCharaTools,
 };

@@ -125,9 +125,9 @@ export function findElement(
           : $q(selector.selector);
       } else if (selector.isIframe) {
         // iframe 暂时不支持 parent
-        const $iframeDoc: Document = (
-          $q(selector.selector) as HTMLIFrameElement
-        )?.contentDocument;
+        const $iframeDoc: Document = ($q(
+          selector.selector
+        ) as HTMLIFrameElement)?.contentDocument;
         r = $iframeDoc?.querySelector(selector.subSelector);
       } else {
         r = findElementByKeyWord(selector, $parent);
@@ -168,15 +168,15 @@ export function findAllElement(
             : $qa(selector.selector)
         );
       } else if (selector.isIframe) {
-        const $iframeDoc: Document = (
-          $q(selector.selector) as HTMLIFrameElement
-        )?.contentDocument;
+        const $iframeDoc: Document = ($q(
+          selector.selector
+        ) as HTMLIFrameElement)?.contentDocument;
         res = Array.from($iframeDoc?.querySelectorAll(selector.subSelector));
       } else {
         if (selector.isIframe) {
-          const $iframeDoc: Document = (
-            $q(selector.selector) as HTMLIFrameElement
-          )?.contentDocument;
+          const $iframeDoc: Document = ($q(
+            selector.selector
+          ) as HTMLIFrameElement)?.contentDocument;
           // iframe 时不需要 keyWord
           $parent = $iframeDoc?.querySelector(selector.subSelector);
         } else {
@@ -192,7 +192,7 @@ export function findAllElement(
       // 有下一步的选择器时，selector 是用来定位父节点的
       const localSel = { ...selector };
       delete localSel.nextSelector;
-      const $p = findElement(selector);
+      const $p = findElement(localSel);
       if ($p) {
         res = findAllElement(selector.nextSelector, $p);
       }

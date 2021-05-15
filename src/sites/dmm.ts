@@ -1,7 +1,9 @@
 import { SingleInfo } from '../interface/subject';
+import { CharaModel } from '../interface/wiki';
 import { getImageDataByURL } from '../utils/dealImage';
 import { $qa } from '../utils/domUtils';
 import { dealDate } from '../utils/utils';
+import { charaInfoDict } from './lib';
 import { SiteTools } from './types';
 
 export const dmmTools: SiteTools = {
@@ -59,4 +61,62 @@ export const dmmTools: SiteTools = {
       },
     },
   ],
+};
+
+export const dmmCharaTools: SiteTools = {
+  hooks: {
+    async afterGetWikiData(
+      infos: SingleInfo[],
+      model: CharaModel,
+      $el: Element
+    ) {
+      const res: SingleInfo[] = [...infos];
+      const $nameTxt = $el.querySelector(
+        '.guide-tx16.guide-bold.guide-lin-hgt'
+      );
+      if ($nameTxt) {
+        // （きのみや なのか）
+        const nameTxt = $nameTxt.textContent;
+        if (nameTxt.match(/（(.*)）/)) {
+          res.push({
+            name: '纯假名',
+            value: nameTxt.match(/（(.*)）/)[1],
+          });
+        }
+        const cvTxt = $nameTxt.nextSibling.textContent;
+        if (/CV/.test(cvTxt)) {
+          res.push({
+            name: 'CV',
+            value: cvTxt.replace(/CV：/, '').replace(/\s/g, ''),
+          });
+        }
+      }
+      const boxArr = Array.from($el.querySelectorAll('.box'));
+      for (const $box of boxArr) {
+        const txtArr = $box.textContent
+          .trim()
+          .split(/：|:/)
+          .map((s) => s.trim());
+        if (charaInfoDict[txtArr[0]]) {
+          res.push({
+            name: charaInfoDict[txtArr[0]],
+            value: txtArr[1],
+          });
+        } else {
+          res.push({
+            name: txtArr[0],
+            value: txtArr[1],
+          });
+        }
+      }
+      const $summary = $nameTxt.closest('div').cloneNode(true) as Element;
+      $summary.firstElementChild.remove();
+      res.push({
+        name: '人物简介',
+        value: $summary.textContent,
+        category: 'crt_summary',
+      });
+      return res;
+    },
+  },
 };

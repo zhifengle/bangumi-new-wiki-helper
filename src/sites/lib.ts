@@ -27,3 +27,12 @@ export async function getCover($d: Element, site: ModelKey) {
     };
   }
 }
+
+export const charaInfoDict: any = {
+  趣味: '爱好',
+  誕生日: '生日',
+  '3サイズ': 'BWH',
+  スリーサイズ: 'BWH',
+  身長: '身高',
+  血液型: '血型',
+};

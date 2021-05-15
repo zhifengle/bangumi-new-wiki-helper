@@ -7,6 +7,7 @@ import { setVal } from './utils';
 import { IAuxPrefs } from '../sites/types';
 import { getSubjectId } from '../sites/bangumi/common';
 import { getImageBase64, getImageDataByURL } from '../utils/dealImage';
+import { fetchText } from '../utils/fetchData';
 // import { version as VERSION } from "../../extension/manifest.json";
 
 const VERSION = '0.3.0';
@@ -74,6 +75,8 @@ async function handleMessage(request: any) {
       let resData = '';
       if (payload.type == 'img') {
         resData = await getImageDataByURL(payload.url);
+      } else if (payload.type == 'html') {
+        resData = await fetchText(payload.url);
       }
       return resData;
     default:

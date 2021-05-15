@@ -6,6 +6,32 @@ import { getCharaModel } from '../models';
 import { addCharaUI, getCharaData } from '../sites/common';
 import { findAllElement, findElement } from '../utils/domUtils';
 
+async function fetchCover(infoList: SingleInfo[]) {
+  // 封面有 url 但是获取失败。尝试使用 background 获取
+  for (let i = 0; i < infoList.length; i++) {
+    const info = infoList[i];
+    if (info.category == 'crt_cover') {
+      const dataUrl = info?.value?.dataUrl || '';
+      const url = info?.value?.url || '';
+      if (!/^data:image/.test(dataUrl) && url) {
+        console.log('fetch cover by background');
+        const dataUrl = await browser.runtime.sendMessage({
+          action: 'fetch_data_bg',
+          payload: {
+            type: 'img',
+            url: url,
+          },
+        });
+        if (dataUrl) {
+          info.value = {
+            url,
+            dataUrl,
+          };
+        }
+      }
+    }
+  }
+}
 export async function initChara(siteConfig: SiteConfig) {
   // 查找标志性的元素
   const $page = findElement(siteConfig.pageSelectors);
@@ -14,7 +40,37 @@ export async function initChara(siteConfig: SiteConfig) {
   if (!charaModel) return;
   const $el = findElement(charaModel.controlSelector);
   if (!$el) return;
-  const itemArr = findAllElement(charaModel.itemSelector);
+  // 判断是否在 iframe 里面
+  let iframeSel = '';
+  let $doc: any;
+  if (charaModel.itemSelector instanceof Array) {
+    iframeSel = charaModel.itemSelector.find((i) => i.isIframe === true)
+      ?.selector;
+  } else {
+    iframeSel = charaModel.itemSelector.selector;
+  }
+  if (iframeSel) {
+    console.log('fetch html by background');
+    const url = findElement({
+      selector: iframeSel,
+    }).getAttribute('src');
+    if (url) {
+      const rawHtml = await browser.runtime.sendMessage({
+        action: 'fetch_data_bg',
+        payload: {
+          type: 'html',
+          url,
+        },
+      });
+      $doc = new DOMParser().parseFromString(rawHtml, 'text/html');
+    } else {
+      return;
+    }
+  }
+  let itemArr = findAllElement(charaModel.itemSelector);
+  if ($doc) {
+    itemArr = findAllElement(charaModel.itemSelector, $doc);
+  }
   // 获取名字列表
   const names = await Promise.all(
     itemArr.map(async ($t) => {
@@ -44,6 +100,7 @@ export async function initChara(siteConfig: SiteConfig) {
     }
     for (const $target of targetList) {
       const charaInfo: SingleInfo[] = await getCharaData(charaModel, $target);
+      await fetchCover(charaInfo);
       console.info('character info list: ', charaInfo);
       const charaData: SubjectWikiInfo = {
         type: siteConfig.type,
