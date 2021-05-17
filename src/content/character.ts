@@ -88,7 +88,7 @@ export async function initChara(siteConfig: SiteConfig) {
       return infos.find((i) => i.category === 'crt_name')?.value;
     })
   );
-  names = names.filter((n) => n);
+  // names = names.filter((n) => n);
   addCharaUI($el, names, async (e: Event, val: string) => {
     let targetList: Element[] = [];
     if (val === 'all') {

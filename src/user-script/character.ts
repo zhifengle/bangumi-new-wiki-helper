@@ -47,19 +47,19 @@ export async function initChara(siteConfig: SiteConfig) {
   const bgmHost = `${protocol}://${bgm_domain}`;
   const itemArr = findAllElement(charaModel.itemSelector);
   // 获取名字列表
-  const names = await Promise.all(
+  let names = await Promise.all(
     itemArr.map(async ($t) => {
       const nameConfig: InfoConfig = charaModel.itemList.find(
         (item) => item.category == 'crt_name'
       );
-      const nameInfo: SingleInfo[] = await getCharaData(
+      const infos: SingleInfo[] = await getCharaData(
         {
           ...charaModel,
           itemList: [nameConfig],
         },
         $t
       );
-      return nameInfo[0]?.value;
+      return infos.find((i) => i.category === 'crt_name')?.value;
     })
   );
   addCharaUI($el, names, async (e: Event, val: string) => {

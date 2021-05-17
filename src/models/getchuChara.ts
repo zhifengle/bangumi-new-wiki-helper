@@ -6,13 +6,8 @@ export const getchuCharaModel: CharaModel = {
   description: 'getchu 游戏角色',
   type: 'character',
   itemSelector: {
-    selector: '#wrapper',
-    subSelector: '.tabletitle',
-    keyWord: 'キャラクター',
-    sibling: true,
-    nextSelector: {
-      selector: 'tr',
-    },
+    selector: 'h2.chara-name',
+    closest: 'tr',
   },
   controlSelector: [
     {

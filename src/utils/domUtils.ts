@@ -125,13 +125,17 @@ export function findElement(
           : $q(selector.selector);
       } else if (selector.isIframe) {
         // iframe 暂时不支持 parent
-        const $iframeDoc: Document = ($q(
-          selector.selector
-        ) as HTMLIFrameElement)?.contentDocument;
+        const $iframeDoc: Document = (
+          $q(selector.selector) as HTMLIFrameElement
+        )?.contentDocument;
         r = $iframeDoc?.querySelector(selector.subSelector);
       } else {
         r = findElementByKeyWord(selector, $parent);
       }
+      if (selector.closest) {
+        r = r.closest(selector.closest);
+      }
+      // recursive
       if (r && selector.nextSelector) {
         const nextSelector = selector.nextSelector;
         r = findElement(nextSelector, r);
@@ -168,15 +172,15 @@ export function findAllElement(
             : $qa(selector.selector)
         );
       } else if (selector.isIframe) {
-        const $iframeDoc: Document = ($q(
-          selector.selector
-        ) as HTMLIFrameElement)?.contentDocument;
+        const $iframeDoc: Document = (
+          $q(selector.selector) as HTMLIFrameElement
+        )?.contentDocument;
         res = Array.from($iframeDoc?.querySelectorAll(selector.subSelector));
       } else {
         if (selector.isIframe) {
-          const $iframeDoc: Document = ($q(
-            selector.selector
-          ) as HTMLIFrameElement)?.contentDocument;
+          const $iframeDoc: Document = (
+            $q(selector.selector) as HTMLIFrameElement
+          )?.contentDocument;
           // iframe 时不需要 keyWord
           $parent = $iframeDoc?.querySelector(selector.subSelector);
         } else {
@@ -187,6 +191,10 @@ export function findAllElement(
         if (selector.sibling) {
           res = res.map(($t) => $t.nextElementSibling);
         }
+      }
+      // closest
+      if (selector.closest) {
+        res = res.map((r) => r.closest(selector.closest));
       }
     } else {
       // 有下一步的选择器时，selector 是用来定位父节点的

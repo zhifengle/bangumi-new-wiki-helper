@@ -9,10 +9,11 @@ export interface Selector {
   // 有关键字的时候这个才有效。
   // 如果需要使用 sibling ，可以这样写 selector：  #target + div
   sibling?: boolean;
-  separator?: string;
   // 是否为 iframe， 如果是 iframe 需要有 subSelector
   // 2021-05-10 subSelector 可以使用 nextSelector 替代
   isIframe?: boolean;
+  // 2021-05-17 辅助定位 找到目标后调用的 $el.closest(xx)
+  closest?: string;
   // 之前没考虑好 subSelector 的层级，为了兼容以前的代码使用 nextSelector
   nextSelector?: Selector | Selector[];
 }

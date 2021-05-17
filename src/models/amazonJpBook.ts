@@ -33,7 +33,6 @@ const commonSelectors: Selector[] = [
   {
     selector: '#detail_bullets_id .bucket .content',
     subSelector: 'li',
-    separator: ':',
   },
 ];
 amazonSubjectModel.itemList.push(
