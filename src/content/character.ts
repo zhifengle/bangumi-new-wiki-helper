@@ -73,21 +73,22 @@ export async function initChara(siteConfig: SiteConfig) {
     itemArr = findAllElement(charaModel.itemSelector, $doc);
   }
   // 获取名字列表
-  const names = await Promise.all(
+  let names = await Promise.all(
     itemArr.map(async ($t) => {
       const nameConfig: InfoConfig = charaModel.itemList.find(
         (item) => item.category == 'crt_name'
       );
-      const nameInfo: SingleInfo[] = await getCharaData(
+      const infos: SingleInfo[] = await getCharaData(
         {
           ...charaModel,
           itemList: [nameConfig],
         },
         $t
       );
-      return nameInfo[0]?.value;
+      return infos.find((i) => i.category === 'crt_name')?.value;
     })
   );
+  names = names.filter((n) => n);
   addCharaUI($el, names, async (e: Event, val: string) => {
     let targetList: Element[] = [];
     if (val === 'all') {

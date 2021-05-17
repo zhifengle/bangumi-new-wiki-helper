@@ -2,6 +2,7 @@ import { SingleInfo } from '../interface/subject';
 import { getText } from '../utils/domUtils';
 import { convertImgToBase64 } from '../utils/dealImage';
 import { SiteTools } from './types';
+import { CharaModel } from '../interface/wiki';
 
 export const getchuTools = {
   dealTitle(str: string): string {
@@ -146,4 +147,21 @@ export const getchuSiteTools: SiteTools = {
       dealFunc: getchuTools.dealTitle,
     },
   ],
+};
+
+export const getchuCharaTools: SiteTools = {
+  hooks: {
+    async afterGetWikiData(
+      infos: SingleInfo[],
+      model: CharaModel,
+      $el: Element
+    ) {
+      const res: SingleInfo[] = [...infos];
+      const $chara = $el.querySelector('h2.chara-name');
+      if ($chara) {
+        res.push(...getchuTools.getCharacterInfo($chara));
+      }
+      return res;
+    },
+  },
 };

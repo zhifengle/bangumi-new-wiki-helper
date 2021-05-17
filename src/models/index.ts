@@ -18,6 +18,7 @@ import { dlsiteGameModel } from './dlsiteGame';
 import { dmmGameModel } from './dmmGame';
 import { dlsiteGameCharaModel } from './dlsiteGameChara';
 import { dmmGameCharaModel } from './dmmGameChara';
+import { getchuCharaModel } from './getchuChara';
 
 // 新增的 site model 需要在这里配置
 export const configs = {
@@ -37,6 +38,8 @@ export const configs = {
 export const charaModelDict = {
   [dlsiteGameCharaModel.key]: dlsiteGameCharaModel,
   [dmmGameCharaModel.key]: dmmGameCharaModel,
+  // @TODO getchu chara
+  // [getchuCharaModel.key]: getchuCharaModel,
 };
 
 export function findModelByHost(host: string): SiteConfig[] {

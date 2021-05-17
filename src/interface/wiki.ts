@@ -33,7 +33,10 @@ export interface InfoConfig {
   pipes?: IPipeArr;
 }
 
-export type CharaModelKey = 'dlsite_game_chara' | 'dmm_game_chara';
+export type CharaModelKey =
+  | 'dlsite_game_chara'
+  | 'dmm_game_chara'
+  | 'getchu_chara';
 
 export type ModelKey =
   | 'amazon_jp_book'

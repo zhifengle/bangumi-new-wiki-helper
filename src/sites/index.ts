@@ -10,7 +10,7 @@ import { amazonJpBookTools } from './amazon';
 import { dlsiteCharaTools, dlsiteTools } from './dlsite';
 import { dmmCharaTools, dmmTools } from './dmm';
 import { doubanGameEditTools, doubanTools } from './douban';
-import { getchuSiteTools } from './getchu';
+import { getchuCharaTools, getchuSiteTools } from './getchu';
 import { steamdbTools, steamTools } from './steam';
 import { SiteTools } from './types';
 
@@ -99,4 +99,5 @@ export const charaFuncDict: {
 } = {
   dlsite_game_chara: dlsiteCharaTools,
   dmm_game_chara: dmmCharaTools,
+  getchu_chara: getchuCharaTools,
 };
