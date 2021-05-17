@@ -1,4 +1,4 @@
-import { dealFuncByCategory, identity, trimParenthesis } from './index';
+import { dealFuncByCategory, trimParenthesis } from './index';
 
 describe('sites utils', () => {
   test('filter', () => {
