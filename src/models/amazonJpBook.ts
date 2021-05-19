@@ -26,6 +26,11 @@ export const amazonSubjectModel: SiteConfig = {
 };
 
 const commonSelectors: Selector[] = [
+  // 2021-05 日亚改版
+  {
+    selector: '#richProductInformation_feature_div',
+    subSelector: 'ol.a-carousel li',
+  },
   {
     selector: '#detailBullets_feature_div .detail-bullet-list',
     subSelector: 'li .a-list-item',
@@ -87,6 +92,7 @@ amazonSubjectModel.itemList.push(
       };
     }),
     category: 'date',
+    pipes: ['k', 'date'],
   },
   {
     name: '出版社',
@@ -105,6 +111,7 @@ amazonSubjectModel.itemList.push(
         keyWord: ['ページ', '页'],
       };
     }),
+    pipes: ['num'],
   },
   {
     name: '作者',

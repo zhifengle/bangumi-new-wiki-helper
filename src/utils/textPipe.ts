@@ -1,10 +1,15 @@
+import { dealDate } from './utils';
+
 export interface ITextPipe {
   rawInfo: string;
   out?: string;
 }
 
+export type IPipeArgsDict = {
+  [key in IPipe]?: any[];
+};
 export type IFuncPipe = (pipe: ITextPipe, ...args: any) => ITextPipe;
-export type IPipe = 't' | 'ta' | 'k' | 'p' | 'pn' | 'num';
+export type IPipe = 't' | 'ta' | 'k' | 'p' | 'pn' | 'num' | 'date';
 export type IPipeArr = (IPipe | IFuncPipe)[];
 
 export const pipeFnDict: {
@@ -22,6 +27,7 @@ export const pipeFnDict: {
   pn: trimParenthesisN,
   // num: 提取数字
   num: getNum,
+  date: getDate,
 };
 
 export function getStr(pipe: ITextPipe): string {
@@ -78,6 +84,13 @@ export function getNum(pipe: ITextPipe): ITextPipe {
     out: m ? m[0] : '',
   };
 }
+function getDate(pipe: ITextPipe): ITextPipe {
+  let dataStr = getStr(pipe);
+  return {
+    rawInfo: pipe.rawInfo,
+    out: dealDate(dataStr),
+  };
+}
 
 /**
  *
@@ -85,7 +98,11 @@ export function getNum(pipe: ITextPipe): ITextPipe {
  * @param pipes 管道
  * @returns 处理后的字符串
  */
-export function dealTextByPipe(str: string, pipes: IPipeArr): string {
+export function dealTextByPipe(
+  str: string,
+  pipes: IPipeArr,
+  argsDict: IPipeArgsDict = {}
+): string {
   let current: ITextPipe = { rawInfo: str };
   pipes = pipes || [];
   for (const p of pipes) {
@@ -93,7 +110,11 @@ export function dealTextByPipe(str: string, pipes: IPipeArr): string {
       // @TODO 支持传递参数
       current = p(current);
     } else {
-      current = pipeFnDict[p](current);
+      if (argsDict[p]) {
+        current = pipeFnDict[p](current, ...argsDict[p]);
+      } else {
+        current = pipeFnDict[p](current);
+      }
     }
   }
   return current.out || str;

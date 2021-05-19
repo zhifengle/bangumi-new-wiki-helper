@@ -72,6 +72,9 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
   }
   let val: any;
   let txt = getText($d as HTMLElement);
+  const pipeArgsDict = {
+    k: [keyWords],
+  };
   switch (infoConfig.category) {
     case 'cover':
     case 'crt_cover':
@@ -87,7 +90,7 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
     case 'subject_title':
       // 有管道优先使用管道处理数据. 兼容之前使用写法
       if (infoConfig.pipes) {
-        val = dealTextByPipe(txt, infoConfig.pipes);
+        val = dealTextByPipe(txt, infoConfig.pipes, pipeArgsDict);
       } else {
         val = dealFuncByCategory(site, infoConfig.category)(txt);
       }
@@ -98,7 +101,7 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
     case 'date':
       // 有管道优先使用管道处理数据. 兼容之前使用写法
       if (infoConfig.pipes) {
-        val = dealTextByPipe(txt, infoConfig.pipes);
+        val = dealTextByPipe(txt, infoConfig.pipes, pipeArgsDict);
       } else {
         // 日期预处理，不能删除
         val = dealItemText(txt, infoConfig.category, keyWords);
@@ -108,7 +111,7 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
     default:
       // 有管道优先使用管道处理数据. 兼容之前使用写法
       if (infoConfig.pipes) {
-        val = dealTextByPipe(txt, infoConfig.pipes);
+        val = dealTextByPipe(txt, infoConfig.pipes, pipeArgsDict);
       } else {
         val = dealItemText(txt, infoConfig.category, keyWords);
       }
