@@ -84,7 +84,8 @@ export interface CharaModel {
   // 插入控制按钮位置的元素选择器
   controlSelector: Selector | Selector[];
   // @TODO person character
-  type: CharaType;
+  type: SubjectTypeId;
+  charaType?: CharaType;
   // @TODO 角色、组织机构
   subType?: number;
   itemList: InfoConfig[];

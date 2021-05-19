@@ -1,11 +1,11 @@
-import { CharaModel } from '../interface/wiki';
+import { CharaModel, SubjectTypeId } from '../interface/wiki';
 
 export const dlsiteGameCharaModel: CharaModel = {
   key: 'dlsite_game_chara',
   siteKey: 'dlsite_game',
   description: 'dlsite游戏角色',
   host: ['dlsite.com', 'www.dlsite.com'],
-  type: 'character',
+  type: SubjectTypeId.game,
   itemSelector: {
     selector: '.work_parts_multiimage_item',
   },

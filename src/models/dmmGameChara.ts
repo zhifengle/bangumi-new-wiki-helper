@@ -1,10 +1,10 @@
-import { CharaModel } from '../interface/wiki';
+import { CharaModel, SubjectTypeId } from '../interface/wiki';
 
 export const dmmGameCharaModel: CharaModel = {
   key: 'dmm_game_chara',
   siteKey: 'dmm_game',
   description: 'dmm 游戏角色',
-  type: 'character',
+  type: SubjectTypeId.game,
   itemSelector: {
     selector: '#if_view',
     isIframe: true,

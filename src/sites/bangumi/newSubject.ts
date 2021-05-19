@@ -1,5 +1,5 @@
 import { SingleInfo, SubjectWikiInfo } from '../../interface/subject';
-import { $q, $qa } from '../../utils/domUtils';
+import { $q, $qa, htmlToElement } from '../../utils/domUtils';
 import { sleep } from '../../utils/async/sleep';
 import { dealDate } from '../../utils/utils';
 import { dealImageWidget, insertLoading } from './dealImageWidget';
@@ -334,6 +334,14 @@ export function initNewCharacter(
       }
       $input.insertAdjacentElement('afterend', $clonedInput);
       $input.remove();
+      // 2021-05-19 关联条目 id.
+      const $relatedInput = htmlToElement(`
+<span class="e-bnwh-related-id">
+<span title="为空时不做关联操作">关联条目 id:</span>
+<input type="number" placeholder="输入关联条目 id" />
+</span>
+      `) as Element;
+      $clonedInput.insertAdjacentElement('afterend', $relatedInput);
       const $canvas: HTMLCanvasElement = $q('#e-wiki-cover-preview');
       $clonedInput.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -352,6 +360,8 @@ export function initNewCharacter(
             const url = await sendFormImg($form, dataUrl);
             insertLogInfo($el, `新建角色成功: ${genLinkText(url, '角色地址')}`);
             const charaId = getSubjectId(url);
+            // subject id
+            const subjectId = $relatedInput.querySelector('input')?.value || '';
             if (charaId && subjectId) {
               insertLogInfo($el, '存在条目 id, 开始关联条目');
               await addPersonRelatedSubject(

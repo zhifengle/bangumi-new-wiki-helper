@@ -188,5 +188,10 @@ export function addStyle() {
   margin-top: 6px;
   margin-bottom: 6px;
 }
+.e-bnwh-related-id {
+  margin-left: 12px;
+  display: inline-block;
+  vertical-align: -5px;
+}
   `);
 }
