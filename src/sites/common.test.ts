@@ -240,7 +240,7 @@ describe('test get wiki data', () => {
         }),
         expect.objectContaining({
           name: '发售日',
-          value: '2018/4/23',
+          value: '2018-04-23',
           category: 'date',
         }),
         expect.objectContaining({
@@ -294,7 +294,7 @@ describe('test get wiki data', () => {
         }),
         expect.objectContaining({
           name: '发售日',
-          value: '2017年4月7日',
+          value: '2017-04-07',
           category: 'date',
         }),
         expect.objectContaining({
