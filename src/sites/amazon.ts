@@ -24,7 +24,12 @@ export const amazonJpBookTools: SiteTools = {
       const bookTypeList = document.querySelectorAll(
         '#tmmSwatches ul > li.swatchElement'
       );
-      if ($t && bookTypeList && bookTypeList.length > 1) {
+      const books = document.querySelectorAll('#tmmSwatches > .a-row div');
+      if (
+        $t &&
+        ((bookTypeList && bookTypeList.length > 1) ||
+          (books && books.length > 1))
+      ) {
         const $div = document.createElement('div');
         const $s = document.createElement('span');
         $s.style.color = 'red';
