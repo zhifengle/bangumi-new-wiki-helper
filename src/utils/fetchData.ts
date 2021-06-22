@@ -1,12 +1,19 @@
 // support GM_XMLHttpRequest
 const ENV_FLAG = '__ENV_EXT__';
 
-type IAjaxType = 'text' | 'json' | 'blob';
+type IFetchOpts = {
+  method?: string;
+  body?: any;
+  // EUC-JP 部分网页编码
+  decode?: string;
+  [key: string]: any;
+};
+type IAjaxType = 'text' | 'json' | 'blob' | 'arraybuffer';
 
 export function fetchInfo(
   url: string,
   type: IAjaxType,
-  opts: any = {},
+  opts: IFetchOpts = {},
   TIMEOUT = 10 * 1000
 ): Promise<any> {
   const method = opts?.method?.toUpperCase() || 'GET';
@@ -15,6 +22,9 @@ export function fetchInfo(
     const gmXhrOpts = { ...opts };
     if (method === 'POST') {
       gmXhrOpts.data = gmXhrOpts.body;
+    }
+    if (opts.decode) {
+      type = 'arraybuffer';
     }
     return new Promise((resolve, reject) => {
       // @ts-ignore
@@ -27,7 +37,12 @@ export function fetchInfo(
           if (res.status === 404) {
             reject(404);
           }
-          resolve(res.response);
+          if (opts.decode && type === 'arraybuffer') {
+            let decoder = new TextDecoder(opts.decode);
+            resolve(decoder.decode(res.response));
+          } else {
+            resolve(res.response);
+          }
         },
         onerror: reject,
         ...gmXhrOpts,
@@ -46,6 +61,13 @@ export function fetchInfo(
   ).then(
     (response) => {
       if (response.ok) {
+        if (opts.decode) {
+          return response.arrayBuffer().then((buffer: ArrayBuffer) => {
+            let decoder = new TextDecoder(opts.decode);
+            let text = decoder.decode(buffer);
+            return text;
+          });
+        }
         return response[type]();
       }
       throw new Error('Not 2xx response');
@@ -54,14 +76,18 @@ export function fetchInfo(
   );
 }
 
-export function fetchBinary(url: string, opts: any = {}): Promise<Blob> {
+export function fetchBinary(url: string, opts: IFetchOpts = {}): Promise<Blob> {
   return fetchInfo(url, 'blob', opts);
 }
 
-export function fetchText(url: string, TIMEOUT = 10 * 1000): Promise<string> {
-  return fetchInfo(url, 'text', {}, TIMEOUT);
+export function fetchText(
+  url: string,
+  opts: IFetchOpts = {},
+  TIMEOUT = 10 * 1000
+): Promise<string> {
+  return fetchInfo(url, 'text', opts, TIMEOUT);
 }
-export function fetchJson(url: string, opts: any = {}): Promise<any> {
+export function fetchJson(url: string, opts: IFetchOpts = {}): Promise<any> {
   return fetchInfo(url, 'json', opts);
 }
 

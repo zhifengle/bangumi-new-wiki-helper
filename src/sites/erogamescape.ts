@@ -1,8 +1,8 @@
 import { AllSubject, SearchResult, Subject } from '../interface/subject';
 import { fetchText } from '../utils/fetchData';
-import { filterResults, getWikiData } from './common';
-import { getText } from '../utils/domUtils';
+import { findElement, getText } from '../utils/domUtils';
 import { erogamescapeModel } from '../models/erogamescape';
+import { SiteTools } from './types';
 
 enum ErogamescapeCategory {
   game = 'game',
@@ -74,12 +74,30 @@ export function dealSearchResults(info: string): [SearchResult[], number] | [] {
   return [results, 0];
 }
 
-export async function searchSubject(
+export function genSearchUrl(
   subjectInfo: AllSubject,
   host: string = 'https://erogamescape.dyndns.org',
   type: ErogamescapeCategory = ErogamescapeCategory.game,
   uniqueQueryStr: string = ''
 ) {
+  let query = (subjectInfo.name || '').trim();
+  if (uniqueQueryStr) {
+    query = uniqueQueryStr;
+  }
+  if (!query) {
+    console.info('Query string is empty');
+    return '';
+  }
+  return `${host}/~ap2/ero/toukei_kaiseki/kensaku.php?category=${type}&word_category=name&word=${encodeURIComponent(
+    query
+  )}&mode=normal`;
+}
+export async function searchSubject(
+  subjectInfo: AllSubject,
+  host: string = 'https://erogamescape.dyndns.org',
+  type: ErogamescapeCategory = ErogamescapeCategory.game,
+  uniqueQueryStr: string = ''
+): Promise<any> {
   let query = (subjectInfo.name || '').trim();
   if (uniqueQueryStr) {
     query = uniqueQueryStr;
@@ -94,7 +112,7 @@ export async function searchSubject(
   console.info('search subject URL: ', url);
   const rawText = await fetchText(url);
   const rawInfoList = dealSearchResults(rawText)[0] || [];
-  return filterResults(rawInfoList, subjectInfo);
+  // return filterResults(rawInfoList, subjectInfo);
 }
 
 export async function getWebsite(
@@ -105,9 +123,38 @@ export async function getWebsite(
   const rawText = await fetchText(url);
   let $doc = new DOMParser().parseFromString(rawText, 'text/html');
 
-  const d = await getWikiData(erogamescapeModel, $doc);
-  const r = d.filter((item) => item.category === 'website');
-  if (r && r.length) {
-    return r[0].value;
-  }
+  // const d = await getWikiData(erogamescapeModel, $doc);
+  // const r = d.filter((item) => item.category === 'website');
+  // if (r && r.length) {
+  //   return r[0].value;
+  // }
 }
+
+export const erogamescapeTools: SiteTools = {
+  hooks: {
+    async beforeCreate() {
+      const $el = findElement([
+        {
+          selector: '#links',
+          subSelector: 'a',
+          keyWord: 'Getchu.com',
+        },
+        {
+          selector: '#bottom_inter_links_main',
+          subSelector: 'a',
+          keyWord: 'Getchu.com',
+        },
+      ]);
+      const softQuery = $el?.getAttribute('href')?.match(/\?id=\d+$/);
+      if (softQuery) {
+        return {
+          payload: {
+            auxSite: `http://www.getchu.com/soft.phtml${softQuery[0]}`,
+          },
+        };
+      }
+      return true;
+    },
+  },
+  filters: [],
+};

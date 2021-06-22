@@ -1,15 +1,7 @@
-import { dlsiteGameModel } from './models/dlsiteGame';
-import { dlsiteGameCharaModel } from './models/dlsiteGameChara';
-import { dmmGameModel } from './models/dmmGame';
-import { getWikiData } from './sites/common';
-import { findAllElement, findElement } from './utils/domUtils';
+import { fetchText } from './utils/fetchData';
 
 async function test() {
-  // let d = await getWikiData(dmmGameModel);
-  var d = findAllElement(dlsiteGameCharaModel.controlSelector);
-  console.log(d);
-  // debugger;
-  // const p = findElement(dlsiteGameModel.pageSelectors);
-  // console.log(p);
+  const text = await fetchText(location.href, { decode: 'EUC-JP' });
+  console.log(text);
 }
 test();

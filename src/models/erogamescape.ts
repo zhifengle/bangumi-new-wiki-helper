@@ -84,3 +84,16 @@ erogamescapeModel.itemList.push(
     },
   }
 );
+
+erogamescapeModel.defaultInfos = [
+  {
+    name: '平台',
+    value: 'PC',
+    category: 'platform',
+  },
+  {
+    name: 'subject_nsfw',
+    value: '1',
+    category: 'checkbox',
+  },
+];

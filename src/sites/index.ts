@@ -10,6 +10,7 @@ import { amazonJpBookTools } from './amazon';
 import { dlsiteCharaTools, dlsiteTools } from './dlsite';
 import { dmmCharaTools, dmmTools } from './dmm';
 import { doubanGameEditTools, doubanTools } from './douban';
+import { erogamescapeTools } from './erogamescape';
 import { getchuCharaTools, getchuSiteTools } from './getchu';
 import { steamdbTools, steamTools } from './steam';
 import { SiteTools } from './types';
@@ -85,6 +86,7 @@ export const sitesFuncDict: {
     ],
   },
   getchu_game: getchuSiteTools,
+  erogamescape: erogamescapeTools,
   steam_game: steamTools,
   steamdb_game: steamdbTools,
   douban_game: doubanTools,
