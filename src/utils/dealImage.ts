@@ -63,11 +63,14 @@ export function dataURItoBlob(dataURI: string): Blob {
   return new Blob([ia], { type: mimeString });
 }
 
-export function getImageDataByURL(url: string): Promise<string> {
+export function getImageDataByURL(
+  url: string,
+  opts: any = {}
+): Promise<string> {
   if (!url) return Promise.reject('invalid img url');
   return new Promise<string>(async (resolve, reject) => {
     try {
-      const blob = await fetchBinary(url);
+      const blob = await fetchBinary(url, opts);
       var reader = new FileReader();
       reader.onloadend = function () {
         resolve(reader.result as any);

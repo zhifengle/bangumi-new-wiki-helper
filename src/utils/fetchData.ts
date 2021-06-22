@@ -9,26 +9,34 @@ export function fetchInfo(
   opts: any = {},
   TIMEOUT = 10 * 1000
 ): Promise<any> {
+  const method = opts?.method?.toUpperCase() || 'GET';
   // @ts-ignore
   if (ENV_FLAG === '__ENV_GM__') {
+    const gmXhrOpts = { ...opts };
+    if (method === 'POST') {
+      gmXhrOpts.data = gmXhrOpts.body;
+    }
     return new Promise((resolve, reject) => {
       // @ts-ignore
       GM_xmlhttpRequest({
-        method: 'GET',
+        method,
         timeout: TIMEOUT,
         url,
         responseType: type,
         onload: function (res: any) {
+          if (res.status === 404) {
+            reject(404);
+          }
           resolve(res.response);
         },
         onerror: reject,
-        ...opts,
+        ...gmXhrOpts,
       });
     });
   }
   return internalFetch(
     fetch(url, {
-      method: 'GET',
+      method,
       // credentials: 'include',
       // mode: 'cors',
       // cache: 'default',
@@ -36,7 +44,12 @@ export function fetchInfo(
     }),
     TIMEOUT
   ).then(
-    (response) => response[type](),
+    (response) => {
+      if (response.ok) {
+        return response[type]();
+      }
+      throw new Error('Not 2xx response');
+    },
     (err) => console.log('fetch err: ', err)
   );
 }

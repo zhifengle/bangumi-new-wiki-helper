@@ -13,7 +13,13 @@ export async function getCover($d: Element, site: ModelKey) {
   try {
     // 跨域的图片不能用这种方式
     // dataUrl = convertImgToBase64($d as any);
-    dataUrl = await getImageDataByURL(url);
+    let opts: any = {};
+    if (site.includes('getchu')) {
+      opts.headers = {
+        Referer: location.href,
+      };
+    }
+    dataUrl = await getImageDataByURL(url, opts);
     if (dataUrl) {
       return {
         url,
