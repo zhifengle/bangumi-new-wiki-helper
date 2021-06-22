@@ -1,5 +1,4 @@
-// @ts-ignore
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
 
 const selectConfig: any = {
   domain: {

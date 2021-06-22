@@ -1,5 +1,4 @@
-// @ts-ignore
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
 import { SiteConfig } from '../interface/wiki';
 import { findElement } from '../utils/domUtils';
 import { getQueryInfo, getWikiData, insertControlBtn } from '../sites/common';

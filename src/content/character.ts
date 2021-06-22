@@ -1,5 +1,4 @@
-// @ts-ignore
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
 import { SingleInfo, SubjectWikiInfo } from '../interface/subject';
 import { InfoConfig, SiteConfig } from '../interface/wiki';
 import { getCharaModel } from '../models';

@@ -1,5 +1,4 @@
-// @ts-ignore
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
 import { BangumiDomain, checkSubjectExit } from '../sites/bangumi';
 import { SubjectTypeId } from '../interface/wiki';
 import { getWikiDataByURL, combineInfoList } from '../sites/common';

@@ -1,5 +1,4 @@
-// @ts-ignore
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
 
 export async function setVal(name: string, val: any) {
   const config = (await browser.storage.local.get(['config'])).config;

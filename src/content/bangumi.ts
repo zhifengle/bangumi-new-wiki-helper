@@ -1,5 +1,5 @@
-// @ts-ignore
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
+
 import { $q } from '../utils/domUtils';
 import {
   initNewCharacter,

@@ -22,12 +22,26 @@ const bg = {
   output: {
     file: pathResolve(__dirname, '../extension/dist/background.js'),
   },
+  plugins: [
+    resolve(),
+    commonjs(),
+    typescript({
+      exclude: ['./dist', './src/**/*.test.ts'],
+    }),
+  ],
 };
 const popup = {
   input: pathResolve(__dirname, '../src/bg/popup.ts'),
   output: {
     file: pathResolve(__dirname, '../extension/dist/popup.js'),
   },
+  plugins: [
+    resolve(),
+    commonjs(),
+    typescript({
+      exclude: ['./dist', './src/**/*.test.ts'],
+    }),
+  ],
 };
 const config = [
   {
@@ -35,6 +49,13 @@ const config = [
     output: {
       file: pathResolve(__dirname, '../extension/dist/content.js'),
     },
+    plugins: [
+      resolve(),
+      commonjs(),
+      typescript({
+        exclude: ['./dist', './src/**/*.test.ts'],
+      }),
+    ],
   },
 ];
 
