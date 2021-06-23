@@ -3,10 +3,10 @@ import { BangumiDomain, checkSubjectExit } from '../sites/bangumi';
 import { SubjectTypeId } from '../interface/wiki';
 import { getWikiDataByURL, combineInfoList } from '../sites/common';
 import { setVal } from './utils';
-import { IAuxPrefs } from '../sites/types';
 import { getSubjectId } from '../sites/bangumi/common';
-import { getImageBase64, getImageDataByURL } from '../utils/dealImage';
+import { getImageDataByURL } from '../utils/dealImage';
 import { fetchText } from '../utils/fetchData';
+import { ExtMsg, IAuxPrefs, IFetchOpts } from '../interface/types';
 // import { version as VERSION } from "../../extension/manifest.json";
 
 const VERSION = '0.3.0';
@@ -20,7 +20,7 @@ interface Config {
 
 let E_USER_CONFIG: Config = {};
 
-async function handleMessage(request: any) {
+async function handleMessage(request: ExtMsg) {
   const { payload = {} } = request;
   const activeOpen = E_USER_CONFIG.activeOpen;
   let bgmHost = E_USER_CONFIG.domain as string;
@@ -47,8 +47,7 @@ async function handleMessage(request: any) {
             });
             setVal('subjectId', getSubjectId(result.url));
           } else {
-            payload.auxSite &&
-              (await updateAuxData(payload.auxSite, payload.auxPrefs || {}));
+            payload.auxSite && (await updateAuxData(payload.auxSite));
             createNewSubjectTab(payload.type, bgmHost, activeOpen);
           }
         } else {
@@ -60,8 +59,7 @@ async function handleMessage(request: any) {
       }
       break;
     case 'create_new_subject':
-      payload.auxSite &&
-        (await updateAuxData(payload.auxSite, payload.auxPrefs || {}));
+      payload.auxSite && (await updateAuxData(payload.auxSite));
       createNewSubjectTab(payload.type, bgmHost, activeOpen);
       break;
     case 'create_new_character':
@@ -94,10 +92,19 @@ function createNewSubjectTab(
   });
 }
 
-async function updateAuxData(auxSite: string, auxPrefs: IAuxPrefs = {}) {
+async function updateAuxData(payload: {
+  url: string;
+  opts?: IFetchOpts;
+  prefs?: IAuxPrefs;
+}) {
+  const {
+    url: auxSite,
+    opts: auxSiteOpts = {},
+    prefs: auxPrefs = {},
+  } = payload;
   try {
     console.info('the start of updating aux data');
-    const auxData = await getWikiDataByURL(auxSite);
+    const auxData = await getWikiDataByURL(auxSite, auxSiteOpts);
     const obj = await browser.storage.local.get(['wikiData']);
     console.info('current wikiData: ', obj.wikiData);
     console.info('auxiliary data: ', auxData);

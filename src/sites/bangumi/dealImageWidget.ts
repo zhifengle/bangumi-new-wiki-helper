@@ -256,7 +256,7 @@ export function insertLoading($sibling: Element): Element {
  * @param subjectId
  */
 export async function uploadImage(subjectId: string) {
-  const d = await fetchText(`/${subjectId}/upload_img`, 3000);
+  const d = await fetchText(`/${subjectId}/upload_img`, {}, 3000);
   const $canvas: HTMLCanvasElement = document.querySelector(
     '#e-wiki-cover-preview'
   );

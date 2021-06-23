@@ -1,13 +1,8 @@
+import { IFetchOpts } from '../interface/types';
+
 // support GM_XMLHttpRequest
 const ENV_FLAG = '__ENV_EXT__';
 
-type IFetchOpts = {
-  method?: string;
-  body?: any;
-  // EUC-JP 部分网页编码
-  decode?: string;
-  [key: string]: any;
-};
 type IAjaxType = 'text' | 'json' | 'blob' | 'arraybuffer';
 
 export function fetchInfo(

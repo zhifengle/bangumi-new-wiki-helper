@@ -24,7 +24,7 @@ export async function searchCVByName(name: string, charaId: string = '') {
   if (charaId) {
     url = `${url}?character_id=${charaId}`;
   }
-  const res = await fetchJson(url, 'json');
+  const res = await fetchJson(url);
   return Object.keys(res)[0];
 }
 

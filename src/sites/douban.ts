@@ -10,12 +10,14 @@ export const doubanTools: SiteTools = {
       if (/\/game\//.test(href) && !/\/game\/\d+\/edit/.test(href)) {
         return {
           payload: {
-            auxSite: (document.querySelector(
-              '.th-modify > a'
-            ) as HTMLAnchorElement).href,
-            auxPrefs: {
-              originNames: ['平台', '发行日期'],
-              targetNames: 'all',
+            auxSite: {
+              url: (
+                document.querySelector('.th-modify > a') as HTMLAnchorElement
+              ).href,
+              prefs: {
+                originNames: ['平台', '发行日期'],
+                targetNames: 'all',
+              },
             },
           },
         };

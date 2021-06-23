@@ -1,4 +1,5 @@
 import { AllSubject, SearchResult, SingleInfo } from '../interface/subject';
+import { IAuxPrefs } from '../interface/types';
 import {
   CharaModel,
   InfoConfig,
@@ -18,7 +19,6 @@ import { dealTextByPipe } from '../utils/textPipe';
 import { isEqualDate } from '../utils/utils';
 import { dealFuncByCategory, getCharaHooks, getHooks } from './index';
 import { getCover } from './lib';
-import { IAuxPrefs } from './types';
 
 /**
  * 处理单项 wiki 信息
@@ -469,11 +469,11 @@ export function combineInfoList(
 }
 
 // 后台抓取其它网站的 wiki 信息
-export async function getWikiDataByURL(url: string) {
+export async function getWikiDataByURL(url: string, opts: any = {}) {
   const urlObj = new URL(url);
   const models = findModelByHost(urlObj.hostname);
   if (models && models.length) {
-    const rawText = await fetchText(url, 4 * 1000);
+    const rawText = await fetchText(url, opts, 4 * 1000);
     let $doc = new DOMParser().parseFromString(rawText, 'text/html');
     let model = models[0];
     if (models.length > 1) {

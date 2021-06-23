@@ -25,7 +25,9 @@ export const steamTools: SiteTools = {
       return {
         payload: {
           disableDate: true,
-          auxSite: getSteamdbURL(window.location.href),
+          auxSite: {
+            url: getSteamdbURL(window.location.href),
+          },
         },
       };
     },
@@ -57,7 +59,9 @@ export const steamdbTools: SiteTools = {
       return {
         payload: {
           disableDate: true,
-          auxSite: getSteamURL(window.location.href),
+          auxSite: {
+            url: getSteamURL(window.location.href),
+          },
         },
       };
     },

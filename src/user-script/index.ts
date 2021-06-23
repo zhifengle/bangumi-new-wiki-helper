@@ -18,13 +18,22 @@ import {
 } from './constraints';
 import { sleep } from '../utils/async/sleep';
 import { getHooks } from '../sites';
-import { IAuxPrefs } from '../sites/types';
 import { getSubjectId } from '../sites/bangumi/common';
+import { IAuxPrefs, IFetchOpts, IMsgPayload } from '../interface/types';
 
-async function updateAuxData(auxSite: string, auxPrefs: IAuxPrefs = {}) {
+async function updateAuxData(payload: {
+  url: string;
+  opts?: IFetchOpts;
+  prefs?: IAuxPrefs;
+}) {
+  const {
+    url: auxSite,
+    opts: auxSiteOpts = {},
+    prefs: auxPrefs = {},
+  } = payload;
   try {
     console.info('the start of updating aux data');
-    const auxData = await getWikiDataByURL(auxSite);
+    const auxData = await getWikiDataByURL(auxSite, auxSiteOpts);
     console.info('auxiliary data: ', auxData);
     const wikiData = JSON.parse(GM_getValue(WIKI_DATA) || null);
     let infos = combineInfoList(wikiData.infos, auxData, auxPrefs);
@@ -50,7 +59,10 @@ export async function initCommon(siteConfig: SiteConfig) {
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
-  let bcRes = await getHooks(siteConfig, 'beforeCreate')(siteConfig);
+  let bcRes: boolean | { payload?: IMsgPayload } = await getHooks(
+    siteConfig,
+    'beforeCreate'
+  )(siteConfig);
   if (!bcRes) return;
   if (bcRes === true) {
     bcRes = {};
@@ -83,8 +95,7 @@ export async function initCommon(siteConfig: SiteConfig) {
         await sleep(100);
         GM_openInTab(bgmHost + result.url);
       } else {
-        payload.auxSite &&
-          (await updateAuxData(payload.auxSite, payload.auxPrefs || {}));
+        payload.auxSite && (await updateAuxData(payload.auxSite));
         // 重置自动填表
         GM_setValue(AUTO_FILL_FORM, 1);
         setTimeout(() => {
@@ -94,8 +105,7 @@ export async function initCommon(siteConfig: SiteConfig) {
     } else {
       // 重置自动填表
       GM_setValue(AUTO_FILL_FORM, 1);
-      payload.auxSite &&
-        (await updateAuxData(payload.auxSite, payload.auxPrefs || {}));
+      payload.auxSite && (await updateAuxData(payload.auxSite));
       setTimeout(() => {
         GM_openInTab(`${bgmHost}/new_subject/${wikiData.type}`);
       }, 200);

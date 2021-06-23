@@ -8,6 +8,7 @@ import { getHooks } from '../sites';
 import { getchu } from './getchu';
 import { getchuGameModel } from '../models/getchuGame';
 import { initChara } from './character';
+import { IMsgPayload } from '../interface/types';
 
 async function fetchCover(infoList: SingleInfo[]) {
   // 封面有 url 但是获取失败。尝试使用 background 获取
@@ -42,7 +43,10 @@ async function initCommon(siteConfig: SiteConfig) {
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
-  let bcRes = await getHooks(siteConfig, 'beforeCreate')(siteConfig);
+  let bcRes: boolean | { payload?: IMsgPayload } = await getHooks(
+    siteConfig,
+    'beforeCreate'
+  )(siteConfig);
   if (!bcRes) return;
   if (bcRes === true) {
     bcRes = {};

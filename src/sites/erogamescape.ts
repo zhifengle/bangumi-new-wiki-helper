@@ -149,7 +149,13 @@ export const erogamescapeTools: SiteTools = {
       if (softQuery) {
         return {
           payload: {
-            auxSite: `http://www.getchu.com/soft.phtml${softQuery[0]}`,
+            auxSite: {
+              url: `http://www.getchu.com/soft.phtml${softQuery[0]}`,
+              opts: {
+                cookie: 'getchu_adalt_flag=getchu.com',
+                decode: 'EUC-JP',
+              },
+            },
           },
         };
       }

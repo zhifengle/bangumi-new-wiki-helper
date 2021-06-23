@@ -20,3 +20,36 @@ export interface SubjectItem {
     comment?: string;
   };
 }
+
+export type IFetchOpts = {
+  method?: string;
+  body?: any;
+  // EUC-JP 部分网页编码
+  decode?: string;
+  [key: string]: any;
+};
+
+export type IAuxPrefs = {
+  originNames?: string[] | 'all';
+  targetNames?: string[] | 'all';
+};
+
+export type IMsgPayload = {
+  url?: string;
+  // SubjectTypeId or string;
+  type?: any;
+  fileType?: string;
+  auxPrefs?: IAuxPrefs;
+  disableDate?: boolean;
+  auxSite?: {
+    url: string;
+    opts?: IFetchOpts;
+    prefs?: IAuxPrefs;
+  };
+  [key: string]: any;
+};
+
+export type ExtMsg = {
+  action: string;
+  payload?: IMsgPayload;
+};
