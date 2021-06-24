@@ -15,7 +15,7 @@ export function fetchInfo(
   // @ts-ignore
   if (ENV_FLAG === '__ENV_GM__') {
     const gmXhrOpts = { ...opts };
-    if (method === 'POST') {
+    if (method === 'POST' && gmXhrOpts.body) {
       gmXhrOpts.data = gmXhrOpts.body;
     }
     if (opts.decode) {
@@ -43,6 +43,9 @@ export function fetchInfo(
         ...gmXhrOpts,
       });
     });
+  }
+  if (method === 'POST' && opts.data) {
+    opts.body = opts.data;
   }
   return internalFetch(
     fetch(url, {
