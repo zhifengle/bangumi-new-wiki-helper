@@ -5,7 +5,7 @@
 yarn.lock
 extension/dist
 node_modules
-extension.crx
-extension.pem
+*.crx
+*.pem
 *-bk.test.ts
 web-ext-artifacts
