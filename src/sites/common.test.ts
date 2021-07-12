@@ -1,5 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
 import { dealItemText, combineInfoList, getWikiData } from './common';
-import { getchuGameModel } from '../models/getchuGame';
 import { steamdbModel } from '../models/steamdb';
 import { amazonSubjectModel } from '../models/amazonJpBook';
 
@@ -201,7 +203,6 @@ describe('test common', () => {
 
 describe('test get wiki data', () => {
   test('get steam db wiki data', async () => {
-    // getWikiData(getchuGameModel)
     const rawHtml = require('../data/SteamDB.html');
     const jsdom = require('jsdom');
     const { JSDOM } = jsdom;
@@ -219,7 +220,6 @@ describe('test get wiki data', () => {
     );
   });
   test('get amazon book wiki data', async () => {
-    // getWikiData(getchuGameModel)
     const rawHtml = require('../data/amazon-book.html');
     const jsdom = require('jsdom');
     const { JSDOM } = jsdom;
@@ -272,7 +272,6 @@ describe('test get wiki data', () => {
     );
   });
   test('get amazon book wiki cn data', async () => {
-    // getWikiData(getchuGameModel)
     const rawHtml = require('../data/amazon-book-cn.html');
     const jsdom = require('jsdom');
     const { JSDOM } = jsdom;
