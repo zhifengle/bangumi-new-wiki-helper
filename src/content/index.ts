@@ -9,18 +9,8 @@ import { getchu } from './getchu';
 import { getchuGameModel } from '../models/getchuGame';
 import { initChara } from './character';
 import { IMsgPayload } from '../interface/types';
-import { Notyf } from 'notyf';
+import { logMessage } from '../utils/log';
 
-async function handleMessage(request: any) {
-  const notyf = new Notyf({
-    position: {
-      x: 'right',
-      y: 'top',
-    },
-  });
-  // Display an error notification
-  notyf.success(JSON.stringify(request));
-}
 async function fetchCover(infoList: SingleInfo[]) {
   // 封面有 url 但是获取失败。尝试使用 background 获取
   for (let i = 0; i < infoList.length; i++) {
@@ -114,4 +104,4 @@ const init = function () {
 };
 init();
 
-browser.runtime.onMessage.addListener(handleMessage);
+browser.runtime.onMessage.addListener(logMessage);

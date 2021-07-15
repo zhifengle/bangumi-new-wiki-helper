@@ -53,3 +53,9 @@ export type ExtMsg = {
   action: string;
   payload?: IMsgPayload;
 };
+
+export type LogMsg = {
+  type: 'succuss' | 'info' | 'error';
+  message: string;
+  duration?: number;
+};

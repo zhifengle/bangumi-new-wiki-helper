@@ -6,7 +6,8 @@ import { setVal } from './utils';
 import { getSubjectId } from '../sites/bangumi/common';
 import { getImageDataByURL } from '../utils/dealImage';
 import { fetchText } from '../utils/fetchData';
-import { ExtMsg, IAuxPrefs, IFetchOpts } from '../interface/types';
+import { ExtMsg, IAuxPrefs, IFetchOpts, LogMsg } from '../interface/types';
+import { genAnonymousLinkText } from '../utils/domUtils';
 // import { version as VERSION } from "../../extension/manifest.json";
 
 const VERSION = '0.3.0';
@@ -20,6 +21,16 @@ interface Config {
 
 let E_USER_CONFIG: Config = {};
 
+async function sendMsgToCurrentTab(
+  payload: LogMsg & Record<string, string | number>
+) {
+  const tabs = await browser.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
+  browser.tabs.sendMessage(tabs[0].id, payload);
+}
+
 async function handleMessage(request: ExtMsg) {
   const { payload = {} } = request;
   const activeOpen = E_USER_CONFIG.activeOpen;
@@ -31,31 +42,48 @@ async function handleMessage(request: ExtMsg) {
   }
   switch (request.action) {
     case 'check_subject_exist':
-      try {
-        if (payload.subjectInfo) {
-          const result = await checkSubjectExit(
+      if (payload.subjectInfo) {
+        sendMsgToCurrentTab({
+          type: 'info',
+          message: `搜索中...<br/>${payload?.subjectInfo?.name ?? ''}`,
+          duration: 0,
+        });
+        let result: any = undefined;
+        try {
+          result = await checkSubjectExit(
             payload.subjectInfo,
             bgmHost,
             payload.type,
             payload.disableDate
           );
           console.info('search results: ', result);
-          if (result && result.url) {
-            await browser.tabs.create({
-              url: bgmHost + result.url,
-              active: activeOpen,
-            });
-            setVal('subjectId', getSubjectId(result.url));
-          } else {
-            payload.auxSite && (await updateAuxData(payload.auxSite));
-            createNewSubjectTab(payload.type, bgmHost, activeOpen);
-          }
+          sendMsgToCurrentTab({
+            type: 'info',
+            message: '',
+            cmd: 'dismissNotError',
+          });
+        } catch (e) {
+          console.log('fetch info err:', e, e.message);
+          sendMsgToCurrentTab({
+            type: 'error',
+            message: `Bangumi 搜索匹配结果为空: <br/><b>${
+              payload?.subjectInfo?.name ?? ''
+            }</b>`,
+            cmd: 'dismissNotError',
+          });
+        }
+        if (result && result.url) {
+          await browser.tabs.create({
+            url: bgmHost + result.url,
+            active: activeOpen,
+          });
+          setVal('subjectId', getSubjectId(result.url));
         } else {
+          payload.auxSite && (await updateAuxData(payload.auxSite));
           createNewSubjectTab(payload.type, bgmHost, activeOpen);
         }
-      } catch (e) {
-        /* handle error */
-        console.log('fetch info err:', e, e.message);
+      } else {
+        createNewSubjectTab(payload.type, bgmHost, activeOpen);
       }
       break;
     case 'create_new_subject':
@@ -103,10 +131,34 @@ async function updateAuxData(payload: {
     prefs: auxPrefs = {},
   } = payload;
   try {
+    sendMsgToCurrentTab({
+      type: 'info',
+      message: `抓取第三方网站信息中:<br/>${auxSite}`,
+      duration: 0,
+    });
     console.info('the start of updating aux data');
     const auxData = await getWikiDataByURL(auxSite, auxSiteOpts);
     const obj = await browser.storage.local.get(['wikiData']);
     console.info('current wikiData: ', obj.wikiData);
+    if (!auxData || (auxData && auxData.length === 0)) {
+      sendMsgToCurrentTab({
+        type: 'error',
+        message: `抓取信息为空<br/>
+      ${genAnonymousLinkText(auxSite, auxSite)}
+      <br/>
+      打开上面链接确认是否能访问以及有信息，再尝试`,
+        cmd: 'dismissNotError',
+      });
+    } else {
+      sendMsgToCurrentTab({
+        type: 'info',
+        message: `抓取第三方网站信息成功:<br/>${genAnonymousLinkText(
+          auxSite,
+          auxSite
+        )}`,
+        cmd: 'dismissNotError',
+      });
+    }
     console.info('auxiliary data: ', auxData);
     const { wikiData } = obj;
     let infos = combineInfoList(wikiData.infos, auxData, auxPrefs);
@@ -123,6 +175,14 @@ async function updateAuxData(payload: {
     console.info('the end of updating aux data');
   } catch (e) {
     console.error(e);
+    sendMsgToCurrentTab({
+      type: 'error',
+      message: `抓取信息失败<br/>
+      ${genAnonymousLinkText(auxSite, auxSite)}
+      <br/>
+      打开上面链接确认是否能访问以及有信息，再尝试`,
+      cmd: 'dismissNotError',
+    });
   }
 }
 

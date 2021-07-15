@@ -1,5 +1,5 @@
 import { SiteConfig } from '../interface/wiki';
-import { findElement } from '../utils/domUtils';
+import { findElement, genAnonymousLinkText } from '../utils/domUtils';
 import {
   getQueryInfo,
   insertControlBtn,
@@ -20,6 +20,7 @@ import { sleep } from '../utils/async/sleep';
 import { getHooks } from '../sites';
 import { getSubjectId } from '../sites/bangumi/common';
 import { IAuxPrefs, IFetchOpts, IMsgPayload } from '../interface/types';
+import { logMessage } from '../utils/log';
 
 async function updateAuxData(payload: {
   url: string;
@@ -32,8 +33,35 @@ async function updateAuxData(payload: {
     prefs: auxPrefs = {},
   } = payload;
   try {
+    logMessage({
+      type: 'info',
+      message: `抓取第三方网站信息中:<br/>${genAnonymousLinkText(
+        auxSite,
+        auxSite
+      )}`,
+      duration: 0,
+    });
     console.info('the start of updating aux data');
     const auxData = await getWikiDataByURL(auxSite, auxSiteOpts);
+    if (!auxData || (auxData && auxData.length === 0)) {
+      logMessage({
+        type: 'error',
+        message: `抓取信息为空<br/>
+      ${genAnonymousLinkText(auxSite, auxSite)}
+      <br/>
+      打开上面链接确认是否能访问以及有信息，再尝试`,
+        cmd: 'dismissNotError',
+      });
+    } else {
+      logMessage({
+        type: 'info',
+        message: `抓取第三方网站信息成功:<br/>${genAnonymousLinkText(
+          auxSite,
+          auxSite
+        )}`,
+        cmd: 'dismissNotError',
+      });
+    }
     console.info('auxiliary data: ', auxData);
     const wikiData = JSON.parse(GM_getValue(WIKI_DATA) || null);
     let infos = combineInfoList(wikiData.infos, auxData, auxPrefs);
@@ -51,6 +79,14 @@ async function updateAuxData(payload: {
     console.info('the end of updating aux data');
   } catch (e) {
     console.error(e);
+    logMessage({
+      type: 'error',
+      message: `抓取信息失败<br/>
+      ${genAnonymousLinkText(auxSite, auxSite)}
+      <br/>
+      打开上面链接确认是否能访问以及有信息，再尝试`,
+      cmd: 'dismissNotError',
+    });
   }
 }
 
@@ -83,13 +119,34 @@ export async function initCommon(siteConfig: SiteConfig) {
     };
     GM_setValue(WIKI_DATA, JSON.stringify(wikiData));
     if (flag) {
-      let result = await checkSubjectExit(
-        getQueryInfo(infoList),
-        bgmHost,
-        wikiData.type,
-        payload?.disableDate
-      );
-      console.info('search results: ', result);
+      const info = getQueryInfo(infoList);
+      logMessage({
+        type: 'info',
+        message: `搜索中...<br/>${info?.name ?? ''}`,
+        duration: 0,
+      });
+      let result: any = undefined;
+      try {
+        result = await checkSubjectExit(
+          info,
+          bgmHost,
+          wikiData.type,
+          payload?.disableDate
+        );
+        console.info('search results: ', result);
+        logMessage({
+          type: 'info',
+          message: '',
+          cmd: 'dismissNotError',
+        });
+      } catch (error) {
+        logMessage({
+          type: 'error',
+          // message: `搜索结果为空<br/>${info?.name ?? ''}`,
+          message: `Bangumi 搜索匹配结果为空: <br/><b>${info?.name ?? ''}</b>`,
+          cmd: 'dismissNotError',
+        });
+      }
       if (result && result.url) {
         GM_setValue(SUBJECT_ID, getSubjectId(result.url));
         await sleep(100);
@@ -204,4 +261,6 @@ export function addStyle() {
   vertical-align: -5px;
 }
   `);
+  const my_css = GM_getResourceText('NOTYF_CSS');
+  GM_addStyle(my_css);
 }
