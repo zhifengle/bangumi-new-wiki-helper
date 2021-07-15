@@ -42,7 +42,9 @@ async function updateAuxData(payload: {
       duration: 0,
     });
     console.info('the start of updating aux data');
+    window._fetch_url_bg = auxSite;
     const auxData = await getWikiDataByURL(auxSite, auxSiteOpts);
+    window._fetch_url_bg = null;
     if (!auxData || (auxData && auxData.length === 0)) {
       logMessage({
         type: 'error',

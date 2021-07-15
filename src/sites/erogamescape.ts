@@ -155,6 +155,9 @@ export const erogamescapeTools: SiteTools = {
                 cookie: 'getchu_adalt_flag=getchu.com',
                 decode: 'EUC-JP',
               },
+              prefs: {
+                targetNames: ['cover'],
+              },
             },
           },
         };

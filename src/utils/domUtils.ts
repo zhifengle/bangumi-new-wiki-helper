@@ -305,3 +305,11 @@ export function genAnonymousLinkText(url: string, text: string): string {
       ${text}</a>
     `;
 }
+
+export function addHTMLBase(html: string, url: string): string {
+  if (html.match(/<base.+>/)) {
+    return html;
+  }
+  const obj = new URL(url);
+  return html.replace('</head>', `<base href="${obj.origin}"></head>`);
+}

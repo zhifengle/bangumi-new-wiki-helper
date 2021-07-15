@@ -21,6 +21,9 @@ interface Config {
 
 let E_USER_CONFIG: Config = {};
 
+// ref: header editor
+const IS_CHROME = /Chrome\/(\d+)\.(\d+)/.test(navigator.userAgent);
+
 async function sendMsgToCurrentTab(
   payload: LogMsg & Record<string, string | number>
 ) {
@@ -28,7 +31,9 @@ async function sendMsgToCurrentTab(
     active: true,
     currentWindow: true,
   });
-  browser.tabs.sendMessage(tabs[0].id, payload);
+  if (tabs && Array.isArray(tabs) && tabs[0]) {
+    browser.tabs.sendMessage(tabs[0].id, payload);
+  }
 }
 
 async function handleMessage(request: ExtMsg) {
@@ -137,7 +142,9 @@ async function updateAuxData(payload: {
       duration: 0,
     });
     console.info('the start of updating aux data');
+    window._fetch_url_bg = auxSite;
     const auxData = await getWikiDataByURL(auxSite, auxSiteOpts);
+    window._fetch_url_bg = null;
     const obj = await browser.storage.local.get(['wikiData']);
     console.info('current wikiData: ', obj.wikiData);
     if (!auxData || (auxData && auxData.length === 0)) {
@@ -186,6 +193,18 @@ async function updateAuxData(payload: {
   }
 }
 
+function createHeaderListener(type: string): any {
+  const result = ['blocking'];
+  result.push(type);
+  if (
+    IS_CHROME &&
+    // @ts-ignore
+    chrome.webRequest.OnBeforeSendHeadersOptions.hasOwnProperty('EXTRA_HEADERS')
+  ) {
+    result.push('extraHeaders');
+  }
+  return result;
+}
 async function init() {
   // 初始化设置
   const obj = await browser.storage.local.get(['version', 'config']);
@@ -213,6 +232,23 @@ async function init() {
       console.log('E_CONFIG: ', E_USER_CONFIG);
     }
   });
+  browser.webRequest.onBeforeSendHeaders.addListener(
+    (obj) => {
+      let m = (obj?.url ?? '').match(/brandnew\/(\d+)/);
+      if (m) {
+        obj.requestHeaders.push({
+          name: 'Referer',
+          value: `http://www.getchu.com/soft.phtml?id=${m[1]}`,
+        });
+      }
+      return { requestHeaders: obj.requestHeaders };
+    },
+    {
+      // urls: ['http://*/brandnew/*'],
+      urls: ['http://www.getchu.com/brandnew/*'],
+    },
+    createHeaderListener('requestHeaders')
+  );
 }
 
 init();

@@ -11,6 +11,12 @@ export async function getCover($d: Element, site: ModelKey) {
   }
   if (!url) return;
   try {
+    // 在其它网站上获取的相对路径的链接
+    // @TODO 这里临时使用的全局变量来处理
+    if (window._fetch_url_bg && !/^https?:/.test(url)) {
+      const urlObj = new URL(window._fetch_url_bg);
+      url = `${urlObj.origin}/${url.replace(/^\.?\/?/, '')}`;
+    }
     // 跨域的图片不能用这种方式
     // dataUrl = convertImgToBase64($d as any);
     let opts: any = {};
@@ -18,6 +24,9 @@ export async function getCover($d: Element, site: ModelKey) {
       opts.headers = {
         Referer: location.href,
       };
+      if (!location.href.includes('getchu.com') && window._fetch_url_bg) {
+        opts.headers.Referer = window._fetch_url_bg;
+      }
     }
     dataUrl = await getImageDataByURL(url, opts);
     if (dataUrl) {
