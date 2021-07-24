@@ -299,7 +299,7 @@ export function loadIframe(
 
 export function genAnonymousLinkText(url: string, text: string): string {
   return `<a
-      _target="blank"
+      target="_blank"
       href="${url}"
       rel="noopener noreferrer nofollow">
       ${text}</a>
