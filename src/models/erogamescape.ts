@@ -50,7 +50,7 @@ erogamescapeModel.itemList.push(
     category: 'cover',
   },
   {
-    name: '官方网站',
+    name: 'website',
     selector: [
       {
         selector: '#links',
