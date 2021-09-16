@@ -1,5 +1,7 @@
 # Bangumi New Wiki Helper
 
+![master](https://github.com/22earth/bangumi-new-wiki-helper/actions/workflows/node.js.yml/badge.svg?branch=master)
+
 辅助在 bangumi.tv 或者 bgm.tv 上创建新的条目
 
 支持日亚的图书、getchu 的游戏、 steam 、steamdb 、jd 图书、当当图书、豆瓣游戏、DMM 游戏、Dlsite 游戏。
