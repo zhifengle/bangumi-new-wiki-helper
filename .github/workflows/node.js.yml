@@ -3,6 +3,8 @@ name: Node.js CI
 on:
   push:
     branches: [master]
+    paths:
+      - 'src/**/*.ts'
   pull_request:
     branches: [master]
 
