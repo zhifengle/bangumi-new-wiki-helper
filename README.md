@@ -1,8 +1,6 @@
 # Bangumi New Wiki Helper
 
-[![Build Status](https://img.shields.io/travis/22earth/bangumi-new-wiki-helper/master.svg?style=flat-square)](https://travis-ci.com/22earth/bangumi-new-wiki-helper.svg?branch=master)
-[![GitHub release](https://img.shields.io/github/release/22earth/bangumi-new-wiki-helper.svg?style=flat-square)](https://github.com/22earth/bangumi-new-wiki-helper/releases)
-[![license](https://img.shields.io/github/license/22earth/bangumi-new-wiki-helper.svg?style=flat-square)](https://github.com/22earth/bangumi-new-wiki-helper/blob/master/LICENSE)
+![master](https://github.com/22earth/bangumi-new-wiki-helper/actions/workflows/node.js.yml/badge.svg?branch=master)
 
 辅助在 bangumi.tv 或者 bgm.tv 上创建新的条目
 
