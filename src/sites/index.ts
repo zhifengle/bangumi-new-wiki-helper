@@ -6,6 +6,7 @@ import {
   SiteConfig,
 } from '../interface/wiki';
 import { dealDate } from '../utils/utils';
+import { adultComicTools } from './adultcomic';
 import { amazonJpBookTools } from './amazon';
 import { dlsiteCharaTools, dlsiteTools } from './dlsite';
 import { dmmCharaTools, dmmTools } from './dmm';
@@ -93,6 +94,7 @@ export const sitesFuncDict: {
   douban_game_edit: doubanGameEditTools,
   dlsite_game: dlsiteTools,
   dmm_game: dmmTools,
+  adultcomic: adultComicTools,
 };
 
 // 存储新建角色的钩子函数和 filters

@@ -53,6 +53,7 @@ export type ModelKey =
   | 'dmm_manga'
   | 'dlsite_game'
   | 'dlsite_manga'
+  | 'adultcomic'
   | CharaModelKey;
 
 export type CharaType = 'person' | 'character';

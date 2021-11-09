@@ -8,6 +8,10 @@ export async function getCover($d: Element, site: ModelKey) {
     url = $d.getAttribute('href');
   } else if ($d.tagName.toLowerCase() === 'img') {
     url = $d.getAttribute('src');
+    const dataSrc = $d.getAttribute('data-src');
+    if (dataSrc) {
+      url = dataSrc;
+    }
   }
   if (!url) return;
   try {

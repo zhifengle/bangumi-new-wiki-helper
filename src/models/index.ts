@@ -19,6 +19,7 @@ import { dmmGameModel } from './dmmGame';
 import { dlsiteGameCharaModel } from './dlsiteGameChara';
 import { dmmGameCharaModel } from './dmmGameChara';
 import { getchuCharaModel } from './getchuChara';
+import { adultComicModel } from './adultcomic';
 
 // 新增的 site model 需要在这里配置
 export const configs = {
@@ -33,6 +34,7 @@ export const configs = {
   [doubanGameEditModel.key]: doubanGameEditModel,
   [dlsiteGameModel.key]: dlsiteGameModel,
   [dmmGameModel.key]: dmmGameModel,
+  [adultComicModel.key]: adultComicModel,
 };
 
 export const charaModelDict = {
