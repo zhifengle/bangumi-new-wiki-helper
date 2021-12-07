@@ -56,6 +56,9 @@ export const amazonJpBookTools: SiteTools = {
           } else {
             newInfo = null;
           }
+        } else if (info.name === '价格') {
+          let val = (info.value || '').replace(/来自|より/, '').trim();
+          newInfo.value = val;
         }
         if (newInfo) {
           res.push({

@@ -225,48 +225,45 @@ describe('test get wiki data', () => {
     const { JSDOM } = jsdom;
     const dom = new JSDOM(rawHtml);
     const infos = await getWikiData(amazonSubjectModel, dom.window.document);
-    expect(infos).toHaveLength(9);
+    expect(infos).toHaveLength(10);
     expect(infos).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           name: '名称',
-          value: '大蜘蛛ちゃんフラッシュ・バック(2)',
+          value: 'たゆたいエマノン',
           category: 'subject_title',
         }),
         expect.objectContaining({
           name: 'ISBN',
-          value: '978-4065111819',
+          value: '978-4198643829',
           category: 'ISBN',
         }),
         expect.objectContaining({
+          name: 'ASIN',
+          value: '4198643822',
+          category: 'ASIN',
+        }),
+        expect.objectContaining({
           name: '发售日',
-          value: '2018-04-23',
+          value: '2017-04-07',
           category: 'date',
         }),
         expect.objectContaining({
           name: '作者',
-          value: '植芝理一',
+          value: '梶尾真治',
           category: 'creator',
         }),
         expect.objectContaining({
           name: '出版社',
-          value: '講談社',
-          category: undefined,
+          value: '徳間書店',
         }),
         expect.objectContaining({
           name: '页数',
-          value: '192',
-          category: undefined,
+          value: '221',
         }),
         expect.objectContaining({
           name: '价格',
-          value: '￥660',
-          category: undefined,
-        }),
-        expect.objectContaining({
-          name: 'ASIN',
-          value: '4065111811',
-          category: 'ASIN',
+          value: '￥238',
         }),
       ])
     );
@@ -277,8 +274,7 @@ describe('test get wiki data', () => {
     const { JSDOM } = jsdom;
     const dom = new JSDOM(rawHtml);
     const infos = await getWikiData(amazonSubjectModel, dom.window.document);
-    // 内容简介在 iframe 里面
-    expect(infos).toHaveLength(9);
+    expect(infos).toHaveLength(10);
     expect(infos).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -313,8 +309,7 @@ describe('test get wiki data', () => {
         }),
         expect.objectContaining({
           name: '价格',
-          value: 'JP¥1,760',
-          category: undefined,
+          value: 'JP¥238',
         }),
         expect.objectContaining({
           name: 'ASIN',
