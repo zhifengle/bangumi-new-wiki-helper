@@ -181,6 +181,9 @@ amazonSubjectModel.itemList.push(
         keyWord: ['内容紹介', '内容'],
       },
       {
+        selector: '#bookDescription_feature_div',
+      },
+      {
         selector: '#bookDesc_iframe',
         subSelector: '#iframeContent',
         isIframe: true,
