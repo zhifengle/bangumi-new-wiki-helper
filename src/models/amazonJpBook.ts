@@ -181,7 +181,7 @@ amazonSubjectModel.itemList.push(
         keyWord: ['内容紹介', '内容'],
       },
       {
-        selector: '#bookDescription_feature_div',
+        selector: '#bookDescription_feature_div .a-expander-content',
       },
       {
         selector: '#bookDesc_iframe',
