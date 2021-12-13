@@ -99,18 +99,19 @@ dmmGameModel.itemList.push(
     ],
   },
   ...configArr,
-  {
-    name: 'cover',
-    selector: [
-      {
-        ...contentIframe,
-        nextSelector: {
-          selector: '#guide-head > img',
-        },
-      },
-    ],
-    category: 'cover',
-  },
+  // 部分页面的图片是预览图，不少封面。所以改在 hook 里面，提取图片。
+  // {
+  //   name: 'cover',
+  //   selector: [
+  //     {
+  //       ...contentIframe,
+  //       nextSelector: {
+  //         selector: '#guide-head > img',
+  //       },
+  //     },
+  //   ],
+  //   category: 'cover',
+  // },
   {
     name: '游戏简介',
     selector: [

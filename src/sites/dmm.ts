@@ -3,6 +3,7 @@ import { CharaModel } from '../interface/wiki';
 import { getImageDataByURL } from '../utils/dealImage';
 import { $qa } from '../utils/domUtils';
 import { dealDate } from '../utils/utils';
+import { getWikiItem } from './common';
 import { charaInfoDict } from './lib';
 import { SiteTools } from './types';
 
@@ -43,6 +44,25 @@ export const dmmTools: SiteTools = {
               },
             });
           }
+        } else {
+          const coverInfo = await getWikiItem(
+            {
+              name: 'cover',
+              selector: [
+                {
+                  selector: '#if_view',
+                  isIframe: true,
+                  subSelector: 'body',
+                  nextSelector: {
+                    selector: '#guide-head > img',
+                  },
+                },
+              ],
+              category: 'cover',
+            },
+            'dmm_game'
+          );
+          coverInfo && res.push(coverInfo);
         }
       }
       return res;
