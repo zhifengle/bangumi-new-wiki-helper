@@ -15,6 +15,10 @@ export async function uploadSubjectCover(
   const rawText = await fetchText(url);
   const $doc = new DOMParser().parseFromString(rawText, 'text/html');
   const $form = $doc.querySelector('form[name=img_upload') as HTMLFormElement;
+  if (!$form) {
+    console.error('获取封面表单失败');
+    return;
+  }
   await sendFormImg($form, dataUrl);
 }
 
