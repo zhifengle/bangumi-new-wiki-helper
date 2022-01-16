@@ -230,6 +230,8 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       $q('#columnInSubjectA [name=subject_title]').value = '';
       // @ts-ignore
       $q('#subject_summary').value = '';
+      // 移除上传图片
+      $q('.e-wiki-cover-container')?.remove();
     }
   );
   const coverInfo = wikiInfo.infos.filter(
@@ -307,6 +309,8 @@ export function initNewCharacter(
       $q('#columnInSubjectA #crt_name').value = '';
       // @ts-ignore
       $q('#crt_summary').value = '';
+      // 移除上传图片
+      $q('.e-wiki-cover-container')?.remove();
     }
   );
   const coverInfo = wikiInfo.infos.filter(

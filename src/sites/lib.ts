@@ -17,9 +17,9 @@ export async function getCover($d: Element, site: ModelKey) {
   try {
     // 在其它网站上获取的相对路径的链接
     // @TODO 这里临时使用的全局变量来处理
-    if (window._fetch_url_bg && !/^https?:/.test(url)) {
-      const urlObj = new URL(window._fetch_url_bg);
-      url = `${urlObj.origin}/${url.replace(/^\.?\/?/, '')}`;
+    if (!/^https?:/.test(url)) {
+      let baseUrl = window._fetch_url_bg || location.href;
+      url = new URL(url, baseUrl).href;
     }
     // 跨域的图片不能用这种方式
     // dataUrl = convertImgToBase64($d as any);

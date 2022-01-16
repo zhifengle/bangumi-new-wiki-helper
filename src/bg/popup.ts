@@ -37,13 +37,10 @@ function initEvent() {
     .querySelector('.setting-container > ul')
     .addEventListener('click', (e) => {
       const $target = e.target as any;
-      if (
-        $target.tagName.toLowerCase() === 'input' &&
-        $target.type === 'checkbox'
-      ) {
-        if ($target.name !== 'clearBtn') {
+      if ($target.tagName.toLowerCase() === 'input') {
+        if ($target.name !== 'clearBtn' && $target.type === 'checkbox') {
           setVal($target.name, $target.checked);
-        } else {
+        } else if ($target.name === 'clearBtn') {
           clearInfo();
         }
       }

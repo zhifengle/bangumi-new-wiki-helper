@@ -17,9 +17,13 @@ async function fetchCover(infoList: SingleInfo[]) {
     const info = infoList[i];
     if (info.category == 'cover') {
       const dataUrl = info?.value?.dataUrl || '';
-      const url = info?.value?.url || '';
+      let url = info?.value?.url || '';
       if (!/^data:image/.test(dataUrl) && url) {
         console.log('fetch cover by background');
+        // url 是相对路径
+        if (!/^http/.test(url)) {
+          url = new URL(url, location.href).href;
+        }
         const dataUrl = await browser.runtime.sendMessage({
           action: 'fetch_data_bg',
           payload: {
