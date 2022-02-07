@@ -6,8 +6,23 @@ export const amazonUtils = {
     str = str.trim().split('\n')[0].trim();
     // str = str.split(/\s[(（][^0-9)）]+?[)）]/)[0]
     // 去掉尾部括号的内容, (1) （1） 这类不处理
-    return str.replace(/\s[(（][^0-9)）]+?[)）]$/g, '').trim();
-    // return str.replace(/(?:(\d+))(\)|）).*$/, '$1$2').trim();
+    const textList = [
+      '\\([^0-9]+?\\)$',
+      '（[^0-9]+?）$',
+      '\\(.+?\\d+.+?\\)$', // 中间包含数字
+      '（.+?\\d+.+?）$',
+    ]; // 去掉多余的括号信息
+    str = str.replace(new RegExp(textList.join('|'), 'g'), '').trim();
+    // return str.replace(/\s[(（][^0-9)）]+?[)）]$/g, '').trim();
+    return str;
+  },
+  // 获取 URL 的 dp
+  getUrlDp(str: string): string {
+    const m = str.match(/\/dp\/(.*?)\//);
+    if (m) {
+      return m[1];
+    }
+    return '';
   },
 };
 
@@ -42,6 +57,32 @@ export const amazonJpBookTools: SiteTools = {
         $div.appendChild($txt);
         $div.style.padding = '6px 0';
         $t.insertAdjacentElement('afterend', $div);
+        // 没有简介时，使用 kindle 版本的介绍
+        const $desc = document.querySelector(
+          '#bookDescription_feature_div .a-expander-content'
+        );
+        if (!$desc) {
+          const btns: NodeListOf<HTMLAnchorElement> = document.querySelectorAll(
+            '#tmmSwatches ul > li.swatchElement .a-button-text'
+          );
+          if (btns && btns.length) {
+            const url = Array.from(btns)
+              .map((a) => a.href)
+              .filter((h) => h.match(/^http/))[0];
+            if (url) {
+              return {
+                payload: {
+                  auxSite: {
+                    url,
+                    prefs: {
+                      originNames: ['ISBN', '名称'],
+                    },
+                  },
+                },
+              };
+            }
+          }
+        }
       }
       return true;
     },

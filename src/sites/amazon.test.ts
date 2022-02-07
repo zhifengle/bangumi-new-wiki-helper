@@ -16,5 +16,11 @@ describe('test amazon function', function () {
                 大蜘蛛ちゃんフラッシュ・バック(2) (アフタヌーンKC)
             `)
     ).toEqual('大蜘蛛ちゃんフラッシュ・バック(2)');
+
+    expect(
+      dealTitle(
+        '動物のおしゃべり　（１） (バンブーコミックス 4コマセレクション)'
+      )
+    ).toEqual('動物のおしゃべり　（１）');
   });
 });
