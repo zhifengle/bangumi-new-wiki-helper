@@ -1,5 +1,19 @@
 import { Selector } from '../interface/wiki';
 
+let contextDom: Document | Element = null;
+
+export function setCtxDom(dom: Document | Element) {
+  contextDom = dom;
+}
+
+export function getCtxDom() {
+  return contextDom;
+}
+
+export function clearCtxDom() {
+  setCtxDom(undefined);
+}
+
 /**
  * 为页面添加样式
  * @param style
@@ -35,8 +49,9 @@ export function getInnerText(elem: HTMLElement): string {
  * @param {string} selector
  */
 export function $q<E extends Element = Element>(selector: string): E | null {
-  if (window._parsedEl) {
-    return window._parsedEl.querySelector(selector);
+  const ctxDom = getCtxDom();
+  if (ctxDom) {
+    return ctxDom.querySelector(selector);
   }
   return document.querySelector(selector);
 }
@@ -46,8 +61,9 @@ export function $q<E extends Element = Element>(selector: string): E | null {
  * @param {string} selector
  */
 export function $qa<E extends Element>(selector: string): NodeListOf<E> {
-  if (window._parsedEl) {
-    return window._parsedEl.querySelectorAll(selector);
+  const ctxDom = getCtxDom();
+  if (ctxDom) {
+    return ctxDom.querySelectorAll(selector);
   }
   return document.querySelectorAll(selector);
 }

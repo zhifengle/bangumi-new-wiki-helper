@@ -9,10 +9,12 @@ import {
 } from '../interface/wiki';
 import { findModelByHost } from '../models';
 import {
+  clearCtxDom,
   findElement,
   getInnerText,
   getText,
   htmlToElement,
+  setCtxDom,
 } from '../utils/domUtils';
 import { fetchText } from '../utils/fetchData';
 import { dealTextByPipe } from '../utils/textPipe';
@@ -130,15 +132,11 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
 }
 
 export async function getWikiData(siteConfig: SiteConfig, el?: Document) {
-  if (el) {
-    window._parsedEl = el;
-  } else {
-    window._parsedEl = null;
-  }
+  el ? setCtxDom(el) : clearCtxDom();
   const r = await Promise.all(
     siteConfig.itemList.map((item) => getWikiItem(item, siteConfig.key))
   );
-  delete window._parsedEl;
+  clearCtxDom();
   const defaultInfos = siteConfig.defaultInfos || [];
   let rawInfo = r.filter((i) => i);
   const hookRes = await getHooks(siteConfig, 'afterGetWikiData')(
@@ -152,15 +150,11 @@ export async function getWikiData(siteConfig: SiteConfig, el?: Document) {
 }
 
 export async function getCharaData(model: CharaModel, el?: Document | Element) {
-  if (el) {
-    window._parsedEl = el;
-  } else {
-    window._parsedEl = null;
-  }
+  el ? setCtxDom(el) : clearCtxDom();
   const r = await Promise.all(
     model.itemList.map((item) => getWikiItem(item, model.key))
   );
-  delete window._parsedEl;
+  clearCtxDom();
   const defaultInfos = model.defaultInfos || [];
   let rawInfo = r.filter((i) => i);
   const hookRes = await getCharaHooks(model, 'afterGetWikiData')(

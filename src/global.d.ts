@@ -9,7 +9,6 @@ declare var GM_getResourceText: any;
 
 // @TODO avoid use global variable
 interface Window {
-  _parsedEl: Element | Document;
   // 后台的 url
   _fetch_url_bg?: string;
 }
