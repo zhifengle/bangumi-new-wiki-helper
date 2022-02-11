@@ -77,3 +77,7 @@ export function isEqualDate(d1: string, d2: string): boolean {
   }
   return false;
 }
+
+export function identity<T>(x: T): T {
+  return x;
+}
