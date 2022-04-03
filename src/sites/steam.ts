@@ -45,7 +45,7 @@ export const steamTools: SiteTools = {
       category: 'date',
       dealFunc(str: string) {
         if (/年/.test(str)) {
-          return dealDate(str);
+          return dealDate(str.replace(/\s/g, ''));
         }
         return formatDate(str);
       },

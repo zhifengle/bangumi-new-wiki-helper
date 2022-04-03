@@ -20,6 +20,7 @@ import { dlsiteGameCharaModel } from './dlsiteGameChara';
 import { dmmGameCharaModel } from './dmmGameChara';
 import { getchuCharaModel } from './getchuChara';
 import { adultComicModel } from './adultcomic';
+import { moepedia } from './moepedia';
 
 // 新增的 site model 需要在这里配置
 export const configs = {
@@ -35,6 +36,7 @@ export const configs = {
   [dlsiteGameModel.key]: dlsiteGameModel,
   [dmmGameModel.key]: dmmGameModel,
   [adultComicModel.key]: adultComicModel,
+  [moepedia.key]: moepedia,
 };
 
 export const charaModelDict = {

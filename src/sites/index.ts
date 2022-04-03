@@ -13,6 +13,7 @@ import { dmmCharaTools, dmmTools } from './dmm';
 import { doubanGameEditTools, doubanTools } from './douban';
 import { erogamescapeTools } from './erogamescape';
 import { getchuCharaTools, getchuSiteTools } from './getchu';
+import { moepediaTools } from './moepedia';
 import { steamdbTools, steamTools } from './steam';
 import { SiteTools } from './types';
 
@@ -95,6 +96,7 @@ export const sitesFuncDict: {
   dlsite_game: dlsiteTools,
   dmm_game: dmmTools,
   adultcomic: adultComicTools,
+  moepedia: moepediaTools,
 };
 
 // 存储新建角色的钩子函数和 filters

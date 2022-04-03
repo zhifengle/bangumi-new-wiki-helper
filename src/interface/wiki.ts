@@ -54,6 +54,7 @@ export type ModelKey =
   | 'dlsite_game'
   | 'dlsite_manga'
   | 'adultcomic'
+  | 'moepedia'
   | CharaModelKey;
 
 export type CharaType = 'person' | 'character';

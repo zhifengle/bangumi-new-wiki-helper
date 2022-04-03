@@ -45,7 +45,7 @@ export function dealDate(dataStr: string): string {
   let l: string[] = [];
   if (/\d{4}年\d{1,2}月(\d{1,2}日?)?/.test(dataStr)) {
     l = dataStr
-      .replace('日', '')
+      .replace(/日.*$/, '')
       .split(/年|月/)
       .filter((i) => i);
   } else if (/\d{4}\/\d{1,2}(\/\d{1,2})?/.test(dataStr)) {

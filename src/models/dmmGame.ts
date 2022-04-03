@@ -42,7 +42,7 @@ const arrDict = [
   {
     name: '发行日期',
     key: ['配信開始日'],
-    categrory: 'date',
+    category: 'date',
   },
   {
     name: '游戏类型',
@@ -74,8 +74,8 @@ const configArr = arrDict.map((obj) => {
       ...commonSelector,
     },
   } as InfoConfig;
-  if (obj.categrory) {
-    r.category = obj.categrory;
+  if (obj.category) {
+    r.category = obj.category;
   }
   return r;
 });
