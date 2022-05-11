@@ -1,7 +1,7 @@
 import { fetchJson, fetchText } from '../../utils/fetchData';
 import { SubjectTypeId } from '../../interface/wiki';
 import { sendForm, sendFormImg } from '../../utils/ajax';
-import { getBgmHost } from './common';
+import { getBgmHost, getFormByIframe } from './common';
 
 export async function uploadSubjectCover(
   subjectId: string,
@@ -50,9 +50,7 @@ export async function addPersonRelatedSubject(
   const bgmHost = `${location.protocol}//${location.host}`;
   const type = typeDict[typeId];
   const url = `${bgmHost}/character/${charaId}/add_related/${type}`;
-  const rawText = await fetchText(url);
-  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
-  const $form = $doc.querySelector('.mainWrapper form') as HTMLFormElement;
+  const $form = await getFormByIframe(url, '.mainWrapper form');
   const extroInfo: any = [];
   // 1 主角 2 配角 3 客串
   subjectIds.forEach((v, i) => {

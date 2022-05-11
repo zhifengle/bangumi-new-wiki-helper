@@ -2,6 +2,7 @@ import { dealDate } from '../../utils/utils';
 import { fetchText } from '../../utils/fetchData';
 import { sleep } from '../../utils/async/sleep';
 import { SubjectItem } from '../../interface/types';
+import { loadIframe } from '../../utils/domUtils';
 
 export function getBgmHost() {
   return `${location.protocol}//${location.host}`;
@@ -162,38 +163,6 @@ export async function getAllPageInfo(url: string) {
   return res;
 }
 
-function loadIframe($iframe: HTMLIFrameElement, subjectId: string) {
-  return new Promise((resolve, reject) => {
-    $iframe.src = `/update/${subjectId}`;
-    let timer = setTimeout(() => {
-      timer = null;
-      reject('iframe timeout');
-    }, 5000);
-    $iframe.onload = () => {
-      clearTimeout(timer);
-      $iframe.onload = null;
-      resolve(null);
-    };
-  });
-}
-
-export async function getUpdateForm(subjectId: string) {
-  const iframeId = 'e-userjs-update-interest';
-  let $iframe = document.querySelector(`#${iframeId}`) as HTMLIFrameElement;
-  if (!$iframe) {
-    $iframe = document.createElement('iframe');
-    $iframe.style.display = 'none';
-    $iframe.id = iframeId;
-    document.body.appendChild($iframe);
-  }
-  await loadIframe($iframe, subjectId);
-  const $form = $iframe.contentDocument.querySelector(
-    '#collectBoxForm'
-  ) as HTMLFormElement;
-  return $form;
-  // return $form.action;
-}
-
 type IInterestData = {
   // 想看 看过 在看 搁置 抛弃
   interest: '1' | '2' | '3' | '4' | '5';
@@ -203,6 +172,7 @@ type IInterestData = {
   // 1 为自己可见
   privacy?: '1' | '0';
 };
+
 /**
  * 更新用户收藏
  * @param subjectId 条目 id
@@ -210,7 +180,10 @@ type IInterestData = {
  */
 export async function updateInterest(subjectId: string, data: IInterestData) {
   // gh 暂时不知道如何获取，直接拿 action 了
-  const $form = await getUpdateForm(subjectId);
+  const $form = await getFormByIframe(
+    `/update/${subjectId}`,
+    '#collectBoxForm'
+  );
   const formData = new FormData($form);
   const obj = Object.assign(
     { referer: 'ajax', tags: '', comment: '', update: '保存' },
@@ -225,4 +198,22 @@ export async function updateInterest(subjectId: string, data: IInterestData) {
     method: 'POST',
     body: formData,
   });
+}
+/**
+ * 通过 iframe 获取表单
+ * @param url 链接地址
+ * @param formSelector 表单的 iframe
+ * @returns Promise<HTMLFormElement>
+ */
+export async function getFormByIframe(url: string, formSelector: string) {
+  const iframeId = 'e-userjs-iframe';
+  let $iframe = document.querySelector(`#${iframeId}`) as HTMLIFrameElement;
+  if (!$iframe) {
+    $iframe = document.createElement('iframe');
+    $iframe.style.display = 'none';
+    $iframe.id = iframeId;
+    document.body.appendChild($iframe);
+  }
+  await loadIframe($iframe, url);
+  return $iframe.contentDocument.querySelector(formSelector) as HTMLFormElement;
 }
