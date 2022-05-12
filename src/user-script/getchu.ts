@@ -3,12 +3,7 @@ import { $qa, findElement } from '../utils/domUtils';
 import { insertControlBtnChara } from '../sites/common';
 import { getchuTools } from '../sites/getchu';
 import { SingleInfo, SubjectWikiInfo } from '../interface/subject';
-import {
-  BGM_DOMAIN,
-  CHARA_DATA,
-  PROTOCOL,
-  AUTO_FILL_FORM,
-} from './constraints';
+import { BGM_DOMAIN, CHARA_DATA, PROTOCOL, AUTO_FILL_FORM } from './constants';
 
 export const getchu = {
   init(siteConfig: SiteConfig) {

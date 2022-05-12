@@ -1,6 +1,6 @@
 import { initCommon, addStyle } from './user-script';
 import { bangumi } from './user-script/bangumi';
-import { BGM_DOMAIN, PROTOCOL } from './user-script/constraints';
+import { BGM_DOMAIN, PROTOCOL } from './user-script/constants';
 import { findModelByHost } from './models';
 import { getchuGameModel } from './models/getchuGame';
 import { getchu } from './user-script/getchu';
@@ -21,11 +21,6 @@ function setProtocol() {
 }
 
 var bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
-
-// if (!bgm_domain.length || !bgm_domain.match(/bangumi\.tv|bgm\.tv/)) {
-//   bgm_domain = setDomain();
-//   bgm_domain = GM_getValue(BGM_DOMAIN);
-// }
 
 if (GM_registerMenuCommand) {
   GM_registerMenuCommand('设置 Bangumi 域名', setDomain, 'b');

@@ -15,7 +15,7 @@ import {
   PROTOCOL,
   WIKI_DATA,
   SUBJECT_ID,
-} from './constraints';
+} from './constants';
 import { sleep } from '../utils/async/sleep';
 import { getHooks } from '../sites';
 import { getSubjectId } from '../sites/bangumi/common';

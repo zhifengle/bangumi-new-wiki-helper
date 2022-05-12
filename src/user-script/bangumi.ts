@@ -4,12 +4,7 @@ import {
   initUploadImg,
 } from '../sites/bangumi/newSubject';
 import { $q } from '../utils/domUtils';
-import {
-  AUTO_FILL_FORM,
-  CHARA_DATA,
-  WIKI_DATA,
-  SUBJECT_ID,
-} from './constraints';
+import { AUTO_FILL_FORM, CHARA_DATA, WIKI_DATA, SUBJECT_ID } from './constants';
 
 export const bangumi = {
   async init() {

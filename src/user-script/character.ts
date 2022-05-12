@@ -5,12 +5,7 @@ import { addCharaUI, getCharaData } from '../sites/common';
 import { sleep } from '../utils/async/sleep';
 import { findAllElement, findElement } from '../utils/domUtils';
 import { fetchText } from '../utils/fetchData';
-import {
-  AUTO_FILL_FORM,
-  BGM_DOMAIN,
-  CHARA_DATA,
-  PROTOCOL,
-} from './constraints';
+import { AUTO_FILL_FORM, BGM_DOMAIN, CHARA_DATA, PROTOCOL } from './constants';
 
 export async function initChara(siteConfig: SiteConfig) {
   // 查找标志性的元素
