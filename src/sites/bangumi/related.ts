@@ -2,6 +2,8 @@ import { fetchJson, fetchText } from '../../utils/fetchData';
 import { SubjectTypeId } from '../../interface/wiki';
 import { sendForm, sendFormImg } from '../../utils/ajax';
 import { getBgmHost, getFormByIframe } from './common';
+import { genRandomStr } from '../../utils/utils';
+import { dataURItoBlob } from '../../utils/dealImage';
 
 export async function uploadSubjectCover(
   subjectId: string,
@@ -12,14 +14,28 @@ export async function uploadSubjectCover(
     bgmHost = `${location.protocol}//${location.host}`;
   }
   const url = `${bgmHost}/subject/${subjectId}/upload_img`;
-  const rawText = await fetchText(url);
-  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
-  const $form = $doc.querySelector('form[name=img_upload') as HTMLFormElement;
-  if (!$form) {
-    console.error('获取封面表单失败');
-    return;
+  const $hash = document.querySelector(
+    'form > input[name="formhash"]'
+  ) as HTMLInputElement;
+  if ($hash) {
+    const fd = new FormData();
+    fd.set('formhash', $hash.value);
+    fd.set('picfile', dataURItoBlob(dataUrl), genRandomStr(5) + '.png');
+    fd.set('submit', '上传图片');
+    const res = await fetch(url, {
+      body: fd,
+      method: 'post',
+    });
+  } else {
+    const rawText = await fetchText(url);
+    const $doc = new DOMParser().parseFromString(rawText, 'text/html');
+    const $form = $doc.querySelector('form[name=img_upload') as HTMLFormElement;
+    if (!$form) {
+      console.error('获取封面表单失败');
+      return;
+    }
+    await sendFormImg($form, dataUrl);
   }
-  await sendFormImg($form, dataUrl);
 }
 
 export async function searchCVByName(name: string, charaId: string = '') {

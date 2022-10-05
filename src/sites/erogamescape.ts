@@ -156,6 +156,7 @@ export const erogamescapeTools: SiteTools = {
                 decode: 'EUC-JP',
               },
               prefs: {
+                originNames: ['游戏名'],
                 targetNames: ['cover'],
               },
             },

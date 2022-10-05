@@ -92,6 +92,12 @@ getchuGameModel.itemList.push(
         selector: '#wrapper',
         subSelector: '.tabletitle',
         sibling: true,
+        keyWord: '作品紹介',
+      },
+      {
+        selector: '#wrapper',
+        subSelector: '.tabletitle',
+        sibling: true,
         keyWord: '商品紹介',
       },
     ],

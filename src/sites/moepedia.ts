@@ -1,4 +1,5 @@
 import { SingleInfo } from '../interface/subject';
+import { findElement } from '../utils/domUtils';
 import { SiteTools } from './types';
 
 function dealTitle(str: string): string {
@@ -10,6 +11,33 @@ function dealTitle(str: string): string {
 }
 export const moepediaTools: SiteTools = {
   hooks: {
+    async beforeCreate() {
+      const $el = findElement([
+        {
+          selector:
+            '.body-shop_list > .body-shop_item > a[href*="www.getchu.com/soft.phtml?id="]',
+        },
+      ]);
+      const url = $el?.getAttribute('href');
+      if (url) {
+        return {
+          payload: {
+            auxSite: {
+              url,
+              opts: {
+                cookie: 'getchu_adalt_flag=getchu.com',
+                decode: 'EUC-JP',
+              },
+              prefs: {
+                originNames: ['游戏名'],
+                targetNames: ['游戏简介'],
+              },
+            },
+          },
+        };
+      }
+      return true;
+    },
     async afterGetWikiData(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
