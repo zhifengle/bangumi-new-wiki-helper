@@ -1,6 +1,6 @@
 # Bangumi New Wiki Helper
 
-![master](https://github.com/22earth/bangumi-new-wiki-helper/actions/workflows/node.js.yml/badge.svg?branch=master)
+![master](https://github.com/zhifengle/bangumi-new-wiki-helper/actions/workflows/node.js.yml/badge.svg?branch=master)
 
 辅助在 bangumi.tv 或者 bgm.tv 上创建新的条目
 
@@ -34,7 +34,7 @@ Firefox: [扩展商店安装地址](https://addons.mozilla.org/zh-CN/firefox/add
 
 #### 手动安装
 
-地址： [Github release](https://github.com/22earth/bangumi-new-wiki-helper/releases)
+地址： [Github release](https://github.com/zhifengle/bangumi-new-wiki-helper/releases)
 
 Chrome: 由于没有发布账号，没法在 Chrome 的 APP Store 里面发布。只有下载 crx 文件，使用开发者模式试用
 

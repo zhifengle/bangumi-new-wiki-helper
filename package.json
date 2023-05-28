@@ -1,6 +1,6 @@
 {
   "name": "bangumi-new-wiki-helper",
-  "version": "0.4.14",
+  "version": "0.4.15",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,7 @@
     "start": "node bin/run-fx.js",
     "test": "jest --all"
   },
-  "author": "22earth",
+  "author": "zhifengle",
   "license": "MPL-2.0",
   "devDependencies": {
     "@rollup/plugin-commonjs": "11.0.2",

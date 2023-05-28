@@ -13,11 +13,11 @@ export const adultComicModel: SiteConfig = {
   pageSelectors: [
     {
       selector:
-        '#pankuz > ol > li:nth-child(1) > a[href$="adultcomic.dbsearch.net"]',
+        '#pankuz > ol > li:nth-child(1) > a[href*="adultcomic.dbsearch.net"]',
     },
   ],
   controlSelector: {
-    selector: '#main-inner h2',
+    selector: '#h2-icon-bk',
   },
   itemList: [],
 };
@@ -41,7 +41,7 @@ adultComicModel.itemList.push(
   {
     name: '名称',
     selector: {
-      selector: '#main-inner > article > h2',
+      selector: '#h2-icon-bk',
     },
     category: 'subject_title',
   },
@@ -50,7 +50,10 @@ adultComicModel.itemList.push(
     name: 'cover',
     selector: [
       {
-        selector: '#sample-image > figure > img',
+        selector: '#sample-image > figure > a',
+      },
+      {
+        selector: '#info-table > .img-box > img',
       },
     ],
     category: 'cover',
@@ -94,7 +97,7 @@ adultComicModel.itemList.push(
     selector: [
       {
         selector:
-          '#main-inner > article > section.comment-box.section-box > .iteminfo-box',
+          '#comment-clist > .iteminfo-box',
         subSelector: 'h4',
         sibling: true,
         keyWord: ['内容紹介'],
