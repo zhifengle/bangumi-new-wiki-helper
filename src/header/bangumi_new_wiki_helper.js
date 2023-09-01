@@ -20,7 +20,7 @@
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_getResourceText
-// @resource    NOTYF_CSS https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css
+// @resource    NOTYF_CSS https://cdn.staticfile.org/notyf/3.10.0/notyf.min.css
 // @require     https://cdn.staticfile.org/fuse.js/6.4.0/fuse.min.js
-// @require     https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js
+// @require     https://cdn.staticfile.org/notyf/3.10.0/notyf.min.js
 // ==/UserScript==
