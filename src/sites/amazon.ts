@@ -1,4 +1,5 @@
 import { SingleInfo } from '../interface/subject';
+import { getImageDataByURL } from '../utils/dealImage';
 import { SiteTools } from './types';
 
 export const amazonUtils = {
@@ -106,6 +107,23 @@ export const amazonJpBookTools: SiteTools = {
             ...newInfo,
           });
         }
+      }
+      const $cover = document.querySelector('#imgTagWrapperId>img');
+      if ($cover && !res.find((obj) => obj.name === 'cover')) {
+        const url = $cover.getAttribute('data-old-hires');
+        let dataUrl = url;
+        try {
+          dataUrl = await getImageDataByURL(url);
+        } catch (error) {}
+        const info: SingleInfo = {
+          category: 'cover',
+          name: 'cover',
+          value: {
+            url,
+            dataUrl,
+          },
+        };
+        res.push(info);
       }
       return res;
     },
