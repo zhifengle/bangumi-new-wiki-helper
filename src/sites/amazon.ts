@@ -108,12 +108,29 @@ export const amazonJpBookTools: SiteTools = {
           });
         }
       }
-      const $cover = document.querySelector('#imgTagWrapperId>img');
+      const $cover = document.querySelector('#imgTagWrapperId>img') as HTMLImageElement;
       if ($cover && !res.find((obj) => obj.name === 'cover')) {
-        const url = $cover.getAttribute('data-old-hires');
+        let url = '';
+        if ($cover.hasAttribute('data-a-dynamic-image')) {
+          try {
+            const obj = JSON.parse($cover.getAttribute('data-a-dynamic-image'));
+            const urlArr = Object.keys(obj).sort().reverse()
+            if (urlArr && urlArr.length > 0) {
+              url = urlArr[0]
+            }
+          } catch (error) {}
+        } else if ($cover.hasAttribute('data-old-hires')) {
+          url = $cover.getAttribute('data-old-hires');
+        }
+        // 如果还是没有图片链接
+        if (!url) {
+          url = $cover.src
+        }
         let dataUrl = url;
         try {
-          dataUrl = await getImageDataByURL(url);
+          if (url) {
+            dataUrl = await getImageDataByURL(url);
+          }
         } catch (error) {}
         const info: SingleInfo = {
           category: 'cover',

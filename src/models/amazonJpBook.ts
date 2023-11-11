@@ -10,13 +10,13 @@ export const amazonSubjectModel: SiteConfig = {
     {
       selector: '#nav-subnav .nav-a:first-child',
       subSelector: '.nav-a-content',
-      keyWord: ['本', '书'],
+      keyWord: ['本', '书', '漫画'],
     },
     {
       selector:
         '#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child',
       subSelector: '.a-link-normal',
-      keyWord: ['本', '书'],
+      keyWord: ['本', '书', '漫画'],
     },
   ],
   controlSelector: {
