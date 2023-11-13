@@ -34,6 +34,9 @@ export interface InfoConfig {
   pipes?: IPipeArr;
 }
 
+export type MusicModelKey =
+  | 'discogs';
+
 export type CharaModelKey =
   | 'dlsite_game_chara'
   | 'dmm_game_chara'
@@ -55,6 +58,7 @@ export type ModelKey =
   | 'dlsite_manga'
   | 'adultcomic'
   | 'moepedia'
+  | MusicModelKey
   | CharaModelKey;
 
 export type CharaType = 'person' | 'character';
