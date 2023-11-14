@@ -9,7 +9,7 @@ export type IPipeArgsDict = {
   [key in IPipe]?: any[];
 };
 export type IFuncPipe = (pipe: ITextPipe, ...args: any) => ITextPipe;
-export type IPipe = 't' | 'ta' | 'k' | 'p' | 'pn' | 'num' | 'date';
+export type IPipe = 't' | 'ta' | 'ti' | 'k' | 'p' | 'pn' | 'num' | 'date';
 export type IPipeArr = (IPipe | IFuncPipe)[];
 
 export const pipeFnDict: {
@@ -19,6 +19,8 @@ export const pipeFnDict: {
   t: trimSpace,
   // ta: 去除所有空格
   ta: trimAllSpace,
+  // ti: 去除空格，在 getWikiItem 里面，使用 innerText 取文本
+  ti: trimSpace,
   // k: 去除关键字;
   k: trimKeywords,
   // p: 括号

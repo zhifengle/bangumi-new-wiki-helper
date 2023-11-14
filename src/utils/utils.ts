@@ -53,6 +53,9 @@ export function dealDate(dataStr: string): string {
   } else if (/\d{4}-\d{1,2}(-\d{1,2})?/.test(dataStr)) {
     return dataStr;
   } else {
+    if (/[A-Za-z]+\s\d{1,2},?\s\d{4}$/.test(dataStr)) {
+      return formatDate(dataStr)
+    }
     return dataStr;
   }
   return l

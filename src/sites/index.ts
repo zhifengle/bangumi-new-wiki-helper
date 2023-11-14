@@ -16,6 +16,7 @@ import { getchuCharaTools, getchuSiteTools } from './getchu';
 import { moepediaTools } from './moepedia';
 import { steamdbTools, steamTools } from './steam';
 import { SiteTools } from './types';
+import { vgmdbTools } from './vgmdb';
 
 export function trimParenthesis(str: string) {
   const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
@@ -97,6 +98,7 @@ export const sitesFuncDict: {
   dmm_game: dmmTools,
   adultcomic: adultComicTools,
   moepedia: moepediaTools,
+  vgmdb: vgmdbTools,
 };
 
 // 存储新建角色的钩子函数和 filters

@@ -74,6 +74,9 @@ export async function getWikiItem(infoConfig: InfoConfig, site: ModelKey) {
   }
   let val: any;
   let txt = getText($d as HTMLElement);
+  if (infoConfig.pipes?.includes('ti')) {
+    txt = getInnerText($d as any)
+  }
   const pipeArgsDict = {
     k: [keyWords],
   };

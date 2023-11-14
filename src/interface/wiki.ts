@@ -29,12 +29,14 @@ export enum SubjectTypeId {
 export interface InfoConfig {
   name: string;
   selector: Selector | Selector[];
+  // website 读取 anchor.href
   category?: string;
   // 2021-05-14 兼容之前的代码. 在 getWikiItem 里面
   pipes?: IPipeArr;
 }
 
 export type MusicModelKey =
+  | 'vgmdb'
   | 'discogs';
 
 export type CharaModelKey =
