@@ -48,21 +48,16 @@ amazonSubjectModel.itemList.push(
     },
     category: 'subject_title',
   },
-  {
-    name: 'cover',
-    selector: [
-      {
-        selector: 'img#igImage',
-      },
-      {
-        selector: 'img#imgBlkFront',
-      },
-      {
-        selector: 'img#ebooksImgBlkFront',
-      },
-    ],
-    category: 'cover',
-  },
+  // 在 afterGetWikiData 获取封面
+  // {
+  //   name: 'cover',
+  //   selector: [
+  //     {
+  //       selector: 'img#igImage',
+  //     },
+  //   ],
+  //   category: 'cover',
+  // },
   {
     name: 'ASIN',
     selector: commonSelectors.map((s) => {
@@ -92,7 +87,7 @@ amazonSubjectModel.itemList.push(
       };
     }),
     category: 'date',
-    pipes: ['k', 'date'],
+    pipes: ['k', 'date', 'ta'],
   },
   {
     name: '出版社',
@@ -164,12 +159,13 @@ amazonSubjectModel.itemList.push(
     name: '价格',
     selector: [
       {
-        selector: '.swatchElement.selected .a-color-base .a-size-base',
+        selector: '#tmm-grid-swatch-OTHER .slot-price',
       },
       {
-        selector: '.swatchElement.selected .a-color-base',
+        selector: '#tmmSwatches .slot-price',
       },
     ],
+    pipes: ['ta'],
   },
   {
     name: '内容简介',

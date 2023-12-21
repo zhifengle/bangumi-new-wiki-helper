@@ -111,7 +111,9 @@ export const amazonJpBookTools: SiteTools = {
       const $cover = document.querySelector('#imgTagWrapperId>img') as HTMLImageElement;
       if ($cover && !res.find((obj) => obj.name === 'cover')) {
         let url = '';
-        if ($cover.hasAttribute('data-a-dynamic-image')) {
+        if ($cover.hasAttribute('data-old-hires')) {
+          url = $cover.getAttribute('data-old-hires');
+        } else if ($cover.hasAttribute('data-a-dynamic-image')) {
           try {
             const obj = JSON.parse($cover.getAttribute('data-a-dynamic-image'));
             const urlArr = Object.keys(obj).sort().reverse()
@@ -119,8 +121,6 @@ export const amazonJpBookTools: SiteTools = {
               url = urlArr[0]
             }
           } catch (error) {}
-        } else if ($cover.hasAttribute('data-old-hires')) {
-          url = $cover.getAttribute('data-old-hires');
         }
         // 如果还是没有图片链接
         if (!url) {
