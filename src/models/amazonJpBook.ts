@@ -10,13 +10,13 @@ export const amazonSubjectModel: SiteConfig = {
     {
       selector: '#nav-subnav .nav-a:first-child',
       subSelector: '.nav-a-content',
-      keyWord: ['本', '书', '漫画'],
+      keyWord: ['本', '书', '漫画', 'マンガ'],
     },
     {
       selector:
         '#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child',
       subSelector: '.a-link-normal',
-      keyWord: ['本', '书', '漫画'],
+      keyWord: ['本', '书', '漫画', 'マンガ'],
     },
   ],
   controlSelector: {
@@ -162,7 +162,10 @@ amazonSubjectModel.itemList.push(
         selector: '#tmm-grid-swatch-OTHER .slot-price',
       },
       {
-        selector: '#tmmSwatches .slot-price',
+        selector: '#tmm-grid-swatch-PAPERBACK .slot-price',
+      },
+      {
+        selector: '#tmmSwatches > div > div:last-child .slot-price',
       },
     ],
     pipes: ['ta'],
