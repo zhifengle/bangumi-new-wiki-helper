@@ -87,7 +87,7 @@ amazonSubjectModel.itemList.push(
       };
     }),
     category: 'date',
-    pipes: ['k', 'date', 'ta'],
+    pipes: ['ta', 'k', 'date'],
   },
   {
     name: '出版社',
