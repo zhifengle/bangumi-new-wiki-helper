@@ -10,13 +10,13 @@ export const amazonSubjectModel: SiteConfig = {
     {
       selector: '#nav-subnav .nav-a:first-child',
       subSelector: '.nav-a-content',
-      keyWord: ['本', '书', '漫画', 'マンガ'],
+      keyWord: ['本', '书', '漫画', 'マンガ', 'Audibleストア'],
     },
     {
       selector:
         '#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child',
       subSelector: '.a-link-normal',
-      keyWord: ['本', '书', '漫画', 'マンガ'],
+      keyWord: ['本', '书', '漫画', 'マンガ', 'Audibleストア'],
     },
   ],
   controlSelector: {
@@ -63,7 +63,7 @@ amazonSubjectModel.itemList.push(
     selector: commonSelectors.map((s) => {
       return {
         ...s,
-        keyWord: 'ISBN-10',
+        keyWord: ['ASIN', 'ISBN-10'],
       };
     }),
     category: 'ASIN',
@@ -83,20 +83,35 @@ amazonSubjectModel.itemList.push(
     selector: commonSelectors.map((s) => {
       return {
         ...s,
-        keyWord: ['発売日', '出版日期'],
+        keyWord: ['発売日', '出版日期', '配信日'],
       };
     }),
     category: 'date',
-    pipes: ['ta', 'k', 'date'],
+    pipes: ['ta', 'k', 'p', 'date'],
   },
   {
     name: '出版社',
-    selector: commonSelectors.map((s) => {
-      return {
-        ...s,
-        keyWord: '出版社',
-      };
-    }),
+    selector: [
+      {
+        selector: '#bylineInfo',
+        subSelector: '.author',
+        keyWord: '\\(出版社\\)',
+        nextSelector: [
+          {
+            selector: '.a-link-normal',
+          },
+          {
+            selector: 'a',
+          },
+        ],
+      },
+      ...commonSelectors.map((s) => {
+        return {
+          ...s,
+          keyWord: '出版社',
+        };
+      }),
+    ],
   },
   {
     name: '页数',
@@ -107,6 +122,26 @@ amazonSubjectModel.itemList.push(
       };
     }),
     pipes: ['num'],
+  },
+  // 有声书
+  {
+    name: '播放时长',
+    selector: commonSelectors.map((s) => {
+      return {
+        ...s,
+        keyWord: ['再生時間'],
+      };
+    }),
+  },
+  {
+    name: '演播',
+    selector: commonSelectors.map((s) => {
+      return {
+        ...s,
+        keyWord: ['ナレーター'],
+      };
+    }),
+    pipes: ['ta', 'k'],
   },
   {
     name: '作者',
@@ -158,6 +193,9 @@ amazonSubjectModel.itemList.push(
   {
     name: '价格',
     selector: [
+      {
+        selector: '#tmmSwatches .a-button-selected .slot-price',
+      },
       {
         selector: '#tmm-grid-swatch-OTHER .slot-price',
       },

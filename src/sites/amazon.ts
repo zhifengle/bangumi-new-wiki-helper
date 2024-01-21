@@ -98,6 +98,8 @@ export const amazonJpBookTools: SiteTools = {
           } else {
             newInfo = null;
           }
+        } else if (info.name === '播放时长') {
+          newInfo.value = info.value.replace('時間', '小时').replace(/ /g, '');
         } else if (info.name === '价格') {
           let val = (info.value || '').replace(/来自|より/, '').trim();
           newInfo.value = val;
@@ -108,7 +110,9 @@ export const amazonJpBookTools: SiteTools = {
           });
         }
       }
-      const $cover = document.querySelector('#imgTagWrapperId>img') as HTMLImageElement;
+      const $cover = document.querySelector(
+        '#imgTagWrapperId>img'
+      ) as HTMLImageElement;
       if ($cover && !res.find((obj) => obj.name === 'cover')) {
         let url = '';
         if ($cover.hasAttribute('data-old-hires')) {
@@ -116,15 +120,15 @@ export const amazonJpBookTools: SiteTools = {
         } else if ($cover.hasAttribute('data-a-dynamic-image')) {
           try {
             const obj = JSON.parse($cover.getAttribute('data-a-dynamic-image'));
-            const urlArr = Object.keys(obj).sort().reverse()
+            const urlArr = Object.keys(obj).sort().reverse();
             if (urlArr && urlArr.length > 0) {
-              url = urlArr[0]
+              url = urlArr[0];
             }
           } catch (error) {}
         }
         // 如果还是没有图片链接
         if (!url) {
-          url = $cover.src
+          url = $cover.src;
         }
         let dataUrl = url;
         try {
