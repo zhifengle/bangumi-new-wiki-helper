@@ -1,5 +1,7 @@
 import { SiteTools } from './types';
 import { dealDate, formatDate } from '../utils/utils';
+import { SingleInfo } from '../interface/subject';
+import { getImageDataByURL } from '../utils/dealImage';
 
 export function getSteamdbURL(href: string) {
   href = href || location?.href;
@@ -64,6 +66,36 @@ export const steamdbTools: SiteTools = {
           },
         },
       };
+    },
+    async afterGetWikiData(infos: SingleInfo[]) {
+      const res: SingleInfo[] = [];
+      for (const info of infos) {
+        let newInfo: null | SingleInfo = { ...info };
+        if (info.name === 'cover') {
+          if (info.value.url) {
+            const a = info.value.url;
+            const h = a.lastIndexOf('?');
+            const m = a.substring((h === -1 ? a.length : h) - 4);
+            const scaleUrl = a.substring(0, a.length - m.length) + '_2x' + m;
+            let dataUrl = '';
+            try {
+              dataUrl = await getImageDataByURL(scaleUrl);
+            } catch (error) {}
+            if (dataUrl) {
+              newInfo.value = {
+                url: scaleUrl,
+                dataUrl,
+              };
+            }
+          }
+        }
+        if (newInfo) {
+          res.push({
+            ...newInfo,
+          });
+        }
+      }
+      return res;
     },
   },
   filters: [
