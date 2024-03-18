@@ -64,6 +64,11 @@ const subTableSelector: Selector = {
   subSelector: 'td',
   sibling: true,
 };
+const assetsTableSelector: Selector = {
+  selector: '#js-assets-table',
+  subSelector: 'td',
+  sibling: true,
+};
 steamdbModel.itemList.push(
   {
     name: '游戏名',
@@ -126,7 +131,7 @@ steamdbModel.itemList.push(
     name: 'cover',
     selector: [
       {
-        ...detailsTableSelector,
+        ...assetsTableSelector,
         keyWord: 'library_assets',
         nextSelector: {
           selector: 'table.web-assets',
@@ -139,7 +144,7 @@ steamdbModel.itemList.push(
         },
       },
       {
-        ...detailsTableSelector,
+        ...assetsTableSelector,
         keyWord: 'Web Assets',
         nextSelector: {
           selector: 'table.web-assets',
