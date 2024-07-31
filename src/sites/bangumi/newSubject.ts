@@ -40,6 +40,10 @@ export function convertInfoValue(
         if (info.category === 'date') {
           d = dealDate(d);
         }
+        // 2024-07-31 去除 ISBN 里面的短横线
+        if (info.category === 'ISBN') {
+          d = d.replace(/-/g, '')
+        }
         // 匹配到 [英文名|]
         if (/\[.+\|\]/.test(arr[i])) {
           arr[i] = arr[i].replace(']', '') + d + ']';

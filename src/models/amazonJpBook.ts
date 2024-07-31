@@ -77,6 +77,7 @@ amazonSubjectModel.itemList.push(
       };
     }),
     category: 'ISBN',
+    pipes: ['k', 'ta'],
   },
   {
     name: '发售日',
