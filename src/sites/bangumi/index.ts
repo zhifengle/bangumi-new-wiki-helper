@@ -182,25 +182,29 @@ export async function checkBookSubjectExist(
   bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId
 ) {
+  const numISBN = subjectInfo.isbn.replace(/-/g, '')
   let searchResult = await searchSubject(
     subjectInfo,
     bgmHost,
     type,
-    subjectInfo.isbn
+    numISBN,
   );
   console.info(`First: search book of bangumi: `, searchResult);
   if (searchResult && searchResult.url) {
     return searchResult;
   }
-  searchResult = await searchSubject(
-    subjectInfo,
-    bgmHost,
-    type,
-    subjectInfo.asin
-  );
-  console.info(`Second: search book by ${subjectInfo.asin}: `, searchResult);
-  if (searchResult && searchResult.url) {
-    return searchResult;
+  // 判断一下是否重复
+  if (numISBN !== subjectInfo.isbn) {
+    searchResult = await searchSubject(
+      subjectInfo,
+      bgmHost,
+      type,
+      subjectInfo.isbn
+    );
+    console.info(`Second: search book by ${subjectInfo.isbn}: `, searchResult);
+    if (searchResult && searchResult.url) {
+      return searchResult;
+    }
   }
   // 默认使用名称搜索
   searchResult = await searchSubject(subjectInfo, bgmHost, type);
