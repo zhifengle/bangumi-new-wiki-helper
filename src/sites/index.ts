@@ -7,7 +7,7 @@ import {
 } from '../interface/wiki';
 import { dealDate } from '../utils/utils';
 import { adultComicTools } from './adultcomic';
-import { amazonJpBookTools } from './amazon';
+import { amazonJpBookTools, amazonJpMusicTools } from './amazon';
 import { dlsiteCharaTools, dlsiteTools } from './dlsite';
 import { dmmCharaTools, dmmTools } from './dmm';
 import { doubanGameEditTools, doubanTools } from './douban';
@@ -99,6 +99,7 @@ export const sitesFuncDict: {
   adultcomic: adultComicTools,
   moepedia: moepediaTools,
   vgmdb: vgmdbTools,
+  amazon_jp_music: amazonJpMusicTools,
 };
 
 // 存储新建角色的钩子函数和 filters

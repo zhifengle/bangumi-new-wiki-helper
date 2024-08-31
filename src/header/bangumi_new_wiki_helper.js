@@ -10,7 +10,8 @@
 // @match      *://*/*
 // @author      zhifengle
 // @homepage    https://github.com/zhifengle/bangumi-new-wiki-helper
-// @version     0.4.7
+// @version     0.4.27
+// @note        0.4.27 支持音乐条目曲目列表
 // @note        0.3.0 使用 typescript 重构，浏览器扩展和脚本使用公共代码
 // @run-at      document-end
 // @grant       GM_addStyle

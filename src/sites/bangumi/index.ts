@@ -268,9 +268,11 @@ export async function checkSubjectExit(
     case SubjectTypeId.game:
       result = await checkExist(subjectInfo, bgmHost, type, disableDate);
       break;
+    case SubjectTypeId.music:
+      result = await checkExist(subjectInfo, bgmHost, type, true);
+      break;
     case SubjectTypeId.anime:
     case SubjectTypeId.real:
-    case SubjectTypeId.music:
     default:
       console.info('not support type: ', type);
   }

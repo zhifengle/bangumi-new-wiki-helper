@@ -59,3 +59,11 @@ export type LogMsg = {
   message: string;
   duration?: number;
 };
+
+export type MusicDiscTrack = {
+  title: string;
+  cnTitle?: string;
+  number: string;
+  duration: string;
+  discNumber: string;
+}

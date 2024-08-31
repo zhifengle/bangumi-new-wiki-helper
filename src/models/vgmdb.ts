@@ -86,6 +86,12 @@ vgmdbModel.itemList.push(
         selector: '#tracklist',
         subSelector: 'span.smallfont',
         sibling: true,
+        keyWord: 'Total length',
+      },
+      {
+        selector: '#tracklist',
+        subSelector: 'span.smallfont',
+        sibling: true,
         keyWord: 'Disc length',
       },
     ],

@@ -21,6 +21,7 @@ import { dmmGameCharaModel } from './dmmGameChara';
 import { adultComicModel } from './adultcomic';
 import { moepedia } from './moepedia';
 import { vgmdbModel } from './vgmdb';
+import { amazonJpMusicModel } from './amazonJpMusic';
 
 // 新增的 site model 需要在这里配置
 export const configs = {
@@ -38,6 +39,7 @@ export const configs = {
   [adultComicModel.key]: adultComicModel,
   [moepedia.key]: moepedia,
   [vgmdbModel.key]: vgmdbModel,
+  [amazonJpMusicModel.key]: amazonJpMusicModel,
 };
 
 export const charaModelDict = {

@@ -4,6 +4,10 @@ import { sendForm, sendFormImg } from '../../utils/ajax';
 import { getBgmHost, getFormByIframe } from './common';
 import { genRandomStr } from '../../utils/utils';
 import { dataURItoBlob } from '../../utils/dealImage';
+import { SingleInfo, SubjectWikiInfo } from '../../interface/subject';
+import { MusicDiscTrack } from '../../interface/types';
+import { sleep } from '../../utils/async/sleep';
+import { loadIframe } from '../../utils/domUtils';
 
 export async function uploadSubjectCover(
   subjectId: string,
@@ -35,6 +39,80 @@ export async function uploadSubjectCover(
       return;
     }
     await sendFormImg($form, dataUrl);
+  }
+}
+
+export async function addMusicEp(
+  subjectId: string,
+  wikiInfo: SubjectWikiInfo,
+  log: (str: string) => void = (str) => console.log(str)
+) {
+  if (location.pathname !== '/new_subject/3') {
+    return;
+  }
+  // 音乐条目，添加ep
+  const discInfo = wikiInfo.infos.find(
+    (item: SingleInfo) => item.category === 'ep'
+  );
+  if (discInfo) {
+    for (let i = 0; i < discInfo.value.length; i++) {
+      const track = discInfo.value[i];
+      const songlist = track.map((obj: MusicDiscTrack) => obj.title).join('\n');
+      await addSonglist(subjectId, songlist, String(i + 1));
+      log(`Disc${i + 1}: 添加曲目成功`);
+      await sleep(500);
+    }
+  }
+}
+
+export async function addSonglist(
+  subjectId: string,
+  songlist: string,
+  disc: string = '1'
+) {
+  const $hash = document.querySelector(
+    'form > input[name="formhash"]'
+  ) as HTMLInputElement;
+  if ($hash) {
+    const fd = new FormData();
+    fd.set('formhash', $hash.value);
+    fd.set('songlist', songlist);
+    fd.set('disc', disc);
+    fd.set('submit', '加上去');
+    const res = await fetch(`/subject/${subjectId}/songlist/new`, {
+      body: fd,
+      method: 'post',
+    });
+    // if (res.status === 302) {
+    //   const location = res.headers.get('Location');
+    //   console.log('Redirected to:', location);
+    //   return await fetch(location);
+    // }
+    return res;
+  } else {
+    const rawText = await fetchText(`/subject/${subjectId}/ep`);
+    const $doc = new DOMParser().parseFromString(rawText, 'text/html');
+    const $form = $doc.querySelector(
+      'form[name=new_songlist'
+    ) as HTMLFormElement;
+    if (!$form) {
+      console.error('获取封面表单失败');
+      return;
+    }
+    await sendForm($form, [
+      {
+        name: 'songlist',
+        value: songlist,
+      },
+      {
+        name: 'disc',
+        value: disc,
+      },
+      {
+        name: 'submit',
+        value: '加上去',
+      }
+    ]);
   }
 }
 

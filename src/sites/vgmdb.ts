@@ -36,6 +36,14 @@ export const vgmdbTools: SiteTools = {
         if (item.name === '价格' && item.value.includes('Not for Sale')) {
           continue;
         }
+        // 替换数字
+        if (item.name === '版本特性' && /\d+/.test(item.value)) {
+          res.push({
+            ...item,
+            value: item.value.replace(/\d+/, '').trim(),
+          })
+          continue;
+        }
         res.push(item);
       }
 
@@ -102,6 +110,32 @@ export const vgmdbTools: SiteTools = {
             dataUrl,
           },
         });
+      }
+      // 曲目列表
+      const tracklist = document.querySelector('#tracklist')
+      if (tracklist) {
+        let tableList = tracklist.querySelectorAll('.tl > table')
+        document.querySelectorAll('#tlnav > li > a')?.forEach((item) => {
+          if (item.innerHTML.includes('Japanese')) {
+            const rel = item.getAttribute('rel')
+            tableList = document.querySelectorAll(`#${rel} > table`)
+          }
+        });
+        const discArr = [...tableList].map((table) => {
+          return [...table.querySelectorAll('tr')].map((item) => {
+            const $tds = item.querySelectorAll('td')
+            return {
+              title: $tds[1].innerText.trim(),
+              duration: $tds[2].innerText.trim(),
+            }
+          })
+        })
+        res.push({
+          category: 'ep',
+          // 名字留空
+          name: '',
+          value: discArr
+        })
       }
       return res;
     },

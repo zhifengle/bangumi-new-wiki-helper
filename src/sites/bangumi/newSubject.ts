@@ -9,6 +9,7 @@ import {
   addPersonRelatedCV,
   uploadSubjectCover,
   searchCVByName,
+  addMusicEp,
 } from './related';
 import { getBgmHost, getSubjectId, insertLogInfo, genLinkText } from './common';
 
@@ -163,7 +164,7 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
     // 有名称并且category不在特定列表里面
     if (
       infos[i].name &&
-      ['cover', 'crt_cover'].indexOf(infos[i].category) === -1
+      ['cover', 'crt_cover', 'ep'].indexOf(infos[i].category) === -1
     ) {
       const name = infos[i].name;
       if (dict.hasOwnProperty(name)) {
@@ -278,6 +279,10 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
                 $canvas.toDataURL('image/png', 1)
               );
             }
+            await sleep(200);
+            await addMusicEp(subjectId, wikiInfo, (str) => {
+              insertLogInfo($el, str);
+            });
             $loading.remove();
             $el.style.display = '';
             $clonedInput.style.display = '';
