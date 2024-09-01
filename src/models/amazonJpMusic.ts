@@ -83,6 +83,7 @@ amazonJpMusicModel.itemList.push(
       },
     ],
     category: 'creator',
+    pipes: ['k'],
   },
   {
     name: '碟片数量',
