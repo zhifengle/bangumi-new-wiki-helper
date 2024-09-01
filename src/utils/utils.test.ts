@@ -12,8 +12,11 @@ describe('test utils', () => {
     expect(dealDate('2019年10月29日')).toEqual('2019-10-29')
     expect(dealDate('2019年12月')).toEqual('2019-12')
     expect(dealDate('2019/2/19')).toEqual('2019-02-19')
+    expect(dealDate('2019-2-19')).toEqual('2019-02-19')
+    expect(dealDate('2019-2')).toEqual('2019-02')
     expect(dealDate('2019/2')).toEqual('2019-02')
     expect(dealDate('Jul 25, 2008')).toEqual('2008-07-25')
+    expect(dealDate('CD, シングル, マキシ, 2024/11/27')).toEqual('2024-11-27')
   })
   test('formate date', () => {
     expect(formatDate('27 September 2019', 'YYYY-MM-DD')).toEqual('2019-09-27')

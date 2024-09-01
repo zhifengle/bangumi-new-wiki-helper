@@ -12,60 +12,56 @@ export function randomNum(max: number, min: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export function formatDate(time: any, fmt: string = 'yyyy-MM-dd') {
+export function formatDate(time: string | number | Date, fmt: string = 'yyyy-MM-dd'): string {
   const date = new Date(time);
-  var o: any = {
-    'M+': date.getMonth() + 1, //月份
-    'd+': date.getDate(), //日
-    'h+': date.getHours(), //小时
-    'm+': date.getMinutes(), //分
-    's+': date.getSeconds(), //秒
-    'q+': Math.floor((date.getMonth() + 3) / 3), //季度
-    S: date.getMilliseconds(), //毫秒
+  const components: Record<string, number> = {
+    'M+': date.getMonth() + 1, // Month
+    'd+': date.getDate(), // Day
+    'h+': date.getHours(), // Hour
+    'm+': date.getMinutes(), // Minute
+    's+': date.getSeconds(), // Second
+    'q+': Math.floor((date.getMonth() + 3) / 3), // Quarter
+    S: date.getMilliseconds(), // Millisecond
   };
-  if (/(y+)/i.test(fmt)) {
-    fmt = fmt.replace(
-      RegExp.$1,
-      (date.getFullYear() + '').substr(4 - RegExp.$1.length)
+
+  // Replace year
+  fmt = fmt.replace(/(y+)/i, (_, yearMatch) =>
+    (date.getFullYear() + '').slice(4 - yearMatch.length)
+  );
+
+  // Replace other components
+  for (const [key, value] of Object.entries(components)) {
+    fmt = fmt.replace(new RegExp(`(${key})`, 'i'), (_, match) =>
+      match.length === 1 ? value.toString() : String(value).padStart(match.length, '0')
     );
   }
-  for (var k in o) {
-    if (new RegExp('(' + k + ')', 'i').test(fmt)) {
-      fmt = fmt.replace(
-        RegExp.$1,
-        RegExp.$1.length == 1 ? o[k] : ('00' + o[k]).substr(('' + o[k]).length)
-      );
-    }
-  }
+
   return fmt;
 }
 
-export function dealDate(dataStr: string): string {
-  // 2019年12月19
-  let l: string[] = [];
-  if (/\d{4}年\d{1,2}月(\d{1,2}日?)?/.test(dataStr)) {
-    l = dataStr
-      .replace(/日.*$/, '')
-      .split(/年|月/)
-      .filter((i) => i);
-  } else if (/\d{4}\/\d{1,2}(\/\d{1,2})?/.test(dataStr)) {
-    l = dataStr.split('/');
-  } else if (/\d{4}-\d{1,2}(-\d{1,2})?/.test(dataStr)) {
-    return dataStr;
-  } else {
-    if (/[A-Za-z]+\s\d{1,2},?\s\d{4}$/.test(dataStr)) {
-      return formatDate(dataStr)
+export function dealDate(input: string): string {
+  // Regular expressions to match various date formats
+  const regexPatterns = [
+    { pattern: /(\d{4})年(\d{1,2})月(\d{1,2})日?/, format: '$1-$2-$3' }, // yyyy年mm月dd日
+    { pattern: /(\d{4})年(\d{1,2})月/, format: '$1-$2' }, // yyyy年mm月
+    { pattern: /(\d{4})[/-](\d{1,2})$/, format: '$1-$2' }, // yyyy/mm
+    { pattern: /.*?(\d{4})\/(\d{1,2})\/(\d{1,2}).*?/, format: '$1-$2-$3' }, // mixed with other text
+  ];
+
+  for (const { pattern, format } of regexPatterns) {
+    const match = input.replace(/\s/g, '').match(pattern);
+    if (match) {
+      return format.replace(/\$(\d+)/g, (_, number) =>
+        String(match[number]).padStart(2, '0')
+      );
     }
-    return dataStr;
   }
-  return l
-    .map((i) => {
-      if (i.length === 1) {
-        return `0${i}`;
-      }
-      return i;
-    })
-    .join('-');
+  // input is not a valid date
+  if (isNaN(Date.parse(input))) {
+    return input;
+  }
+
+  return formatDate(input);
 }
 
 export function isEqualDate(d1: string, d2: string): boolean {
