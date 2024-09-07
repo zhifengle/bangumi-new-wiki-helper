@@ -41,7 +41,14 @@ export const vgmdbTools: SiteTools = {
           res.push({
             ...item,
             value: item.value.replace(/\d+/, '').trim(),
-          })
+          });
+          continue;
+        }
+        if (item.name === '目录编号') {
+          res.push({
+            ...item,
+            value: item.value.trim().split(' ')[0].trim(),
+          });
           continue;
         }
         res.push(item);
@@ -112,30 +119,30 @@ export const vgmdbTools: SiteTools = {
         });
       }
       // 曲目列表
-      const tracklist = document.querySelector('#tracklist')
+      const tracklist = document.querySelector('#tracklist');
       if (tracklist) {
-        let tableList = tracklist.querySelectorAll('.tl > table')
+        let tableList = tracklist.querySelectorAll('.tl > table');
         document.querySelectorAll('#tlnav > li > a')?.forEach((item) => {
           if (item.innerHTML.includes('Japanese')) {
-            const rel = item.getAttribute('rel')
-            tableList = document.querySelectorAll(`#${rel} > table`)
+            const rel = item.getAttribute('rel');
+            tableList = document.querySelectorAll(`#${rel} > table`);
           }
         });
         const discArr = [...tableList].map((table) => {
           return [...table.querySelectorAll('tr')].map((item) => {
-            const $tds = item.querySelectorAll('td')
+            const $tds = item.querySelectorAll('td');
             return {
               title: $tds[1].innerText.trim(),
               duration: $tds[2].innerText.trim(),
-            }
-          })
-        })
+            };
+          });
+        });
         res.push({
           category: 'ep',
           // 名字留空
           name: '',
-          value: discArr
-        })
+          value: discArr,
+        });
       }
       return res;
     },

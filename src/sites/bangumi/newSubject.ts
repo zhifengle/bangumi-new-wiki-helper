@@ -212,6 +212,19 @@ export function insertFillFormBtn(
   $t.appendChild($cancel);
 }
 
+function getSubmitBtnText(wikiInfo: SubjectWikiInfo) {
+  let text = '添加条目并上传封面';
+  if (location.pathname === '/new_subject/3') {
+    // 音乐条目，添加ep
+    const discInfo = wikiInfo.infos.find(
+      (item: SingleInfo) => item.category === 'ep'
+    );
+    if (discInfo) {
+      text = '添加条目并上传封面、添加曲目';
+    }
+  }
+  return text;
+}
 export function initNewSubject(wikiInfo: SubjectWikiInfo) {
   const $t = $q('form[name=create_subject] [name=subject_title]').parentElement;
   const defaultVal = ($q('#subject_infobox') as HTMLTextAreaElement).value;
@@ -253,7 +266,7 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       ) as HTMLInputElement;
       const $clonedInput = $input.cloneNode(true) as HTMLInputElement;
       if ($clonedInput) {
-        $clonedInput.value = '添加条目并上传封面';
+        $clonedInput.value = getSubmitBtnText(wikiInfo);
       }
       $input.insertAdjacentElement('afterend', $clonedInput);
       $input.remove();

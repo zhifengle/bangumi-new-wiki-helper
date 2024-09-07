@@ -3,6 +3,7 @@ import { SingleInfo } from '../interface/subject';
 import { getImageDataByURL } from '../utils/dealImage';
 import { findElement, getText } from '../utils/domUtils';
 
+
 export const doubanTools: SiteTools = {
   hooks: {
     async beforeCreate() {
@@ -151,6 +152,117 @@ export const doubanGameEditTools: SiteTools = {
           }
         }
       });
+      return res;
+    },
+  },
+  filters: [],
+};
+
+export const doubanMusicTools: SiteTools = {
+  hooks: {
+    async afterGetWikiData(infos: SingleInfo[]) {
+      const res: SingleInfo[] = [];
+      for (const item of infos) {
+        res.push(item);
+      }
+      const $info = document.querySelector('#info');
+      if ($info) {
+        const nameDict: any = {
+          又名: {
+            name: '别名',
+            category: 'alias',
+          },
+          发行时间: {
+            name: '发售日期',
+            category: 'date',
+          },
+          介质: {
+            name: '版本特性',
+          },
+          唱片数: {
+            name: '碟片数量',
+          },
+          流派: {
+            name: '流派',
+          },
+          出版者: {
+            name: '厂牌',
+          },
+          表演者: {
+            name: '艺术家',
+          },
+          条形码: {
+            name: '条形码',
+          }
+        };
+        $info.querySelectorAll('.pl').forEach((pl) => {
+          let val = '';
+          if (pl.nextSibling.TEXT_NODE === 3) {
+            val = pl.nextSibling.textContent.trim();
+          }
+          let key = pl.textContent.trim().split(':')[0];
+          const anchors = pl.querySelectorAll('a');
+          if (anchors && anchors.length) {
+            val = [...anchors].map((a) => a.textContent.trim()).join('、');
+          }
+          if (!val) {
+            return;
+          }
+          if (key in nameDict) {
+            const target = nameDict[key];
+            res.push({
+              ...target,
+              value: val,
+            });
+          }
+        });
+      }
+      const discNum = res.find((item) => item.name === '碟片数量')?.value || 1;
+      const tracks = [
+        ...document.querySelectorAll('.track-list ul.track-items > li'),
+      ].map((item) => {
+        const order = item.getAttribute('data-track-order');
+        const orderNum = order ? parseInt(order) : 0;
+        const titleRaw = item.textContent.trim();
+        const durationReg = /\s*\d{1,2}:\d{1,2}$/;
+        if (durationReg.test(titleRaw)) {
+          const m = titleRaw.match(durationReg);
+          return {
+            title: titleRaw.replace(durationReg, ''),
+            duration: m[0].trim(),
+            order: orderNum,
+          };
+        }
+        return {
+          title: item.textContent.trim(),
+          order: orderNum,
+        };
+      });
+      const discArr: any[] = [];
+      let curDisc: any[] = [];
+      for (let i = 0; i < tracks.length; i++) {
+        const track = tracks[i];
+        if (track.order === 0) {
+          if (curDisc.length) {
+            discArr.push(curDisc);
+            curDisc = [];
+          }
+          continue;
+        }
+        curDisc.push(track);
+      }
+      if (curDisc.length) {
+        discArr.push(curDisc);
+      }
+      if (discArr.length && discArr.length == discNum) {
+        res.push({
+          category: 'ep',
+          name: '',
+          value: discArr,
+        });
+      } else {
+        console.warn('碟片数量不匹配', discNum, discArr);
+      }
       return res;
     },
   },

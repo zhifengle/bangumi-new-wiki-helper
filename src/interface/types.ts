@@ -64,6 +64,6 @@ export type MusicDiscTrack = {
   title: string;
   cnTitle?: string;
   number: string;
-  duration: string;
+  duration?: string;
   discNumber: string;
 }

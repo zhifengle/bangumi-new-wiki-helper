@@ -3,6 +3,7 @@ import { Selector, SiteConfig, SubjectTypeId } from '../interface/wiki';
 // ref links
 // https://vgmdb.net/album/9683
 // https://vgmdb.net/album/134285
+// https://vgmdb.net/album/122607
 
 export const vgmdbModel: SiteConfig = {
   key: 'vgmdb',
@@ -50,6 +51,28 @@ vgmdbModel.itemList.push(
         keyWord: 'Organizations',
       },
     ],
+  },
+  /*
+  {
+    name: '目录编号',
+    selector: [
+      {
+        ...commonSelectors,
+        keyWord: 'Catalog Number',
+      },
+    ],
+    pipes: ['t']
+  },
+  */
+  {
+    name: '条形码',
+    selector: [
+      {
+        ...commonSelectors,
+        keyWord: 'Barcode',
+      },
+    ],
+    pipes: ['t']
   },
   {
     name: '发售日期',

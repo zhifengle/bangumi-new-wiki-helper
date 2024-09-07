@@ -10,7 +10,7 @@ import { adultComicTools } from './adultcomic';
 import { amazonJpBookTools, amazonJpMusicTools } from './amazon';
 import { dlsiteCharaTools, dlsiteTools } from './dlsite';
 import { dmmCharaTools, dmmTools } from './dmm';
-import { doubanGameEditTools, doubanTools } from './douban';
+import { doubanGameEditTools, doubanMusicTools, doubanTools } from './douban';
 import { erogamescapeTools } from './erogamescape';
 import { getchuCharaTools, getchuSiteTools } from './getchu';
 import { moepediaTools } from './moepedia';
@@ -100,6 +100,7 @@ export const sitesFuncDict: {
   moepedia: moepediaTools,
   vgmdb: vgmdbTools,
   amazon_jp_music: amazonJpMusicTools,
+  douban_music: doubanMusicTools,
 };
 
 // 存储新建角色的钩子函数和 filters

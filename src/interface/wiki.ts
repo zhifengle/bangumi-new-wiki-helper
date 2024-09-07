@@ -38,6 +38,7 @@ export interface InfoConfig {
 export type MusicModelKey =
   | 'vgmdb'
   | 'amazon_jp_music'
+  | 'douban_music'
   | 'discogs';
 
 export type CharaModelKey =

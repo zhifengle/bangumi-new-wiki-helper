@@ -17,7 +17,7 @@ export const doubanGameModel: SiteConfig = {
 };
 
 const gameAttr: Selector = {
-  selector: '#content .game-attr',
+  selector: '#content .thing-attr',
   subSelector: 'dt',
   sibling: true,
 };
