@@ -4,6 +4,7 @@ import { Selector, SiteConfig, SubjectTypeId } from '../interface/wiki';
 // https://vgmdb.net/album/9683
 // https://vgmdb.net/album/134285
 // https://vgmdb.net/album/122607
+// https://vgmdb.net/album/86808
 
 export const vgmdbModel: SiteConfig = {
   key: 'vgmdb',
@@ -80,6 +81,9 @@ vgmdbModel.itemList.push(
       {
         ...commonSelectors,
         keyWord: 'Release Date',
+        nextSelector: {
+          selector: 'a',
+        }
       },
     ],
     pipes: ['date']
