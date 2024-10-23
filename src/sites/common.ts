@@ -301,6 +301,10 @@ export function addCharaUI(
   cb: (...args: any) => Promise<any>
 ) {
   if (!$t) return;
+  if (!names.length) {
+    console.warn('没有虚拟角色可用');
+    return
+  };
   // @TODO 增加全部
   // <option value="all">全部</option>
   const btn = `<a class="e-wiki-new-character">添加新虚拟角色</a>`;

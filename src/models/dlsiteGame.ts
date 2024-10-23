@@ -99,7 +99,7 @@ dlsiteGameModel.itemList.push(
     selector: [
       {
         selector:
-          '.slider_body_inner.swiper-container-horizontal>ul.slider_items>li.slider_item:first-child>img',
+        '#work_left  div.slider_body_inner.swiper-container-horizontal > ul > li.slider_item:first-child > picture > img',
       },
     ],
     category: 'cover',

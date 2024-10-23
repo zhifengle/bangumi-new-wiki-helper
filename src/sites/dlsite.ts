@@ -1,5 +1,6 @@
 import { SingleInfo } from '../interface/subject';
 import { CharaModel } from '../interface/wiki';
+import { getImageDataByURL } from '../utils/dealImage';
 import { dealDate } from '../utils/utils';
 import { SiteTools } from './types';
 
@@ -13,7 +14,7 @@ export const dlsiteTools: SiteTools = {
           val &&
           typeof val === 'string' &&
           !/http/.test(val) &&
-          ['原画', '剧本', '音乐', '游戏类型', '声优'].includes(info.name)
+          ['原画', '剧本', '音乐', '游戏类型', '声优', '作者'].includes(info.name)
         ) {
           const v = info.value.split('/');
           if (v && v.length > 1) {
@@ -24,6 +25,32 @@ export const dlsiteTools: SiteTools = {
           ...info,
           value: val,
         });
+      }
+      const cover = infos.find((obj) => obj.name === 'cover');
+      if (!cover) {
+        let url = (
+          document.querySelector('meta[property="og:image"]') as HTMLMetaElement
+        )?.content;
+        if (url) {
+          let dataUrl = url;
+          try {
+            if (url) {
+              dataUrl = await getImageDataByURL(url, {
+                headers: {
+                  Referer: url,
+                },
+              });
+            }
+          } catch (error) {}
+          res.push({
+            category: 'cover',
+            name: 'cover',
+            value: {
+              url,
+              dataUrl,
+            },
+          });
+        }
       }
       return res;
     },
