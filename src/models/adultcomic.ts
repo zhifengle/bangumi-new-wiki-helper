@@ -74,6 +74,10 @@ adultComicModel.itemList.push(
     selector: genSelectors('出版社'),
   },
   {
+    name: '书系',
+    selector: genSelectors(['レーベル']),
+  },
+  {
     name: '页数',
     selector: genSelectors(['ページ']),
     pipes: ['num'],
