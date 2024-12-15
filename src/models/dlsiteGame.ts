@@ -34,7 +34,7 @@ const commonSelector: Selector = {
 const arrDict = [
   {
     name: '发行日期',
-    key: ['販売日', '贩卖日'],
+    key: ['販売日', '贩卖日', '販賣日'],
     categrory: 'date',
   },
   // {
