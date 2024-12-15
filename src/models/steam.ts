@@ -72,7 +72,7 @@ steamModel.itemList.push(
       },
     ],
     category: 'subject_summary',
-  }
+  },
   // {
   //   name: 'cover',
   //   selector: {

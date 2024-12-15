@@ -39,6 +39,10 @@ const dictArr = [
     name: '发行',
     keyWord: 'Publisher',
   },
+  {
+    name: '游戏引擎',
+    keyWord: 'Technologies',
+  }
 ];
 const configArr = dictArr.map((item) => {
   const r = {
@@ -111,21 +115,14 @@ steamdbModel.itemList.push(
     category: 'alias',
   },
   {
-    name: '别名',
+    name: '游戏类型',
     selector: [
       {
         ...detailsTableSelector,
-        keyWord: 'name_localized',
-        nextSelector: {
-          ...subTableSelector,
-          keyWord: 'english',
-        },
-      },
-      {
-        selector: '.pagehead h1',
-      },
+        keyWord: 'Primary Genre',
+      }
     ],
-    category: 'alias',
+    pipes: ['ta', 'p'],
   },
   {
     name: 'cover',
@@ -168,13 +165,13 @@ steamdbModel.itemList.push(
     ],
     category: 'subject_summary',
   },
-  {
-    name: 'website',
-    selector: {
-      selector: '.app-links a[aria-label^="Games homepage"]',
-    },
-    category: 'website',
-  }
+  // {
+  //   name: 'website',
+  //   selector: {
+  //     selector: '.app-links a[aria-label^="Games homepage"]',
+  //   },
+  //   category: 'website',
+  // }
 );
 
 steamdbModel.defaultInfos = [

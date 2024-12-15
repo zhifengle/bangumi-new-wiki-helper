@@ -26,6 +26,13 @@ export const dlsiteTools: SiteTools = {
           value: val,
         });
       }
+      if (location.hostname.includes('dlsite.com')) {
+        res.push({
+          name: 'website',
+          value: `DLsite|${location.origin + location.pathname}`,
+          category: 'listItem',
+        })
+      }
       const cover = infos.find((obj) => obj.name === 'cover');
       if (!cover) {
         let url = (
