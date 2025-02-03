@@ -214,6 +214,6 @@ export async function getFormByIframe(url: string, formSelector: string) {
     $iframe.id = iframeId;
     document.body.appendChild($iframe);
   }
-  await loadIframe($iframe, url);
+  await loadIframe($iframe, url, 20000);
   return $iframe.contentDocument.querySelector(formSelector) as HTMLFormElement;
 }

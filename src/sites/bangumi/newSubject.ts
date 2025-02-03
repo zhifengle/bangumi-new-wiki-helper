@@ -276,6 +276,10 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
     $t,
     async (e) => {
       await fillInfoBox(wikiInfo);
+      const $editSummary = $q('#editSummary') as HTMLInputElement;
+      if ($editSummary) {
+        $editSummary.value = '新条目';
+      }
     },
     () => {
       // 清除默认值
@@ -294,6 +298,10 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       $q('#subject_summary').value = '';
       // 移除上传图片
       $q('.e-wiki-cover-container')?.remove();
+      const $editSummary = $q('#editSummary') as HTMLInputElement;
+      if ($editSummary) {
+        $editSummary.value = '';
+      }
     }
   );
   const coverInfo = wikiInfo.infos.filter(

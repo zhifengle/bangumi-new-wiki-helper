@@ -296,7 +296,7 @@ export function createFetchDataIframe(): HTMLIFrameElement {
 export function loadIframe(
   $iframe: HTMLIFrameElement,
   src: string,
-  TIMEOUT = 5000
+  TIMEOUT = 10000
 ) {
   return new Promise((resolve, reject) => {
     $iframe.src = src;
