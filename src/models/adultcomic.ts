@@ -16,9 +16,14 @@ export const adultComicModel: SiteConfig = {
         '#pankuz > ol > li:nth-child(1) > a[href*="adultcomic.dbsearch.net"]',
     },
   ],
-  controlSelector: {
-    selector: '#h2-icon-bk',
-  },
+  controlSelector: [
+    {
+      selector: '#h2-icon-bk',
+    },
+    {
+      selector: 'h2-icon-wk',
+    },
+  ],
   itemList: [],
 };
 
@@ -100,8 +105,7 @@ adultComicModel.itemList.push(
     name: '内容简介',
     selector: [
       {
-        selector:
-          '#comment-clist > .iteminfo-box',
+        selector: '#comment-clist > .iteminfo-box',
         subSelector: 'h4',
         sibling: true,
         keyWord: ['内容紹介'],

@@ -157,10 +157,10 @@ steamdbModel.itemList.push(
     name: '游戏简介',
     selector: [
       {
-        selector: 'head meta[name="description"]',
+        selector: '.scope-app .header-description',
       },
       {
-        selector: '.scope-app header-description',
+        selector: 'head meta[name="description"]',
       },
     ],
     category: 'subject_summary',

@@ -89,6 +89,11 @@ export const steamdbTools: SiteTools = {
         if (info.name === '游戏引擎') {
           newInfo.value = info.value.replace(/^Engine\./g, '');
         }
+        if (info.name === '游戏简介') {
+          if (info.value.match(/\n.*?Steam charts, data, update history\.$/)) {
+            newInfo.value = info.value.split('\n')[0];
+          }
+        }
         // if (info.name === '游戏类型') {
         //   newInfo.value = info.value.split(',').map((s) => s.trim()).join('、');
         // }
@@ -137,27 +142,39 @@ export const steamdbTools: SiteTools = {
           return
         }
         if (item.innerHTML.includes('name_localized')) {
-          const tds = sibling.querySelectorAll('table > tbody > tr > td')
-          for (const td of tds) {
-            // 默认使用的中文名
-            if (td.textContent === 'tchinese') {
+          const names = [...sibling.querySelectorAll('table > tbody > tr')].map((tr) => {
+            const name = tr.querySelector('td:nth-child(1)').textContent.trim();
+            const value = tr.querySelector('td:nth-child(2)').textContent.trim();
+            return {
+              name,
+              value,
+            }
+          })
+          const gameName = res.find(info => info.name === '游戏名');
+          const enName = names.find(name => name.name === 'english');
+          const jpName = names.find(name => name.name === 'japanese');
+          if (enName && gameName) {
+            if (gameName.value !== enName.value) {
               res.push({
                 name: '别名',
-                value: `繁中|${td.nextElementSibling.innerHTML.trim()}`,
+                value: `英文|${enName.value}`,
               })
             }
-            // 默认使用的日文名。补上英文名
-            if (td.textContent === 'japanese') {
-              const name = td.nextElementSibling.innerHTML.trim();
-              const gameName = res.find(info => info.name === '游戏名');
-              if (gameName && gameName.value === name) {
-                const titleName = document.querySelector('.pagehead h1').textContent.trim();
-                res.push({
-                  name: '别名',
-                  value: `英文|${titleName}`,
-                })
-              }
+          }
+          if (jpName && gameName) {
+            if (gameName.value !== jpName.value) {
+              res.push({
+                name: '别名',
+                value: `日文|${jpName.value}`,
+              })
             }
+          }
+          const tchName = names.find(name => name.name === 'tchinese');
+          if (tchName) {
+            res.push({
+              name: '别名',
+              value: `繁中|${tchName.value}`,
+            })
           }
         }
       })
