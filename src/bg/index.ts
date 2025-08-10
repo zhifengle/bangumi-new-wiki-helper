@@ -246,8 +246,7 @@ async function init() {
       return { requestHeaders: obj.requestHeaders };
     },
     {
-      // urls: ['http://*/brandnew/*'],
-      urls: ['http://www.getchu.com/brandnew/*'],
+      urls: ['*://*/brandnew/*'],
     },
     createHeaderListener('requestHeaders')
   );
