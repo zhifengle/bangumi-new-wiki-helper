@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { BangumiDomain, checkSubjectExit } from '../sites/bangumi';
 import { SubjectTypeId } from '../interface/wiki';
 import { getWikiDataByURL, combineInfoList } from '../sites/common';
@@ -104,7 +104,9 @@ async function handleMessage(request: ExtMsg) {
     case 'fetch_data_bg':
       let resData = '';
       if (payload.type == 'img') {
-        resData = await getImageDataByURL(payload.url);
+        resData = await getImageDataByURL(payload.url, {
+          headers: payload.headers,
+        });
       } else if (payload.type == 'html') {
         resData = await fetchText(payload.url);
       }
@@ -145,7 +147,7 @@ async function updateAuxData(payload: {
     window._fetch_url_bg = auxSite;
     const auxData = await getWikiDataByURL(auxSite, auxSiteOpts);
     window._fetch_url_bg = null;
-    const obj = await browser.storage.local.get(['wikiData']);
+    const obj: any = await browser.storage.local.get(['wikiData']);
     console.info('current wikiData: ', obj.wikiData);
     if (!auxData || (auxData && auxData.length === 0)) {
       sendMsgToCurrentTab({

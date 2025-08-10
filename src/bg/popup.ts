@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 
 const selectConfig: any = {
   domain: {
@@ -6,7 +6,7 @@ const selectConfig: any = {
   },
 };
 window.onload = async function () {
-  const config = (await browser.storage.local.get(['config'])).config;
+  const config: any = (await browser.storage.local.get(['config'])).config;
   for (const key in config) {
     const $t = document.querySelector(
       `input[name=${key}][type="checkbox"]`
@@ -70,7 +70,7 @@ function setCheckBox(name: string, val: boolean) {
   document.querySelector(`input[name=${name}`).checked = val;
 }
 async function setVal(name: string, val: any) {
-  const config = (await browser.storage.local.get(['config'])).config;
+  const config: any = (await browser.storage.local.get(['config'])).config;
   await browser.storage.local.set({
     config: {
       ...config,
@@ -80,7 +80,7 @@ async function setVal(name: string, val: any) {
 }
 async function setSelectVal(name: string, val: string) {
   if (selectConfig[name]) {
-    const config = (await browser.storage.local.get(['config'])).config;
+    const config: any = (await browser.storage.local.get(['config'])).config;
     await browser.storage.local.set({
       config: {
         ...config,

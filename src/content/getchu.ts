@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { SiteConfig } from '../interface/wiki';
 import { $qa, findElement } from '../utils/domUtils';
 import { insertControlBtnChara } from '../sites/common';

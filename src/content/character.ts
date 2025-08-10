@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { SingleInfo, SubjectWikiInfo } from '../interface/subject';
 import { InfoConfig, SiteConfig } from '../interface/wiki';
 import { getCharaModel } from '../models';
@@ -55,7 +55,7 @@ export async function initChara(siteConfig: SiteConfig) {
       selector: iframeSel,
     }).getAttribute('src');
     if (url) {
-      const rawHtml = await browser.runtime.sendMessage({
+      const rawHtml: string = await browser.runtime.sendMessage({
         action: 'fetch_data_bg',
         payload: {
           type: 'html',

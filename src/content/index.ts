@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { SiteConfig } from '../interface/wiki';
 import { findElement } from '../utils/domUtils';
 import { getQueryInfo, getWikiData, insertControlBtn } from '../sites/common';
@@ -24,11 +24,19 @@ async function fetchCover(infoList: SingleInfo[]) {
         if (!/^http/.test(url)) {
           url = new URL(url, location.href).href;
         }
+        let m = url.match(/brandnew\/(\d+)/);
+        let headers: any = undefined;
+        if (m) {
+          headers = {
+            Referer: `http://www.getchu.com/soft.phtml?id=${m[1]}`,
+          };
+        }
         const dataUrl = await browser.runtime.sendMessage({
           action: 'fetch_data_bg',
           payload: {
             type: 'img',
             url: url,
+            headers,
           },
         });
         if (dataUrl) {

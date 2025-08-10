@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 
 import { $q } from '../utils/domUtils';
 import {
@@ -14,7 +14,7 @@ const bangumi = {
     );
     const page = document.location.href.match(re);
     if (!page) return;
-    const r = await browser.storage.local.get([
+    const r: any = await browser.storage.local.get([
       'config',
       'wikiData',
       'charaData',

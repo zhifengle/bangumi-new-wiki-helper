@@ -7,7 +7,7 @@
       "dom.iterable",
       "dom"
     ],
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "module": "es2015",
     "target": "es2017",
     // "jsx": "react",
