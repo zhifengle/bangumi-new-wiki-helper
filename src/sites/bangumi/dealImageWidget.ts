@@ -71,7 +71,10 @@ function initContainer($target: HTMLElement) {
     <br>
     <input id="e-wiki-cover-slider-radius" type="range" value="20" name="radius" min="1" max="100">
     <br>
-    <a href="javascript:void(0)" id="e-wiki-cover-reset">reset</a>
+    <div class="canvas-btn-container" style="display: flex; align-items: center; gap: 10px; margin-top: 10px">
+      <input class="inputBtn reset-btn" value="重置" type="button">
+      <input class="inputBtn clear-btn" value="清除" type="button">
+    </div>
     <img class="preview" src="" alt="" style="display:none;">
   `;
   const $info = document.createElement('div');
@@ -189,7 +192,7 @@ export async function dealImageWidget(
   const $file: HTMLInputElement = $form.querySelector('input[type = file]');
   previewFileImage($file, $canvas, $img);
   blur($canvas);
-  document.querySelector('#e-wiki-cover-reset').addEventListener(
+  document.querySelector('.e-wiki-cover-container .canvas-btn-container > .reset-btn').addEventListener(
     'click',
     (e) => {
       // wiki 填表按钮
@@ -201,9 +204,18 @@ export async function dealImageWidget(
       } else if ($fillForm) {
         $fillForm.dispatchEvent(new Event('click'));
       }
+      e.preventDefault();
     },
     false
   );
+  document.querySelector('.e-wiki-cover-container .canvas-btn-container > .clear-btn').addEventListener(
+    'click',
+    (e) => {
+      $canvas.width = 0;
+      $canvas.height = 0;
+      e.preventDefault();
+    }
+  )
   const $inputBtn: HTMLInputElement = document.querySelector(
     '.e-wiki-cover-container .inputBtn'
   );

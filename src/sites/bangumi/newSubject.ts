@@ -17,7 +17,11 @@ function hasCategory(info: SingleInfo, category: string) {
   if (info.category === category) {
     return true;
   }
-  return info.category && info.category.includes(',') && info.category.split(',').includes(category);
+  return (
+    info.category &&
+    info.category.includes(',') &&
+    info.category.split(',').includes(category)
+  );
 }
 
 /**
@@ -325,36 +329,36 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       const $canvas: HTMLCanvasElement = $q('#e-wiki-cover-preview');
       $clonedInput.addEventListener('click', async (e) => {
         e.preventDefault();
-        if ($canvas.width > 8 && $canvas.height > 10) {
-          const $el = e.target as HTMLElement;
-          $el.style.display = 'none';
-          $clonedInput.style.display = 'none';
-          const $loading = insertLoading($el);
-          try {
-            const $wikiMode = $q(
-              'table small a:nth-of-type(1)[href="javascript:void(0)"]'
-            ) as HTMLElement;
-            $wikiMode && $wikiMode.click();
-            await sleep(200);
-            const url = await sendForm($form);
-            const subjectId = getSubjectId(url);
-            if (subjectId) {
+        const $el = e.target as HTMLElement;
+        $el.style.display = 'none';
+        $clonedInput.style.display = 'none';
+        const $loading = insertLoading($el);
+        try {
+          const $wikiMode = $q(
+            'table small a:nth-of-type(1)[href="javascript:void(0)"]'
+          ) as HTMLElement;
+          $wikiMode && $wikiMode.click();
+          await sleep(200);
+          const url = await sendForm($form);
+          const subjectId = getSubjectId(url);
+          if (subjectId) {
+            if ($canvas.clientWidth > 8 && $canvas.clientHeight > 10) {
               await uploadSubjectCover(
                 subjectId,
                 $canvas.toDataURL('image/png', 1)
               );
             }
-            await sleep(200);
-            await addMusicEp(subjectId, wikiInfo, (str) => {
-              insertLogInfo($el, str);
-            });
-            $loading.remove();
-            $el.style.display = '';
-            $clonedInput.style.display = '';
-            location.assign(url);
-          } catch (e) {
-            console.log('send form err: ', e);
           }
+          await sleep(200);
+          await addMusicEp(subjectId, wikiInfo, (str) => {
+            insertLogInfo($el, str);
+          });
+          $loading.remove();
+          $el.style.display = '';
+          $clonedInput.style.display = '';
+          location.assign(url);
+        } catch (e) {
+          console.log('send form err: ', e);
         }
       });
     }, 300);
