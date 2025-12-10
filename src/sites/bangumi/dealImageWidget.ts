@@ -75,6 +75,7 @@ function initContainer($target: HTMLElement) {
       <input class="inputBtn reset-btn" value="重置" type="button">
       <input class="inputBtn clear-btn" value="清除" type="button">
     </div>
+    <div style="margin-top: 10px; color: #999;font-size: 12px">支持ctrl+v粘贴图片</div>
     <img class="preview" src="" alt="" style="display:none;">
   `;
   const $info = document.createElement('div');
@@ -192,30 +193,57 @@ export async function dealImageWidget(
   const $file: HTMLInputElement = $form.querySelector('input[type = file]');
   previewFileImage($file, $canvas, $img);
   blur($canvas);
-  document.querySelector('.e-wiki-cover-container .canvas-btn-container > .reset-btn').addEventListener(
-    'click',
-    (e) => {
-      // wiki 填表按钮
-      const $fillForm = document.querySelector('.e-wiki-fill-form');
-      if (base64Data) {
-        $img.dispatchEvent(new Event('load'));
-      } else if ($file && $file.files[0]) {
-        $file.dispatchEvent(new Event('change'));
-      } else if ($fillForm) {
-        $fillForm.dispatchEvent(new Event('click'));
-      }
-      e.preventDefault();
-    },
-    false
-  );
-  document.querySelector('.e-wiki-cover-container .canvas-btn-container > .clear-btn').addEventListener(
-    'click',
-    (e) => {
+  document
+    .querySelector('.e-wiki-cover-container .canvas-btn-container > .reset-btn')
+    .addEventListener(
+      'click',
+      (e) => {
+        // wiki 填表按钮
+        const $fillForm = document.querySelector('.e-wiki-fill-form');
+        if (base64Data) {
+          $img.dispatchEvent(new Event('load'));
+        } else if ($file && $file.files[0]) {
+          $file.dispatchEvent(new Event('change'));
+        } else if ($fillForm) {
+          $fillForm.dispatchEvent(new Event('click'));
+        }
+        e.preventDefault();
+      },
+      false
+    );
+  document
+    .querySelector('.e-wiki-cover-container .canvas-btn-container > .clear-btn')
+    .addEventListener('click', (e) => {
       $canvas.width = 0;
       $canvas.height = 0;
       e.preventDefault();
+    });
+  document.body.addEventListener('paste', (e: ClipboardEvent) => {
+    if (!document.querySelector('.e-wiki-cover-container')) return;
+    e.preventDefault();
+    let imageFile = null;
+    if (e.clipboardData && e.clipboardData.files) {
+      imageFile = e.clipboardData.files[0];
+    } else if (e.clipboardData && e.clipboardData.items) {
+      const items = e.clipboardData.items;
+      for (let item of items) {
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          imageFile = item.getAsFile(); // 转换为File对象
+          break;
+        }
+      }
     }
-  )
+    if (!imageFile) {
+      alert('剪贴板中未检测到图片！');
+      return;
+    }
+    const reader = new FileReader();
+    reader.addEventListener('load', (event) => {
+      const base64Data = event.target.result as string;
+      $img.src = base64Data;
+    });
+    reader.readAsDataURL(imageFile);
+  });
   const $inputBtn: HTMLInputElement = document.querySelector(
     '.e-wiki-cover-container .inputBtn'
   );
