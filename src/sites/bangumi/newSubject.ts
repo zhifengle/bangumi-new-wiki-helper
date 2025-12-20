@@ -301,7 +301,7 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       // @ts-ignore
       $q('#subject_summary').value = '';
       // 移除上传图片
-      $q('.e-wiki-cover-container')?.remove();
+      ($q('.e-wiki-cover-container .clear-btn') as HTMLInputElement)?.click();
       const $editSummary = $q('#editSummary') as HTMLInputElement;
       if ($editSummary) {
         $editSummary.value = '';
