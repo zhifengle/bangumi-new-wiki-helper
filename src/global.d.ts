@@ -6,6 +6,7 @@ declare var GM_registerMenuCommand: any;
 declare var GM_addStyle: any;
 declare var GM_openInTab: any;
 declare var GM_getResourceText: any;
+declare var GM_deleteValue: any;
 
 // @TODO avoid use global variable
 interface Window {

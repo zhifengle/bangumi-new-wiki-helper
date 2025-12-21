@@ -7,6 +7,10 @@ import {
   initUploadImg,
 } from '../sites/bangumi/newSubject';
 
+function clearInfo() {
+  browser.storage.local.remove(['wikiData', 'charaData']);
+}
+
 const bangumi = {
   async init() {
     const re = new RegExp(
@@ -19,6 +23,12 @@ const bangumi = {
       'wikiData',
       'charaData',
     ]);
+    window.addEventListener('scriptMessage', (e: any) => {
+      if (e.detail.type === 'clearInfo') {
+        console.info('clear info');
+        clearInfo();
+      }
+    })
     switch (page[0]) {
       case 'new_subject':
         if (r && r.wikiData) {
@@ -29,6 +39,11 @@ const bangumi = {
               $q('.e-wiki-fill-form').click();
             }
           }, 200);
+        } else {
+          initNewSubject({
+            type: +window.location.pathname.split('/')[2] || 1,
+            infos: [],
+          });
         }
         break;
       case 'add_related':

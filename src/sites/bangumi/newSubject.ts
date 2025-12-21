@@ -306,6 +306,12 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
       if ($editSummary) {
         $editSummary.value = '';
       }
+      let customEvent = new CustomEvent<{ type: string }>('scriptMessage', {
+        detail: {
+          type: 'clearInfo',
+        }
+      });
+      window.dispatchEvent(customEvent);
     }
   );
   const coverInfo = wikiInfo.infos.filter(

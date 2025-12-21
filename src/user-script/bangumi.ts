@@ -6,6 +6,14 @@ import {
 import { $q } from '../utils/domUtils';
 import { AUTO_FILL_FORM, CHARA_DATA, WIKI_DATA, SUBJECT_ID } from './constants';
 
+
+function clearInfo() {
+  GM_deleteValue(AUTO_FILL_FORM);
+  GM_deleteValue(WIKI_DATA);
+  GM_deleteValue(CHARA_DATA);
+  GM_deleteValue(SUBJECT_ID);
+}
+
 export const bangumi = {
   async init() {
     const re = new RegExp(
@@ -17,6 +25,13 @@ export const bangumi = {
     const charaData = JSON.parse(GM_getValue(CHARA_DATA) || null);
     const subjectId = GM_getValue(SUBJECT_ID);
     const autoFill = GM_getValue(AUTO_FILL_FORM);
+    // 处理消息
+    window.addEventListener('scriptMessage', (e: any) => {
+      if (e.detail.type === 'clearInfo') {
+        console.info('user script: clear info');
+        clearInfo();
+      }
+    })
     switch (page[0]) {
       case 'new_subject':
         if (wikiData) {
@@ -28,6 +43,11 @@ export const bangumi = {
               GM_setValue(AUTO_FILL_FORM, 0);
             }, 300);
           }
+        } else {
+          initNewSubject({
+            type: +window.location.pathname.split('/')[2] || 1,
+            infos: [],
+          });
         }
         break;
       case 'add_related':
