@@ -312,6 +312,12 @@ export function initNewSubject(wikiInfo: SubjectWikiInfo) {
         }
       });
       window.dispatchEvent(customEvent);
+      const $input = $q(
+        '.e-wiki-cover-container [name=submit]'
+      ) as HTMLInputElement;
+      if ($input) {
+        $input.value = '添加条目并上传封面';
+      }
     }
   );
   const coverInfo = wikiInfo.infos.filter(
