@@ -27,7 +27,7 @@
       "matches": [
         "*://bgm.tv/*",
         "*://bangumi.tv/*",
-        "*://chii.tv/*"
+        "*://chii.in/*"
       ],
       "css": [
         "css/bangumi.css"

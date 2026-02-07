@@ -37,7 +37,7 @@ const init = async () => {
       initChara(m);
     });
   }
-  if (['bangumi.tv', 'chii.tv', 'bgm.tv'].includes(host)) {
+  if (['bangumi.tv', 'chii.in', 'bgm.tv'].includes(host)) {
     addStyle();
     bangumi.init();
     // @TODO remove check
