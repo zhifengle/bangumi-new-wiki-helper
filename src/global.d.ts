@@ -1,4 +1,6 @@
 declare var Fuse: any;
+// Jest fixtures still use CommonJS require in test files.
+declare var require: any;
 
 declare var GM_setValue: any;
 declare var GM_getValue: any;

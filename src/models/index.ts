@@ -47,8 +47,6 @@ export const configs = {
 export const charaModelDict = {
   [dlsiteGameCharaModel.key]: dlsiteGameCharaModel,
   [dmmGameCharaModel.key]: dmmGameCharaModel,
-  // @TODO getchu chara
-  // [getchuCharaModel.key]: getchuCharaModel,
 };
 
 export function findModelByHost(host: string): SiteConfig[] {

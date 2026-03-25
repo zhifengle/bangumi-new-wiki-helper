@@ -38,13 +38,11 @@ export interface InfoConfig {
 export type MusicModelKey =
   | 'vgmdb'
   | 'amazon_jp_music'
-  | 'douban_music'
-  | 'discogs';
+  | 'douban_music';
 
 export type CharaModelKey =
   | 'dlsite_game_chara'
-  | 'dmm_game_chara'
-  | 'getchu_chara';
+  | 'dmm_game_chara';
 
 export type ModelKey =
   | 'amazon_jp_book'

@@ -1,16 +1,18 @@
 import browser from 'webextension-polyfill';
-import { BangumiDomain, checkSubjectExit } from '../sites/bangumi';
+import { BangumiDomain } from '../sites/bangumi';
 import { SubjectTypeId } from '../interface/wiki';
-import { getWikiDataByURL, combineInfoList } from '../sites/common';
-import { setVal } from './utils';
-import { getSubjectId } from '../sites/bangumi/common';
 import { getImageDataByURL } from '../utils/dealImage';
 import { fetchText } from '../utils/fetchData';
-import { ExtMsg, IAuxPrefs, IFetchOpts, LogMsg } from '../interface/types';
-import { genAnonymousLinkText } from '../utils/domUtils';
-// import { version as VERSION } from "../../extension/manifest.json";
-
-const VERSION = '0.3.0';
+import { BackgroundMessage } from '../interface/messages';
+import { AuxSitePayload, LogMsg } from '../interface/types';
+import { updateSubjectDraftFromAuxSite } from '../runtime/auxData';
+import { browserDraftStore } from '../runtime/browserDraftStore';
+import {
+  checkSubjectAndOpenEntry,
+  createNewSubjectEntry,
+  SubjectCreationRuntime,
+} from '../runtime/subjectCreation';
+import { APP_VERSION } from '../version';
 
 interface Config {
   domain?: BangumiDomain;
@@ -36,8 +38,11 @@ async function sendMsgToCurrentTab(
   }
 }
 
-async function handleMessage(request: ExtMsg) {
-  const { payload = {} } = request;
+function assertNever(value: never): never {
+  throw new Error(`Unhandled background message: ${JSON.stringify(value)}`);
+}
+
+async function handleMessage(request: BackgroundMessage) {
   const activeOpen = E_USER_CONFIG.activeOpen;
   let bgmHost = E_USER_CONFIG.domain as string;
   if (E_USER_CONFIG.useHttps) {
@@ -45,154 +50,66 @@ async function handleMessage(request: ExtMsg) {
   } else {
     bgmHost = `http://${bgmHost}`;
   }
+  const subjectCreationRuntime = createBackgroundSubjectCreationRuntime(
+    bgmHost,
+    !!activeOpen
+  );
   switch (request.action) {
     case 'check_subject_exist':
-      if (payload.subjectInfo) {
-        sendMsgToCurrentTab({
-          type: 'info',
-          message: `搜索中...<br/>${payload?.subjectInfo?.name ?? ''}`,
-          duration: 0,
-        });
-        let result: any = undefined;
-        try {
-          result = await checkSubjectExit(
-            payload.subjectInfo,
-            bgmHost,
-            payload.type,
-            payload.disableDate
-          );
-          console.info('search results: ', result);
-          sendMsgToCurrentTab({
-            type: 'info',
-            message: '',
-            cmd: 'dismissNotError',
-          });
-        } catch (e) {
-          console.log('fetch info err:', e, e.message);
-          sendMsgToCurrentTab({
-            type: 'error',
-            message: `Bangumi 搜索匹配结果为空: <br/><b>${
-              payload?.subjectInfo?.name ?? ''
-            }</b>`,
-            cmd: 'dismissNotError',
-          });
-        }
-        if (result && result.url) {
-          await browser.tabs.create({
-            url: bgmHost + result.url,
-            active: activeOpen,
-          });
-          setVal('subjectId', getSubjectId(result.url));
-        } else {
-          payload.auxSite && (await updateAuxData(payload.auxSite));
-          createNewSubjectTab(payload.type, bgmHost, activeOpen);
-        }
-      } else {
-        createNewSubjectTab(payload.type, bgmHost, activeOpen);
-      }
-      break;
+      return checkSubjectAndOpenEntry(request.payload, subjectCreationRuntime);
     case 'create_new_subject':
-      payload.auxSite && (await updateAuxData(payload.auxSite));
-      createNewSubjectTab(payload.type, bgmHost, activeOpen);
-      break;
+      return createNewSubjectEntry(request.payload, subjectCreationRuntime);
     case 'create_new_character':
       browser.tabs.create({
         url: `${bgmHost}/character/new`,
         active: activeOpen,
       });
-      break;
-    case 'fetch_data_bg':
-      let resData = '';
+      return;
+    case 'fetch_data_bg': {
+      const { payload } = request;
       if (payload.type == 'img') {
-        resData = await getImageDataByURL(payload.url, {
+        return getImageDataByURL(payload.url, {
           headers: payload.headers,
         });
-      } else if (payload.type == 'html') {
-        resData = await fetchText(payload.url);
       }
-      return resData;
+      return fetchText(payload.url);
+    }
     default:
+      return assertNever(request);
   }
 }
 
-function createNewSubjectTab(
-  type: SubjectTypeId,
-  bgmHost: string,
-  active: boolean
-) {
-  let url = `${bgmHost}/new_subject/${type}`;
-  browser.tabs.create({
-    url,
-    active,
+async function updateAuxData(payload: AuxSitePayload) {
+  await updateSubjectDraftFromAuxSite(payload, {
+    draftStore: browserDraftStore,
+    notify: sendMsgToCurrentTab,
   });
 }
 
-async function updateAuxData(payload: {
-  url: string;
-  opts?: IFetchOpts;
-  prefs?: IAuxPrefs;
-}) {
-  const {
-    url: auxSite,
-    opts: auxSiteOpts = {},
-    prefs: auxPrefs = {},
-  } = payload;
-  try {
-    sendMsgToCurrentTab({
-      type: 'info',
-      message: `抓取第三方网站信息中:<br/>${auxSite}`,
-      duration: 0,
-    });
-    console.info('the start of updating aux data');
-    window._fetch_url_bg = auxSite;
-    const auxData = await getWikiDataByURL(auxSite, auxSiteOpts);
-    window._fetch_url_bg = null;
-    const obj: any = await browser.storage.local.get(['wikiData']);
-    console.info('current wikiData: ', obj.wikiData);
-    if (!auxData || (auxData && auxData.length === 0)) {
-      sendMsgToCurrentTab({
-        type: 'error',
-        message: `抓取信息为空<br/>
-      ${genAnonymousLinkText(auxSite, auxSite)}
-      <br/>
-      打开上面链接确认是否能访问以及有信息，再尝试`,
-        cmd: 'dismissNotError',
+function createBackgroundSubjectCreationRuntime(
+  bgmHost: string,
+  active: boolean
+): SubjectCreationRuntime {
+  return {
+    bgmHost,
+    notify: sendMsgToCurrentTab,
+    updateAuxData,
+    saveSubjectId(subjectId) {
+      return browserDraftStore.saveSubjectId(subjectId);
+    },
+    async openExistingSubject(url: string) {
+      await browser.tabs.create({
+        url: bgmHost + url,
+        active,
       });
-    } else {
-      sendMsgToCurrentTab({
-        type: 'info',
-        message: `抓取第三方网站信息成功:<br/>${genAnonymousLinkText(
-          auxSite,
-          auxSite
-        )}`,
-        cmd: 'dismissNotError',
+    },
+    async openNewSubject(type: SubjectTypeId) {
+      await browser.tabs.create({
+        url: `${bgmHost}/new_subject/${type}`,
+        active,
       });
-    }
-    console.info('auxiliary data: ', auxData);
-    const { wikiData } = obj;
-    let infos = combineInfoList(wikiData.infos, auxData, auxPrefs);
-    if (auxSite.match(/store\.steampowered\.com/)) {
-      infos = combineInfoList(auxData, wikiData.infos);
-    }
-    await browser.storage.local.set({
-      wikiData: {
-        type: wikiData.type,
-        subtype: wikiData.subType || 0,
-        infos,
-      },
-    });
-    console.info('the end of updating aux data');
-  } catch (e) {
-    console.error(e);
-    sendMsgToCurrentTab({
-      type: 'error',
-      message: `抓取信息失败<br/>
-      ${genAnonymousLinkText(auxSite, auxSite)}
-      <br/>
-      打开上面链接确认是否能访问以及有信息，再尝试`,
-      cmd: 'dismissNotError',
-    });
-  }
+    },
+  };
 }
 
 function createHeaderListener(type: string): any {
@@ -210,10 +127,10 @@ function createHeaderListener(type: string): any {
 async function init() {
   // 初始化设置
   const obj = await browser.storage.local.get(['version', 'config']);
-  if ((obj && !obj.version) || obj.version !== VERSION) {
+  if ((obj && !obj.version) || obj.version !== APP_VERSION) {
     // await browser.storage.local.clear();
     await browser.storage.local.set({
-      version: VERSION,
+      version: APP_VERSION,
       config: {
         domain: BangumiDomain.bgm,
         activeOpen: false,

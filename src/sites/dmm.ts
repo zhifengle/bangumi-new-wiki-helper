@@ -1,10 +1,9 @@
 import { SingleInfo } from '../interface/subject';
 import { CharaModel } from '../interface/wiki';
 import { getImageDataByURL } from '../utils/dealImage';
-import { $qa } from '../utils/domUtils';
+import { $qa, findElement } from '../utils/domUtils';
 import { dealDate } from '../utils/utils';
-import { getWikiItem } from './common';
-import { charaInfoDict } from './lib';
+import { charaInfoDict, getCover } from './lib';
 import { SiteTools } from './types';
 
 export const dmmTools: SiteTools = {
@@ -45,24 +44,26 @@ export const dmmTools: SiteTools = {
             });
           }
         } else {
-          const coverInfo = await getWikiItem(
+          const $cover = findElement([
             {
-              name: 'cover',
-              selector: [
-                {
-                  selector: '#if_view',
-                  isIframe: true,
-                  subSelector: 'body',
-                  nextSelector: {
-                    selector: '#guide-head > img',
-                  },
-                },
-              ],
-              category: 'cover',
+              selector: '#if_view',
+              isIframe: true,
+              subSelector: 'body',
+              nextSelector: {
+                selector: '#guide-head > img',
+              },
             },
-            'dmm_game'
-          );
-          coverInfo && res.push(coverInfo);
+          ]);
+          if ($cover) {
+            const coverValue = await getCover($cover, 'dmm_game');
+            if (coverValue) {
+              res.push({
+                name: 'cover',
+                category: 'cover',
+                value: coverValue,
+              });
+            }
+          }
         }
       }
       return res;

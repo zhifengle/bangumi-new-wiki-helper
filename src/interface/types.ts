@@ -1,5 +1,5 @@
 export type IFuncPromise = (...args: any) => Promise<any>;
-export type ITiming = 'beforeCreate' | 'afterCreate' | 'afterGetWikiData';
+export type ITiming = 'beforeCreate' | 'afterGetWikiData';
 
 export interface SubjectItem {
   name: string;
@@ -34,6 +34,12 @@ export type IAuxPrefs = {
   targetNames?: string[] | 'all';
 };
 
+export type AuxSitePayload = {
+  url: string;
+  opts?: IFetchOpts;
+  prefs?: IAuxPrefs;
+};
+
 export type IMsgPayload = {
   url?: string;
   // SubjectTypeId or string;
@@ -41,17 +47,8 @@ export type IMsgPayload = {
   fileType?: string;
   auxPrefs?: IAuxPrefs;
   disableDate?: boolean;
-  auxSite?: {
-    url: string;
-    opts?: IFetchOpts;
-    prefs?: IAuxPrefs;
-  };
+  auxSite?: AuxSitePayload;
   [key: string]: any;
-};
-
-export type ExtMsg = {
-  action: string;
-  payload?: IMsgPayload;
 };
 
 export type LogMsg = {
