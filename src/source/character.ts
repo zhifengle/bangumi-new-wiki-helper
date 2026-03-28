@@ -1,7 +1,7 @@
 import { getStringValue, SubjectWikiInfo } from '../interface/subject';
 import { InfoConfig, Selector, SiteConfig } from '../interface/wiki';
 import { getCharaModel } from '../models';
-import { addCharaUI, getCharaData } from '../sites/common';
+import { addCharaUI, getCharaData, insertControlBtnChara } from '../sites/common';
 import { findAllElement, findElement } from '../utils/domUtils';
 import { SourceRuntimeAdapter } from './runtime';
 
@@ -31,6 +31,28 @@ async function getIframeDoc(
   return new DOMParser().parseFromString(rawHtml, 'text/html');
 }
 
+function hasIframeItemSelector(itemSelector: Selector | Selector[]) {
+  return Boolean(getIframeSelector(itemSelector));
+}
+
+async function submitCharacter(
+  siteConfig: SiteConfig,
+  runtime: SourceRuntimeAdapter,
+  charaInfo: SubjectWikiInfo['infos']
+) {
+  if (!charaInfo.length) return;
+  await runtime.hydrateCharacterCover?.(charaInfo);
+  console.info('character info list: ', charaInfo);
+  const charaData: SubjectWikiInfo = {
+    type: siteConfig.type,
+    infos: charaInfo,
+  };
+  await runtime.submitCharacterCreation({
+    siteConfig,
+    charaData,
+  });
+}
+
 export async function initSourceCharacter(
   siteConfig: SiteConfig,
   runtime: SourceRuntimeAdapter
@@ -39,15 +61,28 @@ export async function initSourceCharacter(
   if (!$page) return;
   const charaModel = getCharaModel(siteConfig.key);
   if (!charaModel) return;
-  const $el = findElement(charaModel.controlSelector);
-  if (!$el) return;
-  const $doc = await getIframeDoc(charaModel.itemSelector, runtime);
-  const itemArr = $doc
-    ? findAllElement(charaModel.itemSelector, $doc)
+  const $controlEl = findElement(charaModel.controlSelector);
+  if (!$controlEl) return;
+  const iframeDoc = hasIframeItemSelector(charaModel.itemSelector)
+    ? await getIframeDoc(charaModel.itemSelector, runtime)
+    : null;
+  const itemArr = iframeDoc
+    ? findAllElement(charaModel.itemSelector, iframeDoc)
     : findAllElement(charaModel.itemSelector);
+  if (!itemArr.length) return;
+  if (charaModel.controlMode === 'inline') {
+    itemArr.forEach(($target) => {
+      insertControlBtnChara($target, async () => {
+        const charaInfo = await getCharaData(charaModel, $target);
+        await submitCharacter(siteConfig, runtime, charaInfo);
+      });
+    });
+    return;
+  }
   const nameConfig: InfoConfig = charaModel.itemList.find(
     (item) => item.category == 'crt_name'
   );
+  if (!nameConfig) return;
   const names = await Promise.all(
     itemArr.map(async ($target) => {
       const infos = await getCharaData(
@@ -62,7 +97,7 @@ export async function initSourceCharacter(
       );
     })
   );
-  addCharaUI($el, names, async (_e: Event, selectedName: string) => {
+  addCharaUI($controlEl, names, async (_e: Event, selectedName: string) => {
     let targetList: Element[] = [];
     if (selectedName === 'all') {
       // @TODO 一次性新建全部
@@ -75,16 +110,7 @@ export async function initSourceCharacter(
     }
     for (const $target of targetList) {
       const charaInfo = await getCharaData(charaModel, $target);
-      await runtime.hydrateCharacterCover?.(charaInfo);
-      console.info('character info list: ', charaInfo);
-      const charaData: SubjectWikiInfo = {
-        type: siteConfig.type,
-        infos: charaInfo,
-      };
-      await runtime.submitCharacterCreation({
-        siteConfig,
-        charaData,
-      });
+      await submitCharacter(siteConfig, runtime, charaInfo);
     }
   });
 }

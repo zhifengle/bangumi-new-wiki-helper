@@ -2,8 +2,6 @@ import { initCommon, addStyle } from './user-script';
 import { bangumi } from './user-script/bangumi';
 import { BGM_DOMAIN, PROTOCOL } from './user-script/constants';
 import { findModelByHost } from './models';
-import { getchuGameModel } from './models/getchuGame';
-import { getchu } from './user-script/getchu';
 import { initChara } from './user-script/character';
 
 function setDomain() {
@@ -40,9 +38,6 @@ const init = async () => {
   if (['bangumi.tv', 'chii.in', 'bgm.tv'].includes(host)) {
     addStyle();
     bangumi.init();
-    // @TODO remove check
-  } else if (host === 'www.getchu.com') {
-    getchu.init(getchuGameModel);
   }
 };
 init();

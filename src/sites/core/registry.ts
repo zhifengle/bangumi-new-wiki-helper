@@ -6,7 +6,7 @@ import { dlsiteCharaTools, dlsiteTools } from '../dlsite';
 import { dmmCharaTools, dmmTools } from '../dmm';
 import { doubanGameEditTools, doubanMusicTools, doubanTools } from '../douban';
 import { erogamescapeTools } from '../erogamescape';
-import { getchuSiteTools } from '../getchu';
+import { getchuCharaTools, getchuSiteTools } from '../getchu';
 import { moepediaTools } from '../moepedia';
 import { steamdbTools, steamTools } from '../steam';
 import { SiteTools } from '../types';
@@ -57,6 +57,7 @@ export const siteToolsRegistry: Partial<Record<ModelKey, SiteTools>> = {
 };
 
 export const charaToolsRegistry: Partial<Record<CharaModelKey, SiteTools>> = {
+  getchu_game_chara: getchuCharaTools,
   dlsite_game_chara: dlsiteCharaTools,
   dmm_game_chara: dmmCharaTools,
 };

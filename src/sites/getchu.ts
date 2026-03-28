@@ -1,7 +1,28 @@
 import { SingleInfo } from '../interface/subject';
+import { CharaModel } from '../interface/wiki';
 import { getText } from '../utils/domUtils';
 import { convertImgToBase64 } from '../utils/dealImage';
 import { SiteTools } from './types';
+
+const GETCHU_CHARA_NAME_SELECTOR = '.chara-name';
+const getchuCharacterInfoNameDict: Record<string, string> = {
+  誕生日: '生日',
+  '3サイズ': 'BWH',
+  スリーサイズ: 'BWH',
+  身長: '身高',
+  血液型: '血型',
+};
+
+function getCharacterNameElement($t: Element): HTMLElement | null {
+  if ($t.matches(GETCHU_CHARA_NAME_SELECTOR)) {
+    return $t as HTMLElement;
+  }
+  return $t.closest('dt')?.querySelector<HTMLElement>(GETCHU_CHARA_NAME_SELECTOR) ?? null;
+}
+
+function normalizeCharacterName(rawName: string): string {
+  return rawName.split(/（|\(|\sCV|新建角色/)[0];
+}
 
 export const getchuTools = {
   dealTitle(str: string = ''): string {
@@ -34,18 +55,20 @@ export const getchuTools = {
   },
   getCharacterInfo($t: Element): SingleInfo[] {
     const charaData: SingleInfo[] = [];
-    const $name = $t.closest('dt').querySelector('h2');
+    const $name = getCharacterNameElement($t);
+    if (!$name) return charaData;
+    const $dt = $name.closest('dt');
+    if (!$dt) return charaData;
     let name;
     if ($name.querySelector('charalist')) {
       const $charalist = $name.querySelector('charalist') as HTMLElement;
       name = getText($charalist);
     } else {
       if ($name.classList.contains('chara-name') && $name.querySelector('br')) {
-        name = $name
-          .querySelector('br')
-          .nextSibling.textContent.split(/（|\(|\sCV|新建角色/)[0];
+        const brText = $name.querySelector('br')?.nextSibling?.textContent || getText($name);
+        name = normalizeCharacterName(brText);
       } else {
-        name = getText($name as HTMLElement).split(/（|\(|\sCV|新建角色/)[0];
+        name = normalizeCharacterName(getText($name));
       }
     }
     charaData.push({
@@ -57,21 +80,22 @@ export const getchuTools = {
       name: '日文名',
       value: name,
     });
-    const nameTxt = getText($name as HTMLElement);
-    if (nameTxt.match(/（(.*)）/)) {
+    const nameTxt = getText($name);
+    const kanaMatch = nameTxt.match(/（(.+?)）/);
+    if (kanaMatch) {
       charaData.push({
         name: '纯假名',
-        value: nameTxt.match(/（(.*)）/)[1],
+        value: kanaMatch[1],
       });
     }
-    const cvMatch = nameTxt.match(/(?<=CV[：:]).+/);
+    const cvMatch = nameTxt.match(/CV[：:]\s*(.+)$/);
     if (cvMatch) {
       charaData.push({
         name: 'CV',
-        value: cvMatch[0].replace(/\s/g, ''),
+        value: cvMatch[1].replace(/\s/g, ''),
       });
     }
-    const $img = $t.closest('tr').querySelector('td > img');
+    const $img = $t.closest('tr')?.querySelector('td > img');
     if ($img) {
       charaData.push({
         name: 'cover',
@@ -84,7 +108,10 @@ export const getchuTools = {
     // id=1080431
     // id=840936
     // dd tag
-    const $dd = $t.closest('dt').nextElementSibling;
+    const $dd = $dt.nextElementSibling;
+    if (!$dd) {
+      return charaData;
+    }
     const $clonedDd = $dd.cloneNode(true) as HTMLElement;
     Array.prototype.forEach.call(
       $clonedDd.querySelectorAll('span[style^="font-weight"]'),
@@ -113,20 +140,25 @@ export const getchuTools = {
       value: getText($clonedDd).trim(),
       category: 'crt_summary',
     });
-    const dict: Record<string, string> = {
-      誕生日: '生日',
-      '3サイズ': 'BWH',
-      スリーサイズ: 'BWH',
-      身長: '身高',
-      血液型: '血型',
-    };
     charaData.forEach((item) => {
-      if (dict[item.name]) {
-        item.name = dict[item.name];
+      if (getchuCharacterInfoNameDict[item.name]) {
+        item.name = getchuCharacterInfoNameDict[item.name];
       }
     });
 
     return charaData;
+  },
+};
+
+export const getchuCharaTools: SiteTools = {
+  hooks: {
+    async afterGetWikiData(
+      infos: SingleInfo[],
+      _model: CharaModel,
+      $el: Element
+    ) {
+      return [...infos, ...getchuTools.getCharacterInfo($el)];
+    },
   },
 };
 

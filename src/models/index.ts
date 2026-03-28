@@ -18,6 +18,7 @@ import { dlsiteGameModel } from './dlsiteGame';
 import { dmmGameModel } from './dmmGame';
 import { dlsiteGameCharaModel } from './dlsiteGameChara';
 import { dmmGameCharaModel } from './dmmGameChara';
+import { getchuGameCharaModel } from './getchuGameChara';
 import { adultComicModel } from './adultcomic';
 import { moepedia } from './moepedia';
 import { vgmdbModel } from './vgmdb';
@@ -45,6 +46,7 @@ export const configs = {
 };
 
 export const charaModelDict = {
+  [getchuGameCharaModel.key]: getchuGameCharaModel,
   [dlsiteGameCharaModel.key]: dlsiteGameCharaModel,
   [dmmGameCharaModel.key]: dmmGameCharaModel,
 };

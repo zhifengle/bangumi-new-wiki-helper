@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { getchuTools } from './getchu';
 
 describe('test getchu function', function () {
@@ -50,5 +53,58 @@ describe('test getchu function', function () {
         value: 'B73/ W52/ H75',
       },
     ]);
+  });
+
+  test('get character info supports h4 chara-name headings', () => {
+    document.body.innerHTML = `
+      <table>
+        <tr>
+          <td>
+            <dl>
+              <dt>
+                <h4 class="chara-name">新角色（しんきゃら） CV：测试声优</h4>
+              </dt>
+              <dd>
+                <span style="font-weight: bold;">身長：160cm</span>
+                开朗活泼的女主角
+              </dd>
+            </dl>
+          </td>
+        </tr>
+      </table>
+    `;
+
+    const $target = document.querySelector('h4.chara-name');
+    expect($target).not.toBeNull();
+    expect(getchuTools.getCharacterInfo($target as Element)).toEqual(
+      expect.arrayContaining([
+        {
+          name: '姓名',
+          value: '新角色',
+          category: 'crt_name',
+        },
+        {
+          name: '日文名',
+          value: '新角色',
+        },
+        {
+          name: '纯假名',
+          value: 'しんきゃら',
+        },
+        {
+          name: 'CV',
+          value: '测试声优',
+        },
+        {
+          name: '身高',
+          value: '160cm',
+        },
+        {
+          name: '人物简介',
+          value: '开朗活泼的女主角',
+          category: 'crt_summary',
+        },
+      ])
+    );
   });
 });

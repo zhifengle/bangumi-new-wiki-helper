@@ -41,6 +41,7 @@ export type MusicModelKey =
   | 'douban_music';
 
 export type CharaModelKey =
+  | 'getchu_game_chara'
   | 'dlsite_game_chara'
   | 'dmm_game_chara';
 
@@ -64,6 +65,7 @@ export type ModelKey =
   | CharaModelKey;
 
 export type CharaType = 'person' | 'character';
+export type CharaControlMode = 'select' | 'inline';
 
 export interface SiteConfig {
   key: ModelKey;
@@ -91,6 +93,8 @@ export interface CharaModel {
   itemSelector: Selector | Selector[];
   // 插入控制按钮位置的元素选择器
   controlSelector: Selector | Selector[];
+  // 角色控件模式
+  controlMode?: CharaControlMode;
   // @TODO person character
   type: SubjectTypeId;
   charaType?: CharaType;
