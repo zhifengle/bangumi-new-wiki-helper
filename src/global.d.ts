@@ -1,17 +1,26 @@
-declare var Fuse: any;
+type FuseSearchResult<T> = {
+  item: T;
+};
+
+declare const Fuse: {
+  new <T>(
+    list: readonly T[],
+    options?: Record<string, unknown>
+  ): {
+    search(pattern: string): FuseSearchResult<T>[];
+  };
+};
 // Jest fixtures still use CommonJS require in test files.
-declare var require: any;
+declare const require: NodeJS.Require;
 
-declare var GM_setValue: any;
-declare var GM_getValue: any;
-declare var GM_registerMenuCommand: any;
-declare var GM_addStyle: any;
-declare var GM_openInTab: any;
-declare var GM_getResourceText: any;
-declare var GM_deleteValue: any;
-
-// @TODO avoid use global variable
-interface Window {
-  // 后台的 url
-  _fetch_url_bg?: string;
-}
+declare function GM_setValue(key: string, value: unknown): void;
+declare function GM_getValue<T = unknown>(key: string): T | undefined;
+declare function GM_registerMenuCommand(
+  caption: string,
+  onClick: () => void,
+  accessKey?: string
+): void;
+declare function GM_addStyle(css: string): HTMLStyleElement | void;
+declare function GM_openInTab(url: string): void;
+declare function GM_getResourceText(name: string): string;
+declare function GM_deleteValue(key: string): void;

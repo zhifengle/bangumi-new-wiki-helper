@@ -20,7 +20,7 @@ function setProtocol() {
   GM_setValue(PROTOCOL, p);
 }
 
-var bgm_domain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
+var bgm_domain = GM_getValue<string>(BGM_DOMAIN) || 'bgm.tv';
 
 if (GM_registerMenuCommand) {
   GM_registerMenuCommand('设置 Bangumi 域名', setDomain, 'b');

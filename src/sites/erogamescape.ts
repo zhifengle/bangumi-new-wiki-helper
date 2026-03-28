@@ -1,4 +1,4 @@
-import { AllSubject, SearchResult, Subject } from '../interface/subject';
+import { AllSubject, SearchResult } from '../interface/subject';
 import { fetchText } from '../utils/fetchData';
 import { findElement, getText } from '../utils/domUtils';
 import { erogamescapeModel } from '../models/erogamescape';
@@ -97,7 +97,7 @@ export async function searchSubject(
   host: string = 'https://erogamescape.dyndns.org',
   type: ErogamescapeCategory = ErogamescapeCategory.game,
   uniqueQueryStr: string = ''
-): Promise<any> {
+): Promise<SearchResult[]> {
   let query = (subjectInfo.name || '').trim();
   if (uniqueQueryStr) {
     query = uniqueQueryStr;
@@ -112,7 +112,7 @@ export async function searchSubject(
   console.info('search subject URL: ', url);
   const rawText = await fetchText(url);
   const rawInfoList = dealSearchResults(rawText)[0] || [];
-  // return filterResults(rawInfoList, subjectInfo);
+  return rawInfoList;
 }
 
 export async function getWebsite(

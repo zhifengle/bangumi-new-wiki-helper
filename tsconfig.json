@@ -2,14 +2,14 @@
   "compilerOptions": {
     "outDir": "extension/dist",
     "lib": [
-      "es2018",
+      "es2022",
       "esnext.array",
       "dom.iterable",
       "dom"
     ],
     "noImplicitAny": false,
-    "module": "es2015",
-    "target": "es2017",
+    "module": "esnext",
+    "target": "es2022",
     // "jsx": "react",
     "allowJs": true,
     //定义类型定义文件的根目录
@@ -18,7 +18,8 @@
     "resolveJsonModule": true,
     // 引入辅助函数集
     "importHelpers": false,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "skipLibCheck": true
   },
   "include": [
     "src"

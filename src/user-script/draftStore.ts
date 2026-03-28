@@ -8,26 +8,26 @@ export const userScriptDraftStore: DraftStore = {
     GM_setValue(WIKI_DATA, JSON.stringify(wikiData));
   },
   async loadSubjectDraft() {
-    return JSON.parse(GM_getValue(WIKI_DATA) || null);
+    return JSON.parse(GM_getValue<string>(WIKI_DATA) || 'null');
   },
   async saveCharacterDraft(charaData: SubjectWikiInfo) {
     GM_setValue(CHARA_DATA, JSON.stringify(charaData));
   },
   async loadCharacterDraft() {
-    return JSON.parse(GM_getValue(CHARA_DATA) || null);
+    return JSON.parse(GM_getValue<string>(CHARA_DATA) || 'null');
   },
   async saveSubjectId(subjectId: string | number) {
     GM_setValue(SUBJECT_ID, subjectId);
   },
   async loadSubjectId() {
-    return GM_getValue(SUBJECT_ID);
+    return GM_getValue<string | number>(SUBJECT_ID);
   },
   async loadBangumiPageState(): Promise<BangumiPageState> {
     return {
-      wikiData: JSON.parse(GM_getValue(WIKI_DATA) || null),
-      charaData: JSON.parse(GM_getValue(CHARA_DATA) || null),
-      subjectId: GM_getValue(SUBJECT_ID),
-      shouldAutoFill: GM_getValue(AUTO_FILL_FORM) == 1,
+      wikiData: JSON.parse(GM_getValue<string>(WIKI_DATA) || 'null'),
+      charaData: JSON.parse(GM_getValue<string>(CHARA_DATA) || 'null'),
+      subjectId: GM_getValue<string | number>(SUBJECT_ID),
+      shouldAutoFill: GM_getValue<number>(AUTO_FILL_FORM) == 1,
       autoFillDelay: 300,
     };
   },

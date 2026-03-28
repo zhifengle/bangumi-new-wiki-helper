@@ -1,4 +1,5 @@
-import { LogMsg } from '../interface/types';
+import { RuntimeNotifyPayload } from './capabilities';
+import { SearchResult } from '../interface/subject';
 import {
   CheckSubjectAndOpenPayload,
   CreateSubjectEntryPayload,
@@ -7,11 +8,9 @@ import { SubjectTypeId } from '../interface/wiki';
 import { checkSubjectExit } from '../sites/bangumi';
 import { getSubjectId } from '../sites/bangumi/common';
 
-type NotifyPayload = LogMsg & Record<string, string | number>;
-
 export interface SubjectCreationRuntime {
   bgmHost: string;
-  notify(message: NotifyPayload): void | Promise<void>;
+  notify(message: RuntimeNotifyPayload): void | Promise<void>;
   updateAuxData(
     payload: NonNullable<CreateSubjectEntryPayload['auxSite']>
   ): Promise<void>;
@@ -49,7 +48,7 @@ export async function checkSubjectAndOpenEntry(
     message: `搜索中...<br/>${payload.subjectInfo?.name ?? ''}`,
     duration: 0,
   });
-  let result: any = undefined;
+  let result: SearchResult | undefined = undefined;
   try {
     result = await checkSubjectExit(
       payload.subjectInfo,

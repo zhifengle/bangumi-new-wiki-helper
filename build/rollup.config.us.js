@@ -1,7 +1,5 @@
 import fs from 'fs';
 import { resolve as pathResolve } from 'path';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 // import { terser } from 'rollup-plugin-terser';
 import base from './rollup.config.base';
@@ -33,8 +31,6 @@ export default {
   plugins: [
     replace({ __ENV_EXT__: '__ENV_GM__' }),
     ...base.plugins,
-    resolve(),
-    commonjs(),
     addScriptHeader(outputName),
   ],
 };

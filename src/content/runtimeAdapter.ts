@@ -1,11 +1,10 @@
-import { SingleInfo } from '../interface/subject';
-import { contentDraftStore } from './draftStore';
+import { getCoverValue, SingleInfo } from '../interface/subject';
 import {
   CharacterCreateInput,
   SourceRuntimeAdapter,
   SubjectCreateInput,
 } from '../source/runtime';
-import { backgroundMessageClient } from './messageClient';
+import { contentRuntimeCapabilities } from './runtimeCapabilities';
 
 async function hydrateCoverFromBackground(
   infoList: SingleInfo[],
@@ -14,8 +13,9 @@ async function hydrateCoverFromBackground(
   for (let i = 0; i < infoList.length; i++) {
     const info = infoList[i];
     if (info.category !== category) continue;
-    const dataUrl = info?.value?.dataUrl || '';
-    let url = info?.value?.url || '';
+    const coverValue = getCoverValue(info.value);
+    const dataUrl = coverValue?.dataUrl || '';
+    let url = coverValue?.url || '';
     if (!/^data:image/.test(dataUrl) && url) {
       console.log('fetch cover by background');
       if (!/^http/.test(url)) {
@@ -28,7 +28,10 @@ async function hydrateCoverFromBackground(
           Referer: `http://www.getchu.com/soft.phtml?id=${m[1]}`,
         };
       }
-      const nextDataUrl = await backgroundMessageClient.fetchImage(url, headers);
+      const nextDataUrl = await contentRuntimeCapabilities.transport.fetchImage?.(
+        url,
+        headers
+      );
       if (nextDataUrl) {
         info.value = {
           url,
@@ -46,16 +49,20 @@ async function submitSubjectCreation({
   payload,
   shouldCheckDup,
 }: SubjectCreateInput) {
-  await contentDraftStore.saveSubjectDraft(wikiData);
+  const subjectCreation = contentRuntimeCapabilities.subjectCreation;
+  if (!subjectCreation) {
+    throw new Error('content subjectCreation capability is missing');
+  }
+  await contentRuntimeCapabilities.storage.saveSubjectDraft(wikiData);
   if (shouldCheckDup) {
-    await backgroundMessageClient.checkSubjectExist({
+    await subjectCreation.checkSubjectExist({
       subjectInfo: queryInfo,
       type: siteConfig.type,
       ...payload,
     });
     return;
   }
-  await backgroundMessageClient.createNewSubject({
+  await subjectCreation.createNewSubject({
     type: siteConfig.type,
     ...payload,
   });
@@ -64,13 +71,17 @@ async function submitSubjectCreation({
 async function submitCharacterCreation({
   charaData,
 }: CharacterCreateInput) {
-  await contentDraftStore.saveCharacterDraft(charaData);
-  await backgroundMessageClient.createNewCharacter();
+  const subjectCreation = contentRuntimeCapabilities.subjectCreation;
+  if (!subjectCreation) {
+    throw new Error('content subjectCreation capability is missing');
+  }
+  await contentRuntimeCapabilities.storage.saveCharacterDraft(charaData);
+  await subjectCreation.createNewCharacter();
 }
 
 export const contentRuntimeAdapter: SourceRuntimeAdapter = {
   fetchHtml(url: string) {
-    return backgroundMessageClient.fetchHtml(url);
+    return contentRuntimeCapabilities.transport.fetchHtml(url);
   },
   hydrateSubjectCover(infoList: SingleInfo[]) {
     return hydrateCoverFromBackground(infoList, 'cover');

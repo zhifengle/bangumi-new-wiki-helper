@@ -1,4 +1,4 @@
-import {AllSubject, BookSubject, SearchResult} from '../../interface/subject';
+import {SearchResult, SubjectQueryInfo} from '../../interface/subject';
 import {sleep} from '../../utils/async/sleep';
 import {fetchText} from '../../utils/fetchData';
 import {SubjectTypeId} from '../../interface/wiki';
@@ -83,7 +83,7 @@ function dealSearchResults(info: string): [SearchResult[], number] | [] {
  * @param uniqueQueryStr
  */
 export async function searchSubject(
-  subjectInfo: AllSubject,
+  subjectInfo: SubjectQueryInfo,
   bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId = SubjectTypeId.all,
   uniqueQueryStr: string = ''
@@ -128,7 +128,7 @@ export async function searchSubject(
  * @param type 条目类型
  */
 export async function findSubjectByDate(
-  subjectInfo: AllSubject,
+  subjectInfo: SubjectQueryInfo,
   bgmHost: string = 'https://bgm.tv',
   pageNumber: number = 1,
   type: string
@@ -178,36 +178,38 @@ export async function findSubjectByDate(
 }
 
 export async function checkBookSubjectExist(
-  subjectInfo: BookSubject,
+  subjectInfo: SubjectQueryInfo,
   bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId
 ) {
-  const numISBN = subjectInfo.isbn.replace(/-/g, '')
-  let searchResult = await searchSubject(
-    subjectInfo,
-    bgmHost,
-    type,
-    numISBN,
-  );
-  console.info(`First: search book of bangumi: `, searchResult);
-  if (searchResult && searchResult.url) {
-    return searchResult;
-  }
-  // 判断一下是否重复
-  if (numISBN !== subjectInfo.isbn) {
-    searchResult = await searchSubject(
+  if (subjectInfo.isbn) {
+    const numISBN = subjectInfo.isbn.replace(/-/g, '');
+    let searchResult = await searchSubject(
       subjectInfo,
       bgmHost,
       type,
-      subjectInfo.isbn
+      numISBN
     );
-    console.info(`Second: search book by ${subjectInfo.isbn}: `, searchResult);
+    console.info(`First: search book of bangumi: `, searchResult);
     if (searchResult && searchResult.url) {
       return searchResult;
     }
+    // 判断一下是否重复
+    if (numISBN !== subjectInfo.isbn) {
+      searchResult = await searchSubject(
+        subjectInfo,
+        bgmHost,
+        type,
+        subjectInfo.isbn
+      );
+      console.info(`Second: search book by ${subjectInfo.isbn}: `, searchResult);
+      if (searchResult && searchResult.url) {
+        return searchResult;
+      }
+    }
   }
   // 默认使用名称搜索
-  searchResult = await searchSubject(subjectInfo, bgmHost, type);
+  const searchResult = await searchSubject(subjectInfo, bgmHost, type);
   console.info('Third: search book of bangumi: ', searchResult);
   return searchResult;
 }
@@ -219,7 +221,7 @@ export async function checkBookSubjectExist(
  * @param type 条目类型
  */
 async function checkExist(
-  subjectInfo: AllSubject,
+  subjectInfo: SubjectQueryInfo,
   bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId,
   disabelDate?: boolean
@@ -251,7 +253,7 @@ async function checkExist(
 }
 
 export async function checkSubjectExit(
-  subjectInfo: AllSubject,
+  subjectInfo: SubjectQueryInfo,
   bgmHost: string = 'https://bgm.tv',
   type: SubjectTypeId,
   disableDate?: boolean
@@ -259,11 +261,7 @@ export async function checkSubjectExit(
   let result;
   switch (type) {
     case SubjectTypeId.book:
-      result = await checkBookSubjectExist(
-        subjectInfo as BookSubject,
-        bgmHost,
-        type
-      );
+      result = await checkBookSubjectExist(subjectInfo, bgmHost, type);
       break;
     case SubjectTypeId.game:
       result = await checkExist(subjectInfo, bgmHost, type, disableDate);

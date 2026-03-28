@@ -15,12 +15,12 @@ function genCSVContent(res: SubjectItem[]) {
     csvContent += `,${subjectUrl}`;
     const cover = item.cover || '';
     csvContent += `,${cover}`;
-    const collectInfo: any = item.collectInfo || {};
+    const collectInfo = item.collectInfo || { date: '' };
     const collectDate = collectInfo.date || '';
     csvContent += `,${collectDate}`;
     const score = collectInfo.score || '';
     csvContent += `,${score}`;
-    const tag = collectInfo.tag || '';
+    const tag = collectInfo.tags || '';
     csvContent += `,${tag}`;
     const comment = collectInfo.comment || '';
     csvContent += `,"${comment}"`;
@@ -34,7 +34,7 @@ export function addExportBtn() {
   const $nav = document.querySelector('#headerProfile .navSubTabs');
   if (!$nav) return;
   const btnStr = `<li><a href="#"><span style="color:tomato;">导出收藏</span></a></li>`;
-  const $node = htmlToElement(btnStr);
+  const $node = htmlToElement<HTMLLIElement>(btnStr);
   $node.addEventListener('click', async (e) => {
     const $text = ($node as HTMLElement).querySelector('span');
     $text.innerText = '导出中...';

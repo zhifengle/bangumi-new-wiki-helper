@@ -4,44 +4,43 @@ import base from './rollup.config.base';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from 'rollup-plugin-typescript2';
 
+function createPlugins() {
+  return [
+    resolve({
+      extensions: ['.mjs', '.js', '.json', '.node', '.ts'],
+    }),
+    typescript({
+      exclude: ['./dist', './src/**/*.test.ts'],
+      tsconfigOverride: {
+        compilerOptions: {
+          target: 'ES2019',
+        },
+      },
+    }),
+    commonjs(),
+  ];
+}
+
 const bangumi = {
   input: pathResolve(__dirname, '../src/content/bangumi.ts'),
   output: {
     file: pathResolve(__dirname, '../extension/dist/bangumi.js'),
   },
-  plugins: [
-    resolve(),
-    commonjs(),
-    typescript({
-      exclude: ['./dist', './src/**/*.test.ts'],
-    }),
-  ],
+  plugins: createPlugins(),
 };
 const bg = {
   input: pathResolve(__dirname, '../src/bg/index.ts'),
   output: {
     file: pathResolve(__dirname, '../extension/dist/background.js'),
   },
-  plugins: [
-    resolve(),
-    commonjs(),
-    typescript({
-      exclude: ['./dist', './src/**/*.test.ts'],
-    }),
-  ],
+  plugins: createPlugins(),
 };
 const popup = {
   input: pathResolve(__dirname, '../src/bg/popup.ts'),
   output: {
     file: pathResolve(__dirname, '../extension/dist/popup.js'),
   },
-  plugins: [
-    resolve(),
-    commonjs(),
-    typescript({
-      exclude: ['./dist', './src/**/*.test.ts'],
-    }),
-  ],
+  plugins: createPlugins(),
 };
 const config = [
   {
@@ -49,13 +48,7 @@ const config = [
     output: {
       file: pathResolve(__dirname, '../extension/dist/content.js'),
     },
-    plugins: [
-      resolve(),
-      commonjs(),
-      typescript({
-        exclude: ['./dist', './src/**/*.test.ts'],
-      }),
-    ],
+    plugins: createPlugins(),
   },
 ];
 

@@ -1,4 +1,4 @@
-import { SubjectWikiInfo } from '../interface/subject';
+import { getStringValue, SubjectWikiInfo } from '../interface/subject';
 import { InfoConfig, Selector, SiteConfig } from '../interface/wiki';
 import { getCharaModel } from '../models';
 import { addCharaUI, getCharaData } from '../sites/common';
@@ -43,7 +43,7 @@ export async function initSourceCharacter(
   if (!$el) return;
   const $doc = await getIframeDoc(charaModel.itemSelector, runtime);
   const itemArr = $doc
-    ? findAllElement(charaModel.itemSelector, $doc as any)
+    ? findAllElement(charaModel.itemSelector, $doc)
     : findAllElement(charaModel.itemSelector);
   const nameConfig: InfoConfig = charaModel.itemList.find(
     (item) => item.category == 'crt_name'
@@ -57,7 +57,9 @@ export async function initSourceCharacter(
         },
         $target
       );
-      return infos.find((item) => item.category === 'crt_name')?.value;
+      return getStringValue(
+        infos.find((item) => item.category === 'crt_name')?.value
+      );
     })
   );
   addCharaUI($el, names, async (_e: Event, selectedName: string) => {

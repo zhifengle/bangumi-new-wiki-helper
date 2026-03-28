@@ -30,7 +30,7 @@ const commonSelector: Selector = {
   subSelector: 'td',
   sibling: true,
 };
-const dict: any = {
+const dict: Record<string, string> = {
   定価: '售价',
   発売日: '发行日期',
   ジャンル: '游戏类型',

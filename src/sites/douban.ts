@@ -1,20 +1,219 @@
-import { SiteTools } from './types';
 import { SingleInfo } from '../interface/subject';
 import { getImageDataByURL } from '../utils/dealImage';
 import { findElement, getText } from '../utils/domUtils';
+import { SiteTools } from './types';
 
+type DoubanTrack = {
+  title: string;
+  duration?: string;
+  order: number;
+};
+
+type DoubanMusicField = {
+  name: string;
+  category?: string;
+};
+
+type DoubanCoverValue = {
+  url: string;
+  dataUrl?: string;
+};
+
+const DOUBAN_GAME_PLATFORM_MAP: Record<string, string> = {
+  ARC: 'Arcade',
+  NES: 'FC',
+  红白机: 'FC',
+  街机: 'Arcade',
+};
+
+const DOUBAN_MUSIC_FIELD_MAP: Record<string, DoubanMusicField> = {
+  又名: {
+    name: '别名',
+    category: 'alias',
+  },
+  发行时间: {
+    name: '发售日期',
+    category: 'date',
+  },
+  介质: {
+    name: '版本特性',
+  },
+  唱片数: {
+    name: '碟片数量',
+  },
+  流派: {
+    name: '流派',
+  },
+  出版者: {
+    name: '厂牌',
+  },
+  表演者: {
+    name: '艺术家',
+  },
+  条形码: {
+    name: '条形码',
+  },
+};
+
+function getDoubanModifyUrl() {
+  return document.querySelector<HTMLAnchorElement>('.th-modify > a')?.href;
+}
+
+function splitInfoValues(
+  info: SingleInfo,
+  delimiter: string,
+  valueMap: Record<string, string> = {}
+) {
+  if (typeof info.value !== 'string') {
+    return [{ ...info }];
+  }
+  return info.value
+    .split(delimiter)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((value) => ({
+      ...info,
+      value: valueMap[value] ?? value,
+    }));
+}
+
+function normalizeSlashDelimitedValue(value: unknown) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  const parts = value
+    .split('/')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (parts.length > 1) {
+    return parts.join(', ');
+  }
+  return value.trim();
+}
+
+function normalizeCommaDelimitedValue(value: unknown) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  return value.replace(/,(?!\s)/g, ', ');
+}
+
+function hasCoverUrl(value: unknown): value is DoubanCoverValue {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'url' in value &&
+    typeof value.url === 'string'
+  );
+}
+
+function getDoubanPlatformLinks() {
+  const platformContainer = findElement({
+    selector: '#content .game-attr',
+    subSelector: 'dt',
+    sibling: true,
+    keyWord: '平台',
+  });
+  if (!platformContainer) {
+    return [];
+  }
+  return Array.from(platformContainer.querySelectorAll<HTMLAnchorElement>('a'));
+}
+
+function getDoubanDescriptionInfos() {
+  const result: SingleInfo[] = [];
+  const inputList = document.querySelectorAll<HTMLInputElement>(
+    'input[name="target"][type="hidden"]'
+  );
+  inputList.forEach(($input) => {
+    if ($input.value !== 'description') {
+      return;
+    }
+    const $target = $input
+      .closest('form')
+      ?.querySelector<HTMLInputElement>('.desc-form-item #thing_desc_options_0');
+    if ($target) {
+      result.push({
+        name: '游戏简介',
+        value: $target.value,
+        category: 'subject_summary',
+      });
+    }
+  });
+  return result;
+}
+
+function getDoubanMusicFieldValue($field: HTMLElement) {
+  const anchors = Array.from($field.querySelectorAll<HTMLAnchorElement>('a'));
+  if (anchors.length) {
+    return anchors
+      .map((anchor) => anchor.textContent?.trim() ?? '')
+      .filter(Boolean)
+      .join('、');
+  }
+  const nextNode = $field.nextSibling;
+  if (nextNode?.nodeType === Node.TEXT_NODE) {
+    return nextNode.textContent?.trim() ?? '';
+  }
+  return '';
+}
+
+function getDoubanMusicTracks(): DoubanTrack[] {
+  const durationReg = /\s*\d{1,2}:\d{1,2}$/;
+  return Array.from(
+    document.querySelectorAll<HTMLLIElement>('.track-list ul.track-items > li')
+  )
+    .map((item) => {
+      const order = Number.parseInt(item.getAttribute('data-track-order') ?? '0', 10);
+      const titleRaw = item.textContent?.trim() ?? '';
+      const durationMatch = titleRaw.match(durationReg);
+      if (durationMatch) {
+        return {
+          title: titleRaw.replace(durationReg, '').trim(),
+          duration: durationMatch[0].trim(),
+          order: Number.isNaN(order) ? 0 : order,
+        };
+      }
+      return {
+        title: titleRaw,
+        order: Number.isNaN(order) ? 0 : order,
+      };
+    })
+    .filter((track) => track.title);
+}
+
+function groupDoubanTracksByDisc(tracks: DoubanTrack[]) {
+  const discList: DoubanTrack[][] = [];
+  let currentDisc: DoubanTrack[] = [];
+  for (const track of tracks) {
+    if (track.order === 0) {
+      if (currentDisc.length) {
+        discList.push(currentDisc);
+        currentDisc = [];
+      }
+      continue;
+    }
+    currentDisc.push(track);
+  }
+  if (currentDisc.length) {
+    discList.push(currentDisc);
+  }
+  return discList;
+}
 
 export const doubanTools: SiteTools = {
   hooks: {
     async beforeCreate() {
       const href = window.location.href;
       if (/\/game\//.test(href) && !/\/game\/\d+\/edit/.test(href)) {
+        const modifyUrl = getDoubanModifyUrl();
+        if (!modifyUrl) {
+          return;
+        }
         return {
           payload: {
             auxSite: {
-              url: (
-                document.querySelector('.th-modify > a') as HTMLAnchorElement
-              ).href,
+              url: modifyUrl,
               prefs: {
                 originNames: ['平台', '发行日期'],
                 targetNames: 'all',
@@ -25,54 +224,34 @@ export const doubanTools: SiteTools = {
       }
     },
     async afterGetWikiData(infos: SingleInfo[]) {
-      const res: SingleInfo[] = [];
+      const result: SingleInfo[] = [];
       for (const info of infos) {
         if (['平台', '别名'].includes(info.name)) {
-          const pArr = info.value.split('/').map((i: string) => {
-            return {
-              ...info,
-              value: i.trim(),
-            };
-          });
-          res.push(...pArr);
-        } else if (info.category === 'cover') {
-          res.push({ ...info });
-        } else {
-          let val = info.value;
-          if (val && typeof val === 'string') {
-            const v = info.value.split('/');
-            if (v && v.length > 1) {
-              val = v.map((s: string) => s.trim()).join(', ');
-            }
-          }
-          if (info.name === '游戏类型' && val) {
-            val = val.replace('游戏, ', '').trim();
-          }
-          res.push({
-            ...info,
-            value: val,
-          });
+          result.push(...splitInfoValues(info, '/'));
+          continue;
         }
-      }
-      // 特殊处理平台
-      const $plateform = findElement({
-        selector: '#content .game-attr',
-        subSelector: 'dt',
-        sibling: true,
-        keyWord: '平台',
-      });
-      if ($plateform) {
-        const aList: any = $plateform.querySelectorAll('a') || [];
-        const arr = [];
-        for (const $a of aList) {
-          res.push({
-            name: '平台',
-            value: getText($a).replace(/\/.*/, '').trim(),
-            category: 'platform',
-          });
+        if (info.category === 'cover') {
+          result.push({ ...info });
+          continue;
         }
+        const normalizedValue = normalizeSlashDelimitedValue(info.value);
+        const nextValue =
+          info.name === '游戏类型' && typeof normalizedValue === 'string'
+            ? normalizedValue.replace(/^游戏,\s*/, '').trim()
+            : normalizedValue;
+        result.push({
+          ...info,
+          value: nextValue,
+        });
       }
-      return res;
+      for (const link of getDoubanPlatformLinks()) {
+        result.push({
+          name: '平台',
+          value: getText(link).replace(/\/.*/, '').trim(),
+          category: 'platform',
+        });
+      }
+      return result;
     },
   },
   filters: [],
@@ -85,74 +264,39 @@ export const doubanGameEditTools: SiteTools = {
       return /\/game\/\d+\/edit/.test(href);
     },
     async afterGetWikiData(infos: SingleInfo[]) {
-      const res: SingleInfo[] = [];
+      const result: SingleInfo[] = [];
       for (const info of infos) {
-        const arr: SingleInfo = { ...info };
         if (['平台', '别名'].includes(info.name)) {
-          const plateformDict: any = {
-            ARC: 'Arcade',
-            NES: 'FC',
-            红白机: 'FC',
-            街机: 'Arcade',
-          };
-          const pArr = info.value.split(',').map((i: string) => {
-            let v = i.trim();
-            if (plateformDict[v]) {
-              v = plateformDict[v];
-            }
-            return {
-              ...info,
-              value: v,
-            };
-          });
-          res.push(...pArr);
-        } else if (arr.category === 'cover' && arr.value && arr.value.url) {
+          result.push(...splitInfoValues(info, ',', DOUBAN_GAME_PLATFORM_MAP));
+          continue;
+        }
+        if (info.category === 'cover' && hasCoverUrl(info.value)) {
           try {
-            const url = arr.value.url.replace('/spic/', '/lpic/');
+            const url = info.value.url.replace('/spic/', '/lpic/');
             const dataUrl = await getImageDataByURL(url);
-            const coverItem = {
-              ...arr,
+            result.push({
+              ...info,
               value: {
                 dataUrl,
                 url,
               },
-            };
-            res.push(coverItem);
+            });
           } catch (error) {
             console.error(error);
           }
-        } else if (arr.name === '游戏类型') {
-          arr.value = arr.value.replace(/,(?!\s)/g, ', ');
-          res.push(arr);
-        } else if (arr.name === '开发') {
-          arr.value = arr.value.replace(/,(?!\s)/g, ', ');
-          res.push(arr);
-        } else {
-          res.push(arr);
+          continue;
         }
+        if (info.name === '游戏类型' || info.name === '开发') {
+          result.push({
+            ...info,
+            value: normalizeCommaDelimitedValue(info.value),
+          });
+          continue;
+        }
+        result.push({ ...info });
       }
-      // 描述
-      const inputList = document.querySelectorAll(
-        'input[name="target"][type="hidden"]'
-      );
-      inputList.forEach(($input: HTMLInputElement) => {
-        const val = $input.value;
-        if (val === 'description') {
-          const $target = $input
-            .closest('form')
-            .querySelector(
-              '.desc-form-item #thing_desc_options_0'
-            ) as HTMLInputElement;
-          if ($target) {
-            res.push({
-              name: '游戏简介',
-              value: $target.value,
-              category: 'subject_summary',
-            });
-          }
-        }
-      });
-      return res;
+      result.push(...getDoubanDescriptionInfos());
+      return result;
     },
   },
   filters: [],
@@ -161,109 +305,35 @@ export const doubanGameEditTools: SiteTools = {
 export const doubanMusicTools: SiteTools = {
   hooks: {
     async afterGetWikiData(infos: SingleInfo[]) {
-      const res: SingleInfo[] = [];
-      for (const item of infos) {
-        res.push(item);
-      }
-      const $info = document.querySelector('#info');
+      const result = [...infos];
+      const $info = document.querySelector<HTMLElement>('#info');
       if ($info) {
-        const nameDict: any = {
-          又名: {
-            name: '别名',
-            category: 'alias',
-          },
-          发行时间: {
-            name: '发售日期',
-            category: 'date',
-          },
-          介质: {
-            name: '版本特性',
-          },
-          唱片数: {
-            name: '碟片数量',
-          },
-          流派: {
-            name: '流派',
-          },
-          出版者: {
-            name: '厂牌',
-          },
-          表演者: {
-            name: '艺术家',
-          },
-          条形码: {
-            name: '条形码',
-          }
-        };
-        $info.querySelectorAll('.pl').forEach((pl) => {
-          let val = '';
-          if (pl.nextSibling.TEXT_NODE === 3) {
-            val = pl.nextSibling.textContent.trim();
-          }
-          let key = pl.textContent.trim().split(':')[0];
-          const anchors = pl.querySelectorAll('a');
-          if (anchors && anchors.length) {
-            val = [...anchors].map((a) => a.textContent.trim()).join('、');
-          }
-          if (!val) {
+        $info.querySelectorAll<HTMLElement>('.pl').forEach(($field) => {
+          const key = $field.textContent?.trim().split(':')[0] ?? '';
+          const target = DOUBAN_MUSIC_FIELD_MAP[key];
+          const value = getDoubanMusicFieldValue($field);
+          if (!target || !value) {
             return;
           }
-          if (key in nameDict) {
-            const target = nameDict[key];
-            res.push({
-              ...target,
-              value: val,
-            });
-          }
+          result.push({
+            ...target,
+            value,
+          });
         });
       }
-      const discNum = res.find((item) => item.name === '碟片数量')?.value || 1;
-      const tracks = [
-        ...document.querySelectorAll('.track-list ul.track-items > li'),
-      ].map((item) => {
-        const order = item.getAttribute('data-track-order');
-        const orderNum = order ? parseInt(order) : 0;
-        const titleRaw = item.textContent.trim();
-        const durationReg = /\s*\d{1,2}:\d{1,2}$/;
-        if (durationReg.test(titleRaw)) {
-          const m = titleRaw.match(durationReg);
-          return {
-            title: titleRaw.replace(durationReg, ''),
-            duration: m[0].trim(),
-            order: orderNum,
-          };
-        }
-        return {
-          title: item.textContent.trim(),
-          order: orderNum,
-        };
-      });
-      const discArr: any[] = [];
-      let curDisc: any[] = [];
-      for (let i = 0; i < tracks.length; i++) {
-        const track = tracks[i];
-        if (track.order === 0) {
-          if (curDisc.length) {
-            discArr.push(curDisc);
-            curDisc = [];
-          }
-          continue;
-        }
-        curDisc.push(track);
-      }
-      if (curDisc.length) {
-        discArr.push(curDisc);
-      }
-      if (discArr.length && discArr.length == discNum) {
-        res.push({
+      const discCountValue = result.find((item) => item.name === '碟片数量')?.value;
+      const discCount = Number.parseInt(String(discCountValue ?? '1'), 10) || 1;
+      const discList = groupDoubanTracksByDisc(getDoubanMusicTracks());
+      if (discList.length && discList.length === discCount) {
+        result.push({
           category: 'ep',
           name: '',
-          value: discArr,
+          value: discList,
         });
       } else {
-        console.warn('碟片数量不匹配', discNum, discArr);
+        console.warn('碟片数量不匹配', discCount, discList);
       }
-      return res;
+      return result;
     },
   },
   filters: [],

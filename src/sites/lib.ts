@@ -1,7 +1,17 @@
-import { CharaModel, ModelKey, SiteConfig } from '../interface/wiki';
+import { IFetchOpts } from '../interface/types';
+import { ModelKey } from '../interface/wiki';
+import { WikiPageContext } from './core/context';
 import { getImageDataByURL } from '../utils/dealImage';
 
-export async function getCover($d: Element, site: ModelKey) {
+function getCurrentPageUrl() {
+  return typeof location === 'undefined' ? '' : location.href;
+}
+
+export async function getCover(
+  $d: Element,
+  site: ModelKey,
+  context: WikiPageContext = {}
+) {
   let url;
   let dataUrl = '';
   if ($d.tagName.toLowerCase() === 'a') {
@@ -15,22 +25,19 @@ export async function getCover($d: Element, site: ModelKey) {
   }
   if (!url) return;
   try {
-    // 在其它网站上获取的相对路径的链接
-    // @TODO 这里临时使用的全局变量来处理
-    if (!/^https?:/.test(url)) {
-      let baseUrl = window._fetch_url_bg || location.href;
-      url = new URL(url, baseUrl).href;
+    const currentPageUrl = getCurrentPageUrl();
+    if (!/^https?:/.test(url) && (context.sourceUrl || currentPageUrl)) {
+      url = new URL(url, context.sourceUrl || currentPageUrl).href;
     }
     // 跨域的图片不能用这种方式
-    // dataUrl = convertImgToBase64($d as any);
-    let opts: any = {};
+    let opts: IFetchOpts = {};
     if (site.includes('getchu')) {
-      opts.headers = {
-        Referer: location.href,
-      };
-      if (!location.href.includes('getchu.com') && window._fetch_url_bg) {
-        opts.headers.Referer = window._fetch_url_bg;
-      }
+      const referer = context.imageReferer || currentPageUrl;
+      opts.headers = referer
+        ? {
+            Referer: referer,
+          }
+        : undefined;
     }
     dataUrl = await getImageDataByURL(url, opts);
     if (dataUrl) {
@@ -47,7 +54,7 @@ export async function getCover($d: Element, site: ModelKey) {
   }
 }
 
-export const charaInfoDict: any = {
+export const charaInfoDict: Record<string, string> = {
   趣味: '爱好',
   誕生日: '生日',
   '3サイズ': 'BWH',

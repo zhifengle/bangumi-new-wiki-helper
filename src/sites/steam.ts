@@ -1,6 +1,6 @@
 import { SiteTools } from './types';
 import { dealDate, formatDate } from '../utils/utils';
-import { SingleInfo } from '../interface/subject';
+import { getCoverValue, getStringValue, SingleInfo } from '../interface/subject';
 import { getImageDataByURL } from '../utils/dealImage';
 
 export function getSteamdbURL(href: string) {
@@ -39,7 +39,7 @@ export const steamTools: SiteTools = {
         let newInfo: SingleInfo = { ...info };
         if (info.name === 'website') {
           // https://steamcommunity.com/linkfilter/?url=https://www.koeitecmoamerica.com/ryza/
-          const arr = newInfo.value.split('?url=');
+          const arr = getStringValue(newInfo.value).split('?url=');
           newInfo.value = arr[1] || '';
           newInfo.category = 'website,listItem';
         }
@@ -86,20 +86,22 @@ export const steamdbTools: SiteTools = {
       const res: SingleInfo[] = [];
       for (const info of infos) {
         let newInfo: null | SingleInfo = { ...info };
+        const stringValue = getStringValue(info.value);
         if (info.name === '游戏引擎') {
-          newInfo.value = info.value.replace(/^Engine\./g, '');
+          newInfo.value = stringValue.replace(/^Engine\./g, '');
         }
         if (info.name === '游戏简介') {
-          if (info.value.match(/\n.*?Steam charts, data, update history\.$/)) {
-            newInfo.value = info.value.split('\n')[0];
+          if (stringValue.match(/\n.*?Steam charts, data, update history\.$/)) {
+            newInfo.value = stringValue.split('\n')[0];
           }
         }
         // if (info.name === '游戏类型') {
         //   newInfo.value = info.value.split(',').map((s) => s.trim()).join('、');
         // }
         if (info.name === 'cover') {
-          if (info.value.url) {
-            const a = info.value.url;
+          const coverValue = getCoverValue(info.value);
+          if (coverValue?.url) {
+            const a = coverValue.url;
             const h = a.lastIndexOf('?');
             const m = a.substring((h === -1 ? a.length : h) - 4);
             const scaleUrl = a.substring(0, a.length - m.length) + '_2x' + m;
@@ -154,7 +156,7 @@ export const steamdbTools: SiteTools = {
           const enName = names.find(name => name.name === 'english');
           const jpName = names.find(name => name.name === 'japanese');
           if (enName && gameName) {
-            if (gameName.value !== enName.value) {
+            if (getStringValue(gameName.value) !== enName.value) {
               res.push({
                 name: '别名',
                 value: `英文|${enName.value}`,
@@ -162,7 +164,7 @@ export const steamdbTools: SiteTools = {
             }
           }
           if (jpName && gameName) {
-            if (gameName.value !== jpName.value) {
+            if (getStringValue(gameName.value) !== jpName.value) {
               res.push({
                 name: '别名',
                 value: `日文|${jpName.value}`,

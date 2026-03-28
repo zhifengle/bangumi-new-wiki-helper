@@ -12,9 +12,8 @@ import {
   SubjectCreationRuntime,
 } from '../runtime/subjectCreation';
 import { sleep } from '../utils/async/sleep';
-import { fetchText } from '../utils/fetchData';
 import { logMessage } from '../utils/log';
-import { userScriptDraftStore } from './draftStore';
+import { userScriptRuntimeCapabilities } from './runtimeCapabilities';
 import {
   AUTO_FILL_FORM,
   BGM_DOMAIN,
@@ -22,22 +21,33 @@ import {
 } from './constants';
 
 function getBangumiHost() {
-  const protocol = GM_getValue(PROTOCOL) || 'https';
-  const bgmDomain = GM_getValue(BGM_DOMAIN) || 'bgm.tv';
+  const protocol = GM_getValue<string>(PROTOCOL) || 'https';
+  const bgmDomain = GM_getValue<string>(BGM_DOMAIN) || 'bgm.tv';
   return `${protocol}://${bgmDomain}`;
+}
+
+const defaultOpenTab = async (url: string) => {
+  GM_openInTab(url);
+};
+
+function getOpenTab() {
+  return userScriptRuntimeCapabilities.navigator?.openTab ?? defaultOpenTab;
 }
 
 async function updateAuxData(payload: AuxSitePayload) {
   await updateSubjectDraftFromAuxSite(payload, {
-    draftStore: userScriptDraftStore,
-    notify: logMessage,
+    storage: userScriptRuntimeCapabilities.storage,
+    notifier: {
+      notify: userScriptRuntimeCapabilities.notifier?.notify ?? logMessage,
+    },
   });
 }
 
 async function openNewSubject(type: SubjectTypeId, delay = 200) {
+  const openTab = getOpenTab();
   GM_setValue(AUTO_FILL_FORM, 1);
   setTimeout(() => {
-    GM_openInTab(`${getBangumiHost()}/new_subject/${type}`);
+    openTab(`${getBangumiHost()}/new_subject/${type}`);
   }, delay);
 }
 
@@ -49,7 +59,7 @@ async function submitSubjectCreation({
 }: SubjectCreateInput) {
   const bgmHost = getBangumiHost();
   const subjectCreationRuntime = createUserScriptSubjectCreationRuntime(bgmHost);
-  await userScriptDraftStore.saveSubjectDraft(wikiData);
+  await userScriptRuntimeCapabilities.storage.saveSubjectDraft(wikiData);
   if (shouldCheckDup) {
     await checkSubjectAndOpenEntry(
       {
@@ -75,7 +85,7 @@ async function submitCharacterCreation({
   charaData,
 }: CharacterCreateInput) {
   GM_setValue(AUTO_FILL_FORM, 1);
-  await userScriptDraftStore.saveCharacterDraft(charaData);
+  await userScriptRuntimeCapabilities.storage.saveCharacterDraft(charaData);
   await sleep(200);
   GM_openInTab(`${getBangumiHost()}/character/new`);
 }
@@ -83,24 +93,29 @@ async function submitCharacterCreation({
 function createUserScriptSubjectCreationRuntime(
   bgmHost: string
 ): SubjectCreationRuntime {
+  const notify =
+    userScriptRuntimeCapabilities.notifier?.notify ?? logMessage;
+  const openTab = getOpenTab();
   return {
     bgmHost,
-    notify: logMessage,
+    notify,
     updateAuxData,
     saveSubjectId(subjectId) {
-      return userScriptDraftStore.saveSubjectId(subjectId);
+      return userScriptRuntimeCapabilities.storage.saveSubjectId(subjectId);
     },
     async openExistingSubject(url: string) {
       await sleep(100);
-      GM_openInTab(bgmHost + url);
+      await openTab(bgmHost + url);
     },
-    openNewSubject,
+    openNewSubject(type: SubjectTypeId) {
+      return openNewSubject(type);
+    },
   };
 }
 
 export const userScriptRuntimeAdapter: SourceRuntimeAdapter = {
   fetchHtml(url: string) {
-    return fetchText(url);
+    return userScriptRuntimeCapabilities.transport.fetchHtml(url);
   },
   submitSubjectCreation,
   submitCharacterCreation,

@@ -1,4 +1,4 @@
-import { SingleInfo } from '../interface/subject';
+import { getStringValue, SingleInfo } from '../interface/subject';
 import { findElement } from '../utils/domUtils';
 import { SiteTools } from './types';
 
@@ -41,7 +41,7 @@ export const moepediaTools: SiteTools = {
     async afterGetWikiData(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
-        let val = info.value;
+        let val = getStringValue(info.value);
         if (info.name === '游戏名') {
           val = dealTitle(val);
         } else if (

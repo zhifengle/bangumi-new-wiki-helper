@@ -1,5 +1,7 @@
 import { IFuncPromise, IMsgPayload } from '../interface/types';
 
+export type SiteDealFunc = (value?: string | null) => string;
+
 export type SiteTools = {
   hooks?: {
     // beforeCreate return Prommise<boolean>
@@ -8,6 +10,6 @@ export type SiteTools = {
   };
   filters?: {
     category: string;
-    dealFunc: (...args: any) => string;
+    dealFunc: SiteDealFunc;
   }[];
 };

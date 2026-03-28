@@ -1,8 +1,10 @@
 import { Selector } from '../interface/wiki';
 
-let contextDom: Document | Element = null;
+type QueryContext = ParentNode | null;
 
-export function setCtxDom(dom: Document | Element) {
+let contextDom: QueryContext = null;
+
+export function setCtxDom(dom: QueryContext) {
   contextDom = dom;
 }
 
@@ -11,7 +13,7 @@ export function getCtxDom() {
 }
 
 export function clearCtxDom() {
-  setCtxDom(undefined);
+  setCtxDom(null);
 }
 
 /**
@@ -28,18 +30,22 @@ export function addStyle(style: string) {
  * 获取节点文本
  * @param elem
  */
-export function getText(elem: HTMLElement): string {
+export function getText(elem?: Element | null): string {
   if (!elem) return '';
-  if (elem.tagName.toLowerCase() === 'meta') {
-    return (elem as any).content;
+  if (elem instanceof HTMLMetaElement) {
+    return elem.content;
   }
-  if (elem.tagName.toLowerCase() === 'input') {
-    return (elem as any).value;
+  if (
+    elem instanceof HTMLInputElement ||
+    elem instanceof HTMLTextAreaElement ||
+    elem instanceof HTMLSelectElement
+  ) {
+    return elem.value;
   }
-  return elem.textContent || elem.innerText || '';
+  return elem.textContent || (elem instanceof HTMLElement ? elem.innerText : '') || '';
 }
 
-export function getInnerText(elem: HTMLElement): string {
+export function getInnerText(elem?: HTMLElement | null): string {
   if (!elem) return '';
   return elem.innerText || elem.textContent || '';
 }
@@ -73,7 +79,7 @@ export function $qa<E extends Element>(selector: string): NodeListOf<E> {
  * @param fn 回调函数
  * @param data 数据
  */
-export function injectScript(fn: Function, data: Object) {
+export function injectScript(fn: (...args: unknown[]) => unknown, data: unknown) {
   const script = document.createElement('script');
   script.innerHTML = `(${fn.toString()})(${data});`;
   document.body.appendChild(script);
@@ -87,27 +93,22 @@ export function injectScript(fn: Function, data: Object) {
 export function contains(
   selector: string,
   text: string | string[],
-  $parent: Element
+  $parent?: QueryContext
 ): Element[] {
-  let elements;
-  if ($parent) {
-    elements = $parent.querySelectorAll(selector);
-  } else {
-    elements = $qa(selector);
-  }
-  let t: string;
-  if (typeof text === 'string') {
-    t = text;
-  } else {
-    t = text.join('|');
-  }
-  return [].filter.call(elements, function (element: HTMLElement) {
-    return new RegExp(t, 'i').test(getText(element));
+  const elements = $parent
+    ? Array.from($parent.querySelectorAll(selector))
+    : Array.from($qa(selector));
+  const targetText = typeof text === 'string' ? text : text.join('|');
+  return elements.filter((element) => {
+    return new RegExp(targetText, 'i').test(getText(element));
   });
 }
 
-function findElementByKeyWord(selector: Selector, $parent?: Element): Element {
-  let res: Element = null;
+function findElementByKeyWord(
+  selector: Selector,
+  $parent?: QueryContext
+): Element | null {
+  let res: Element | null = null;
   if ($parent) {
     $parent = $parent.querySelector(selector.selector);
   } else {
@@ -126,9 +127,13 @@ function findElementByKeyWord(selector: Selector, $parent?: Element): Element {
   return res;
 }
 
+function isElement(element: Element | null): element is Element {
+  return element !== null;
+}
+
 export function findElement(
   selector: Selector | Selector[],
-  $parent?: Element
+  $parent?: QueryContext
 ): Element | null {
   let r: Element | null = null;
   if (selector) {
@@ -145,14 +150,13 @@ export function findElement(
           : $q(selector.selector);
       } else if (selector.isIframe) {
         // iframe 暂时不支持 parent
-        const $iframeDoc: Document = (
-          $q(selector.selector) as HTMLIFrameElement
-        )?.contentDocument;
-        r = $iframeDoc?.querySelector(selector.subSelector);
+        const $iframeDoc =
+          $q<HTMLIFrameElement>(selector.selector)?.contentDocument ?? null;
+        r = $iframeDoc?.querySelector(selector.subSelector) ?? null;
       } else {
         r = findElementByKeyWord(selector, $parent);
       }
-      if (selector.closest) {
+      if (selector.closest && r) {
         r = r.closest(selector.closest);
       }
       // recursive
@@ -167,7 +171,7 @@ export function findElement(
 
 export function findAllElement(
   selector: Selector | Selector[],
-  $parent?: Element
+  $parent?: QueryContext
 ): Element[] {
   let res: Element[] = [];
   if (selector instanceof Array) {
@@ -192,29 +196,27 @@ export function findAllElement(
             : $qa(selector.selector)
         );
       } else if (selector.isIframe) {
-        const $iframeDoc: Document = (
-          $q(selector.selector) as HTMLIFrameElement
-        )?.contentDocument;
-        res = Array.from($iframeDoc?.querySelectorAll(selector.subSelector));
+        const $iframeDoc =
+          $q<HTMLIFrameElement>(selector.selector)?.contentDocument ?? null;
+        res = Array.from($iframeDoc?.querySelectorAll(selector.subSelector) ?? []);
       } else {
         if (selector.isIframe) {
-          const $iframeDoc: Document = (
-            $q(selector.selector) as HTMLIFrameElement
-          )?.contentDocument;
+          const $iframeDoc =
+            $q<HTMLIFrameElement>(selector.selector)?.contentDocument ?? null;
           // iframe 时不需要 keyWord
-          $parent = $iframeDoc?.querySelector(selector.subSelector);
+          $parent = $iframeDoc?.querySelector(selector.subSelector) ?? null;
         } else {
           $parent = $parent ? $parent : $q(selector.selector);
         }
         if (!$parent) return res;
         res = contains(selector.subSelector, selector.keyWord, $parent);
         if (selector.sibling) {
-          res = res.map(($t) => $t.nextElementSibling);
+          res = res.map(($t) => $t.nextElementSibling).filter(isElement);
         }
       }
       // closest
       if (selector.closest) {
-        res = res.map((r) => r.closest(selector.closest));
+        res = res.map((r) => r.closest(selector.closest)).filter(isElement);
       }
     } else {
       // 有下一步的选择器时，selector 是用来定位父节点的
@@ -241,45 +243,49 @@ export function findAllElement(
  * @param mimeType 文件类型
  */
 export function downloadFile(
-  content: any,
+  content: BlobPart | BlobPart[],
   fileName: string,
   mimeType: string = 'application/octet-stream'
 ) {
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(
-    new Blob([content], {
+  const a = document.createElement('a');
+  const objectUrl = URL.createObjectURL(
+    new Blob(Array.isArray(content) ? content : [content], {
       type: mimeType,
     })
   );
+  a.href = objectUrl;
   a.style.display = 'none';
   a.setAttribute('download', fileName);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  URL.revokeObjectURL(objectUrl);
 }
 
 /**
  * @param {String} HTML 字符串
  * @return {Element}
  */
-export function htmlToElement(html: string) {
-  var template = document.createElement('template');
+export function htmlToElement<E extends Element = Element>(html: string): E {
+  const template = document.createElement('template');
   html = html.trim();
   template.innerHTML = html;
-  // template.content.childNodes;
-  return template.content.firstChild;
+  const firstElement = template.content.firstElementChild;
+  if (!firstElement) {
+    throw new Error('htmlToElement requires a root element');
+  }
+  return firstElement as E;
 }
 
 export function createFetchDataIframe(): HTMLIFrameElement {
   const iframeId = 'e-userjs-fetch-data';
-  let $iframe = document.querySelector(`#${iframeId}`) as HTMLIFrameElement;
+  let $iframe = document.querySelector<HTMLIFrameElement>(`#${iframeId}`);
   if (!$iframe) {
     $iframe = document.createElement('iframe');
     $iframe.setAttribute(
       'sandbox',
       'allow-forms allow-same-origin allow-scripts'
     );
-    // @ts-ignore
     $iframe.style.display = 'none';
     $iframe.id = iframeId;
     document.body.appendChild($iframe);
@@ -300,15 +306,14 @@ export function loadIframe(
 ) {
   return new Promise((resolve, reject) => {
     $iframe.src = src;
-    let timer = setTimeout(() => {
-      timer = null;
+    const timer = setTimeout(() => {
       $iframe.onload = undefined;
-      reject('iframe timeout');
+      reject(new Error('iframe timeout'));
     }, TIMEOUT);
     $iframe.onload = () => {
       clearTimeout(timer);
       $iframe.onload = null;
-      resolve(null);
+      resolve(undefined);
     };
   });
 }

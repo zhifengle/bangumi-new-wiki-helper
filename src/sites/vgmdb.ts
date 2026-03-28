@@ -1,4 +1,4 @@
-import { SingleInfo } from '../interface/subject';
+import { getStringValue, SingleInfo } from '../interface/subject';
 import { getImageDataByURL } from '../utils/dealImage';
 import { SiteTools } from './types';
 
@@ -33,21 +33,22 @@ export const vgmdbTools: SiteTools = {
         category: 'subject_title',
       });
       for (const item of infos) {
-        if (item.name === '价格' && item.value.includes('Not for Sale')) {
+        const stringValue = getStringValue(item.value);
+        if (item.name === '价格' && stringValue.includes('Not for Sale')) {
           continue;
         }
         // 替换数字
-        if (item.name === '版本特性' && /\d+/.test(item.value)) {
+        if (item.name === '版本特性' && /\d+/.test(stringValue)) {
           res.push({
             ...item,
-            value: item.value.replace(/\d+/, '').trim(),
+            value: stringValue.replace(/\d+/, '').trim(),
           });
           continue;
         }
         if (item.name === '目录编号') {
           res.push({
             ...item,
-            value: item.value.trim().split(' ')[0].trim(),
+            value: stringValue.trim().split(' ')[0].trim(),
           });
           continue;
         }

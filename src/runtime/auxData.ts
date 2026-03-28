@@ -1,14 +1,11 @@
-import { AuxSitePayload, LogMsg } from '../interface/types';
+import { AuxSitePayload } from '../interface/types';
 import { combineInfoList, getWikiDataByURL } from '../sites/common';
 import { genAnonymousLinkText } from '../utils/domUtils';
-import { DraftStore } from './draftStore';
+import { RuntimeCapabilities, RuntimeNotifyPayload } from './capabilities';
 
-type LogPayload = LogMsg & Record<string, string | number>;
-
-export interface AuxDataRuntime {
-  draftStore: Pick<DraftStore, 'loadSubjectDraft' | 'saveSubjectDraft'>;
-  notify(message: LogPayload): void | Promise<void>;
-}
+export type AuxDataRuntime = Pick<RuntimeCapabilities, 'storage' | 'notifier'> & {
+  notifier: { notify(message: RuntimeNotifyPayload): void | Promise<void> };
+};
 
 function buildAuxSiteLink(url: string) {
   return genAnonymousLinkText(url, url);
@@ -28,17 +25,16 @@ export async function updateSubjectDraftFromAuxSite(
     prefs: auxPrefs = {},
   } = payload;
   try {
-    await runtime.notify({
+    await runtime.notifier.notify({
       type: 'info',
       message: `抓取第三方网站信息中:<br/>${buildAuxSiteLink(auxSite)}`,
       duration: 0,
     });
     console.info('the start of updating aux data');
-    window._fetch_url_bg = auxSite;
     const auxData = await getWikiDataByURL(auxSite, auxSiteOpts);
     console.info('auxiliary data: ', auxData);
     if (!auxData || (auxData && auxData.length === 0)) {
-      await runtime.notify({
+      await runtime.notifier.notify({
         type: 'error',
         message: `抓取信息为空<br/>
       ${buildAuxSiteLink(auxSite)}
@@ -47,13 +43,13 @@ export async function updateSubjectDraftFromAuxSite(
         cmd: 'dismissNotError',
       });
     } else {
-      await runtime.notify({
+      await runtime.notifier.notify({
         type: 'info',
         message: `抓取第三方网站信息成功:<br/>${buildAuxSiteLink(auxSite)}`,
         cmd: 'dismissNotError',
       });
     }
-    const wikiData = await runtime.draftStore.loadSubjectDraft();
+    const wikiData = await runtime.storage.loadSubjectDraft();
     if (!wikiData) {
       throw new Error('wikiData is empty');
     }
@@ -61,7 +57,7 @@ export async function updateSubjectDraftFromAuxSite(
     if (auxSite.match(/store\.steampowered\.com/)) {
       infos = combineInfoList(auxData, wikiData.infos);
     }
-    await runtime.draftStore.saveSubjectDraft({
+    await runtime.storage.saveSubjectDraft({
       type: wikiData.type,
       subtype: wikiData.subtype || 0,
       infos,
@@ -69,7 +65,7 @@ export async function updateSubjectDraftFromAuxSite(
     console.info('the end of updating aux data');
   } catch (error) {
     console.error(error);
-    await runtime.notify({
+    await runtime.notifier.notify({
       type: 'error',
       message: `抓取信息失败<br/>
       ${buildAuxSiteLink(auxSite)}
@@ -77,7 +73,5 @@ export async function updateSubjectDraftFromAuxSite(
       ${buildUnavailableMessage()}`,
       cmd: 'dismissNotError',
     });
-  } finally {
-    window._fetch_url_bg = null;
   }
 }

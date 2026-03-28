@@ -1,4 +1,9 @@
-export type IFuncPromise = (...args: any) => Promise<any>;
+import { SubjectTypeId } from './wiki';
+
+export type IFuncPromise<
+  Args extends unknown[] = unknown[],
+  Result = unknown,
+> = (...args: Args) => Promise<Result>;
 export type ITiming = 'beforeCreate' | 'afterGetWikiData';
 
 export interface SubjectItem {
@@ -21,12 +26,11 @@ export interface SubjectItem {
   };
 }
 
-export type IFetchOpts = {
-  method?: string;
-  body?: any;
+export type IFetchOpts = RequestInit & {
+  cookie?: string;
+  data?: BodyInit | null;
   // EUC-JP 部分网页编码
   decode?: string;
-  [key: string]: any;
 };
 
 export type IAuxPrefs = {
@@ -42,19 +46,20 @@ export type AuxSitePayload = {
 
 export type IMsgPayload = {
   url?: string;
-  // SubjectTypeId or string;
-  type?: any;
+  type?: SubjectTypeId;
   fileType?: string;
   auxPrefs?: IAuxPrefs;
   disableDate?: boolean;
   auxSite?: AuxSitePayload;
-  [key: string]: any;
 };
+
+export type LogCommand = 'dismissAll' | 'dismissNotError';
 
 export type LogMsg = {
   type: 'succuss' | 'info' | 'error';
   message: string;
   duration?: number;
+  cmd?: LogCommand;
 };
 
 export type MusicDiscTrack = {

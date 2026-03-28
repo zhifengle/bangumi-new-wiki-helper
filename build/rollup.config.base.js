@@ -1,5 +1,6 @@
 import { name } from '../package.json'
 import { resolve } from 'path'
+import nodeResolve from '@rollup/plugin-node-resolve'
 import typescript from 'rollup-plugin-typescript2'
 import commonjs from '@rollup/plugin-commonjs';
 
@@ -14,9 +15,19 @@ export default {
     sourcemap: true,
   },
   plugins: [
-    commonjs(),
+    nodeResolve({
+      extensions: ['.mjs', '.js', '.json', '.node', '.ts'],
+    }),
     typescript({
       exclude: ['./dist', './src/**/*.test.ts'],
+      // Keep the project tsconfig modern, but downlevel during Rollup bundling
+      // so this older pipeline can still parse the emitted code.
+      tsconfigOverride: {
+        compilerOptions: {
+          target: 'ES2019',
+        },
+      },
     }),
+    commonjs(),
   ],
 }

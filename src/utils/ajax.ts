@@ -1,10 +1,24 @@
-import {genRandomStr} from './utils'
-import {dataURItoBlob} from './dealImage'
+import { dataURItoBlob } from './dealImage';
+import { genRandomStr } from './utils';
 
-interface FormItem {
-  name: string,
-  value: Blob | File | string | number,
-  filename?: string
+export type FormValue = Blob | File | string | number;
+
+export interface FormItem {
+  name: string;
+  value: FormValue;
+  filename?: string;
+}
+
+function appendFormItem(fd: FormData, item: FormItem) {
+  if (item.filename) {
+    fd.set(item.name, item.value as Blob, item.filename);
+    return;
+  }
+  if (item.value instanceof Blob) {
+    fd.set(item.name, item.value);
+    return;
+  }
+  fd.set(item.name, String(item.value));
 }
 
 /**
@@ -14,13 +28,13 @@ interface FormItem {
  */
 export async function sendFormImg($form: HTMLFormElement, dataURL: string) {
   const info: FormItem[] = [];
-  const $file: HTMLInputElement = $form.querySelector('input[type=file]');
-  const inputFileName = $file.name ? $file.name : 'picfile';
+  const $file = $form.querySelector<HTMLInputElement>('input[type=file]');
+  const inputFileName = $file?.name ? $file.name : 'picfile';
   info.push({
     name: inputFileName,
     value: dataURItoBlob(dataURL),
-    filename: genRandomStr(5) + '.png'
-  } as FormItem)
+    filename: `${genRandomStr(5)}.png`,
+  });
   return await sendForm($form, info);
 }
 
@@ -33,32 +47,31 @@ export async function sendFormImg($form: HTMLFormElement, dataURL: string) {
 export function sendForm(
   $form: HTMLFormElement,
   extraInfo: FormItem[] = []
-): Promise<any> {
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const fd = new FormData($form);
-    extraInfo.forEach(item => {
-      if (item.filename) {
-        fd.set(item.name, item.value as Blob, item.filename)
-      } else {
-        fd.set(item.name, item.value as any)
-      }
-    })
-    const $submit = $form.querySelector('[name=submit]') as HTMLInputElement;
-    if ($submit && $submit.name && $submit.value) {
-      fd.set($submit.name, $submit.value)
+    extraInfo.forEach((item) => {
+      appendFormItem(fd, item);
+    });
+    const $submit = $form.querySelector<HTMLInputElement>('[name=submit]');
+    if ($submit?.name && $submit.value) {
+      fd.set($submit.name, $submit.value);
     }
     const xhr = new XMLHttpRequest();
-    xhr.open($form.method.toLowerCase(), $form.action, true);
+    xhr.open(($form.method || 'POST').toUpperCase(), $form.action, true);
     xhr.onload = function () {
-      let _location;
-      if (xhr.status === 200) {
-        _location = xhr.responseURL;
-        if (_location) {
-          resolve(_location);
-        } else {
-          reject('no location');
-        }
+      if (xhr.status !== 200) {
+        reject(new Error(`request failed with status ${xhr.status}`));
+        return;
       }
+      if (xhr.responseURL) {
+        resolve(xhr.responseURL);
+        return;
+      }
+      reject(new Error('no location'));
+    };
+    xhr.onerror = function () {
+      reject(new Error('request failed'));
     };
     xhr.send(fd);
   });

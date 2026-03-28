@@ -1,11 +1,11 @@
-import { SingleInfo, SubjectWikiInfo } from '../interface/subject';
+import { SingleInfo, SubjectQueryInfo, SubjectWikiInfo } from '../interface/subject';
 import { IMsgPayload } from '../interface/types';
 import { SiteConfig } from '../interface/wiki';
 
 export type SubjectCreateInput = {
   siteConfig: SiteConfig;
   wikiData: SubjectWikiInfo;
-  queryInfo: any;
+  queryInfo: SubjectQueryInfo;
   payload: IMsgPayload;
   shouldCheckDup: boolean;
 };

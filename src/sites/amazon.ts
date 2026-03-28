@@ -1,9 +1,9 @@
-import { SingleInfo } from '../interface/subject';
+import { getStringValue, SingleInfo } from '../interface/subject';
 import { getImageDataByURL } from '../utils/dealImage';
 import { SiteTools } from './types';
 
 export const amazonUtils = {
-  dealTitle(str: string): string {
+  dealTitle(str: string = ''): string {
     str = str.trim().split('\n')[0].trim();
     // str = str.split(/\s[(（][^0-9)）]+?[)）]/)[0]
     // 去掉尾部括号的内容, (1) （1） 这类不处理
@@ -91,17 +91,18 @@ export const amazonJpBookTools: SiteTools = {
       const res: SingleInfo[] = [];
       for (const info of infos) {
         let newInfo: null | SingleInfo = { ...info };
+        const stringValue = getStringValue(info.value);
         if (info.name === '页数') {
-          let val = (info.value || '').trim().replace(/ページ|页/, '');
+          let val = stringValue.trim().replace(/ページ|页/, '');
           if (val && val.length < 8 && val.indexOf('予約商品') === -1) {
             newInfo.value = val;
           } else {
             newInfo = null;
           }
         } else if (info.name === '播放时长') {
-          newInfo.value = info.value.replace('時間', '小时').replace(/ /g, '');
+          newInfo.value = stringValue.replace('時間', '小时').replace(/ /g, '');
         } else if (info.name === '价格') {
-          let val = (info.value || '').replace(/来自|より/, '').trim();
+          let val = stringValue.replace(/来自|より/, '').trim();
           newInfo.value = val;
         }
         if (newInfo) {
@@ -196,7 +197,7 @@ export const amazonJpMusicTools: SiteTools = {
       const res: SingleInfo[] = [];
       for (const item of infos) {
         if (item.name === '艺术家') {
-          item.value = item.value.replace(/\//g, '、');
+          item.value = getStringValue(item.value).replace(/\//g, '、');
         }
         res.push(item);
       }

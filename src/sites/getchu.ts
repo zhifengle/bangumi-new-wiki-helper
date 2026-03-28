@@ -4,7 +4,7 @@ import { convertImgToBase64 } from '../utils/dealImage';
 import { SiteTools } from './types';
 
 export const getchuTools = {
-  dealTitle(str: string): string {
+  dealTitle(str: string = ''): string {
     str = str.trim().split('\n')[0];
     str = str
       .split('＋')[0]
@@ -113,7 +113,7 @@ export const getchuTools = {
       value: getText($clonedDd).trim(),
       category: 'crt_summary',
     });
-    const dict: any = {
+    const dict: Record<string, string> = {
       誕生日: '生日',
       '3サイズ': 'BWH',
       スリーサイズ: 'BWH',

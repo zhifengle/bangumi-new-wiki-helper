@@ -4,6 +4,9 @@ import { sleep } from '../../utils/async/sleep';
 import { SubjectItem } from '../../interface/types';
 import { loadIframe } from '../../utils/domUtils';
 
+type SubjectRateInfo = NonNullable<SubjectItem['rateInfo']>;
+type SubjectCollectInfo = NonNullable<SubjectItem['collectInfo']>;
+
 export function getBgmHost() {
   return `${location.protocol}//${location.host}`;
 }
@@ -28,72 +31,69 @@ export function insertLogInfo($sibling: Element, txt: string): Element {
   $log.classList.add('e-wiki-log-info');
   // $log.setAttribute('style', 'color: tomato;');
   $log.innerHTML = txt;
-  $sibling.parentElement.insertBefore($log, $sibling);
-  $sibling.insertAdjacentElement('afterend', $log);
+  if ($sibling.parentElement) {
+    $sibling.parentElement.insertBefore($log, $sibling.nextElementSibling);
+  }
   return $log;
 }
 
-export async function getFormhash() {
+export async function getFormhash(): Promise<string> {
   const rawText = await fetchText(
     `${location.protocol}//${location.host}/new_subject/1`
   );
-  let $doc = new DOMParser().parseFromString(rawText, 'text/html');
-  let formhash = $doc
-    .querySelector('input[name=formhash]')
-    .getAttribute('value');
-  return formhash;
+  const $doc = new DOMParser().parseFromString(rawText, 'text/html');
+  return $doc.querySelector<HTMLInputElement>('input[name=formhash]')?.value ?? '';
 }
 
 export function convertItemInfo($item: HTMLElement): SubjectItem {
-  let $subjectTitle = $item.querySelector('h3>a.l');
-  let itemSubject: SubjectItem = {
-    name: $subjectTitle.textContent.trim(),
-    rawInfos: $item.querySelector('.info').textContent.trim(),
+  const $subjectTitle = $item.querySelector<HTMLAnchorElement>('h3>a.l');
+  const infoText = $item.querySelector<HTMLElement>('.info')?.textContent?.trim() ?? '';
+  const itemSubject: SubjectItem = {
+    name: $subjectTitle?.textContent?.trim() ?? '',
+    rawInfos: infoText,
     // url 没有协议和域名
-    url: $subjectTitle.getAttribute('href'),
-    greyName: $item.querySelector('h3>.grey')
-      ? $item.querySelector('h3>.grey').textContent.trim()
-      : '',
+    url: $subjectTitle?.getAttribute('href') ?? '',
+    greyName: $item.querySelector<HTMLElement>('h3>.grey')?.textContent?.trim() ?? '',
   };
-  let matchDate = $item
-    .querySelector('.info')
-    .textContent.match(/\d{4}[\-\/\年]\d{1,2}[\-\/\月]\d{1,2}/);
+  const matchDate = infoText.match(/\d{4}[\-\/\年]\d{1,2}[\-\/\月]\d{1,2}/);
   if (matchDate) {
     itemSubject.releaseDate = dealDate(matchDate[0]);
   }
-  const $rateInfo = $item.querySelector('.rateInfo');
+  const $rateInfo = $item.querySelector<HTMLElement>('.rateInfo');
   if ($rateInfo) {
-    const rateInfo: any = {};
-    if ($rateInfo.querySelector('.fade')) {
-      rateInfo.score = $rateInfo.querySelector('.fade').textContent;
-      rateInfo.count = $rateInfo
-        .querySelector('.tip_j')
-        .textContent.replace(/[^0-9]/g, '');
+    const rateInfo: SubjectRateInfo = {};
+    const $score = $rateInfo.querySelector<HTMLElement>('.fade');
+    const $count = $rateInfo.querySelector<HTMLElement>('.tip_j');
+    if ($score && $count) {
+      rateInfo.score = $score.textContent ?? '';
+      rateInfo.count = $count.textContent?.replace(/[^0-9]/g, '') ?? '';
     } else {
       rateInfo.score = '0';
       rateInfo.count = '少于10';
     }
     itemSubject.rateInfo = rateInfo;
   }
-  const $rank = $item.querySelector('.rank');
+  const $rank = $item.querySelector<HTMLElement>('.rank');
   if ($rank) {
-    itemSubject.rank = $rank.textContent.replace('Rank', '').trim();
+    itemSubject.rank = $rank.textContent?.replace('Rank', '').trim();
   }
-  const $collectInfo = $item.querySelector('.collectInfo');
+  const $collectInfo = $item.querySelector<HTMLElement>('.collectInfo');
   if ($collectInfo) {
-    const collectInfo: any = {};
-    const textArr = $collectInfo.textContent.split('/');
-    collectInfo.date = textArr[0].trim();
+    const collectInfo: SubjectCollectInfo = {
+      date: '',
+    };
+    const textArr = ($collectInfo.textContent ?? '').split('/');
+    collectInfo.date = textArr[0]?.trim() ?? '';
     textArr.forEach((str) => {
       if (str.match('标签')) {
         collectInfo.tags = str.replace(/标签:/, '').trim();
       }
     });
-    const $comment = $item.querySelector('#comment_box');
+    const $comment = $item.querySelector<HTMLElement>('#comment_box');
     if ($comment) {
-      collectInfo.comment = $comment.textContent.trim();
+      collectInfo.comment = $comment.textContent?.trim();
     }
-    const $starlight = $collectInfo.querySelector('.starlight');
+    const $starlight = $collectInfo.querySelector<HTMLElement>('.starlight');
     if ($starlight) {
       $starlight.classList.forEach((s) => {
         if (/stars\d/.test(s)) {
@@ -103,7 +103,7 @@ export function convertItemInfo($item: HTMLElement): SubjectItem {
     }
     itemSubject.collectInfo = collectInfo;
   }
-  const $cover = $item.querySelector('.subjectCover img');
+  const $cover = $item.querySelector<HTMLImageElement>('.subjectCover img');
   if ($cover && $cover.tagName.toLowerCase() === 'img') {
     // 替换 cover/s --->  cover/l 是大图
     const src = $cover.getAttribute('src') || $cover.getAttribute('data-cfsrc');
@@ -114,9 +114,9 @@ export function convertItemInfo($item: HTMLElement): SubjectItem {
   return itemSubject;
 }
 
-export function getItemInfos($doc: Document | Element = document) {
+export function getItemInfos($doc: Document | Element = document): SubjectItem[] {
   const items = $doc.querySelectorAll('#browserItemList>li');
-  const res = [];
+  const res: SubjectItem[] = [];
   for (const item of Array.from(items)) {
     res.push(convertItemInfo(item as HTMLElement));
   }
@@ -125,21 +125,22 @@ export function getItemInfos($doc: Document | Element = document) {
 
 export function getTotalPageNum($doc: Document | Element = document) {
   const $multipage = $doc.querySelector('#multipage');
+  if (!$multipage) {
+    return 1;
+  }
   let totalPageNum = 1;
-  const pList = $multipage.querySelectorAll('.page_inner>.p');
-  if (pList && pList.length) {
-    let tempNum = parseInt(
-      pList[pList.length - 2].getAttribute('href').match(/page=(\d*)/)[1]
-    );
-    totalPageNum = parseInt(
-      pList[pList.length - 1].getAttribute('href').match(/page=(\d*)/)[1]
-    );
+  const pList = $multipage.querySelectorAll<HTMLAnchorElement>('.page_inner>.p');
+  if (pList.length >= 2) {
+    const secondLastMatch = pList[pList.length - 2].href.match(/page=(\d*)/);
+    const lastMatch = pList[pList.length - 1].href.match(/page=(\d*)/);
+    const tempNum = Number.parseInt(secondLastMatch?.[1] ?? '1', 10);
+    totalPageNum = Number.parseInt(lastMatch?.[1] ?? '1', 10);
     totalPageNum = totalPageNum > tempNum ? totalPageNum : tempNum;
   }
   return totalPageNum;
 }
 
-export async function getAllPageInfo(url: string) {
+export async function getAllPageInfo(url: string): Promise<SubjectItem[]> {
   const rawText = await fetchText(url);
   const $doc = new DOMParser().parseFromString(rawText, 'text/html');
   const totalPageNum = getTotalPageNum($doc);
@@ -194,7 +195,7 @@ export async function updateInterest(subjectId: string, data: IInterestData) {
       formData.append(key, val);
     }
   }
-  await fetch($form.action, {
+  return await fetch($form.action, {
     method: 'POST',
     body: formData,
   });
@@ -207,7 +208,7 @@ export async function updateInterest(subjectId: string, data: IInterestData) {
  */
 export async function getFormByIframe(url: string, formSelector: string) {
   const iframeId = 'e-userjs-iframe';
-  let $iframe = document.querySelector(`#${iframeId}`) as HTMLIFrameElement;
+  let $iframe = document.querySelector<HTMLIFrameElement>(`#${iframeId}`);
   if (!$iframe) {
     $iframe = document.createElement('iframe');
     $iframe.style.display = 'none';
@@ -215,5 +216,9 @@ export async function getFormByIframe(url: string, formSelector: string) {
     document.body.appendChild($iframe);
   }
   await loadIframe($iframe, url, 20000);
-  return $iframe.contentDocument.querySelector(formSelector) as HTMLFormElement;
+  const $form = $iframe.contentDocument?.querySelector<HTMLFormElement>(formSelector);
+  if (!$form) {
+    throw new Error(`form not found: ${formSelector}`);
+  }
+  return $form;
 }

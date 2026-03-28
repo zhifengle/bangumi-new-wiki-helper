@@ -1,39 +1,57 @@
 import { fetchJson, fetchText } from '../../utils/fetchData';
 import { SubjectTypeId } from '../../interface/wiki';
-import { sendForm, sendFormImg } from '../../utils/ajax';
+import { FormItem, sendForm, sendFormImg } from '../../utils/ajax';
 import { getBgmHost, getFormByIframe } from './common';
-import { genRandomStr } from '../../utils/utils';
 import { dataURItoBlob } from '../../utils/dealImage';
 import { SingleInfo, SubjectWikiInfo } from '../../interface/subject';
 import { MusicDiscTrack } from '../../interface/types';
 import { sleep } from '../../utils/async/sleep';
-import { loadIframe } from '../../utils/domUtils';
+import { genRandomStr } from '../../utils/utils';
+
+type SubjectCoverUploadResult = Response | string | void;
+type CVSearchResult = Record<string, unknown>;
+
+function getBangumiSubjectTypeName(typeId: SubjectTypeId) {
+  const typeDict: Record<SubjectTypeId, string> = {
+    [SubjectTypeId.game]: 'game',
+    [SubjectTypeId.anime]: 'anime',
+    [SubjectTypeId.music]: 'music',
+    [SubjectTypeId.book]: 'book',
+    [SubjectTypeId.real]: 'real',
+    [SubjectTypeId.all]: 'all',
+  };
+  return typeDict[typeId];
+}
+
+function isDiscTrackList(value: SingleInfo['value']): value is MusicDiscTrack[][] {
+  return Array.isArray(value) && value.every((disc) => Array.isArray(disc));
+}
 
 export async function uploadSubjectCover(
   subjectId: string,
   dataUrl: string,
   bgmHost: string = ''
-) {
+): Promise<SubjectCoverUploadResult> {
   if (!bgmHost) {
     bgmHost = `${location.protocol}//${location.host}`;
   }
   const url = `${bgmHost}/subject/${subjectId}/upload_img`;
-  const $hash = document.querySelector(
+  const $hash = document.querySelector<HTMLInputElement>(
     'form > input[name="formhash"]'
-  ) as HTMLInputElement;
+  );
   if ($hash) {
     const fd = new FormData();
     fd.set('formhash', $hash.value);
     fd.set('picfile', dataURItoBlob(dataUrl), genRandomStr(5) + '.png');
     fd.set('submit', '上传图片');
-    const res = await fetch(url, {
+    return await fetch(url, {
       body: fd,
       method: 'post',
     });
   } else {
     const rawText = await fetchText(url);
     const $doc = new DOMParser().parseFromString(rawText, 'text/html');
-    const $form = $doc.querySelector('form[name=img_upload') as HTMLFormElement;
+    const $form = $doc.querySelector<HTMLFormElement>('form[name=img_upload]');
     if (!$form) {
       console.error('获取封面表单失败');
       return;
@@ -54,7 +72,7 @@ export async function addMusicEp(
   const discInfo = wikiInfo.infos.find(
     (item: SingleInfo) => item.category === 'ep'
   );
-  if (discInfo) {
+  if (discInfo && isDiscTrackList(discInfo.value)) {
     for (let i = 0; i < discInfo.value.length; i++) {
       const track = discInfo.value[i];
       const songlist = track.map((obj: MusicDiscTrack) => obj.title).join('\n');
@@ -70,9 +88,9 @@ export async function addSonglist(
   songlist: string,
   disc: string = '1'
 ) {
-  const $hash = document.querySelector(
+  const $hash = document.querySelector<HTMLInputElement>(
     'form > input[name="formhash"]'
-  ) as HTMLInputElement;
+  );
   if ($hash) {
     const fd = new FormData();
     fd.set('formhash', $hash.value);
@@ -92,9 +110,7 @@ export async function addSonglist(
   } else {
     const rawText = await fetchText(`/subject/${subjectId}/ep`);
     const $doc = new DOMParser().parseFromString(rawText, 'text/html');
-    const $form = $doc.querySelector(
-      'form[name=new_songlist'
-    ) as HTMLFormElement;
+    const $form = $doc.querySelector<HTMLFormElement>('form[name=new_songlist]');
     if (!$form) {
       console.error('获取封面表单失败');
       return;
@@ -111,7 +127,7 @@ export async function addSonglist(
       {
         name: 'submit',
         value: '加上去',
-      }
+      },
     ]);
   }
 }
@@ -122,7 +138,7 @@ export async function searchCVByName(name: string, charaId: string = '') {
   if (charaId) {
     url = `${url}?character_id=${charaId}`;
   }
-  const res = await fetchJson(url);
+  const res = await fetchJson(url) as CVSearchResult;
   return Object.keys(res)[0];
 }
 
@@ -133,19 +149,11 @@ export async function addPersonRelatedSubject(
   typeId: SubjectTypeId,
   charaType: number = 1
 ) {
-  const typeDict = {
-    [SubjectTypeId.game]: 'game',
-    [SubjectTypeId.anime]: 'anime',
-    [SubjectTypeId.music]: 'music',
-    [SubjectTypeId.book]: 'book',
-    [SubjectTypeId.real]: 'real',
-    [SubjectTypeId.all]: 'all',
-  };
   const bgmHost = `${location.protocol}//${location.host}`;
-  const type = typeDict[typeId];
+  const type = getBangumiSubjectTypeName(typeId);
   const url = `${bgmHost}/character/${charaId}/add_related/${type}`;
   const $form = await getFormByIframe(url, '.mainWrapper form');
-  const extroInfo: any = [];
+  const extroInfo: FormItem[] = [];
   // 1 主角 2 配角 3 客串
   subjectIds.forEach((v, i) => {
     extroInfo.push({
@@ -169,21 +177,16 @@ export async function addPersonRelatedCV(
   personIds: string[],
   typeId: SubjectTypeId
 ) {
-  const typeDict = {
-    [SubjectTypeId.game]: 'game',
-    [SubjectTypeId.anime]: 'anime',
-    [SubjectTypeId.music]: 'music',
-    [SubjectTypeId.book]: 'book',
-    [SubjectTypeId.real]: 'real',
-    [SubjectTypeId.all]: 'all',
-  };
   const bgmHost = `${location.protocol}//${location.host}`;
-  const type = typeDict[typeId];
+  const type = getBangumiSubjectTypeName(typeId);
   const url = `${bgmHost}/character/${charaId}/add_related/person/${type}`;
   const rawText = await fetchText(url);
   const $doc = new DOMParser().parseFromString(rawText, 'text/html');
-  const $form = $doc.querySelector('.mainWrapper form') as HTMLFormElement;
-  const personInfo = personIds.map((v, i) => ({
+  const $form = $doc.querySelector<HTMLFormElement>('.mainWrapper form');
+  if (!$form) {
+    throw new Error('related person form not found');
+  }
+  const personInfo: FormItem[] = personIds.map((v, i) => ({
     name: `infoArr[n${i}][prsn_id]`,
     value: v,
   }));

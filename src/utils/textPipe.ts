@@ -5,11 +5,9 @@ export interface ITextPipe {
   out?: string;
 }
 
-export type IPipeArgsDict = {
-  [key in IPipe]?: any[];
-};
-export type IFuncPipe = (pipe: ITextPipe, ...args: any) => ITextPipe;
 export type IPipe = 't' | 'ta' | 'ti' | 'k' | 'p' | 'pn' | 'num' | 'date';
+export type IPipeArgsDict = Partial<Record<IPipe, unknown[]>>;
+export type IFuncPipe = (pipe: ITextPipe, ...args: unknown[]) => ITextPipe;
 export type IPipeArr = (IPipe | IFuncPipe)[];
 
 export const pipeFnDict: {
@@ -22,7 +20,11 @@ export const pipeFnDict: {
   // ti: 去除空格，在 getWikiItem 里面，使用 innerText 取文本
   ti: trimSpace,
   // k: 去除关键字;
-  k: trimKeywords,
+  k: (pipe, keyWords = []) =>
+    trimKeywords(
+      pipe,
+      Array.isArray(keyWords) ? keyWords.map((item) => String(item)) : []
+    ),
   // p: 括号
   p: trimParenthesis,
   // pn: 括号不含数字
@@ -71,10 +73,10 @@ function trimParenthesisN(pipe: ITextPipe): ITextPipe {
   const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
   return trim(pipe, textList);
 }
-export function trimKeywords(pipe: ITextPipe, keyWords: string[]): ITextPipe {
+export function trimKeywords(pipe: ITextPipe, keyWords: string[] = []): ITextPipe {
   return trim(
     pipe,
-    keyWords.map((k) => `${k}\s*?(:|：)?`)
+    keyWords.map((k) => `${k}\\s*?(:|：)?`)
   );
 }
 

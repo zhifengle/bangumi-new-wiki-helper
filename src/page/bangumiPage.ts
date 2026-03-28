@@ -3,8 +3,13 @@ import {
   initNewSubject,
   initUploadImg,
 } from '../sites/bangumi/newSubject';
+import { SubjectWikiInfo } from '../interface/subject';
 import { $q } from '../utils/domUtils';
 import { BangumiPageRuntimeAdapter } from './bangumiRuntime';
+
+type ScriptMessageDetail = {
+  type?: string;
+};
 
 function getPageType() {
   const re = new RegExp(
@@ -13,7 +18,7 @@ function getPageType() {
   return document.location.href.match(re)?.[0] || '';
 }
 
-function getEmptySubjectInfo() {
+function getEmptySubjectInfo(): SubjectWikiInfo {
   return {
     type: +window.location.pathname.split('/')[2] || 1,
     infos: [],
@@ -21,8 +26,9 @@ function getEmptySubjectInfo() {
 }
 
 function registerClearListener(runtime: BangumiPageRuntimeAdapter) {
-  window.addEventListener('scriptMessage', async (e: any) => {
-    if (e.detail.type === 'clearInfo') {
+  window.addEventListener('scriptMessage', async (event: Event) => {
+    const detail = (event as CustomEvent<ScriptMessageDetail>).detail;
+    if (detail?.type === 'clearInfo') {
       console.info('clear info');
       await runtime.clearInfo();
     }
@@ -58,7 +64,7 @@ export async function initBangumiPage(runtime: BangumiPageRuntimeAdapter) {
       break;
     case 'character/new':
       if (state.charaData) {
-        initNewCharacter(state.charaData, state.subjectId as any);
+        initNewCharacter(state.charaData, state.subjectId);
         if (state.shouldAutoFill) {
           triggerAutoFill(runtime, state.autoFillDelay);
         }
