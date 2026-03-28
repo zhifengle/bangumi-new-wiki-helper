@@ -99,9 +99,34 @@ export function contains(
     ? Array.from($parent.querySelectorAll(selector))
     : Array.from($qa(selector));
   const targetText = typeof text === 'string' ? text : text.join('|');
+  const matcher = new RegExp(targetText, 'i');
   return elements.filter((element) => {
-    return new RegExp(targetText, 'i').test(getText(element));
+    return matcher.test(getText(element));
   });
+}
+
+function isDocumentNode(node?: QueryContext): node is Document {
+  return !!node && node.nodeType === Node.DOCUMENT_NODE;
+}
+
+function getIframeContext(
+  selector: Selector,
+  $parent?: QueryContext
+): Document | null {
+  if ($parent instanceof HTMLIFrameElement) {
+    return $parent.contentDocument ?? null;
+  }
+
+  const $iframe = $parent?.querySelector<HTMLIFrameElement>(selector.selector);
+  if ($iframe?.contentDocument) {
+    return $iframe.contentDocument;
+  }
+
+  if (isDocumentNode($parent)) {
+    return $parent;
+  }
+
+  return $q<HTMLIFrameElement>(selector.selector)?.contentDocument ?? null;
 }
 
 function findElementByKeyWord(
@@ -149,9 +174,7 @@ export function findElement(
           ? $parent.querySelector(selector.selector)
           : $q(selector.selector);
       } else if (selector.isIframe) {
-        // iframe 暂时不支持 parent
-        const $iframeDoc =
-          $q<HTMLIFrameElement>(selector.selector)?.contentDocument ?? null;
+        const $iframeDoc = getIframeContext(selector, $parent);
         r = $iframeDoc?.querySelector(selector.subSelector) ?? null;
       } else {
         r = findElementByKeyWord(selector, $parent);
@@ -196,18 +219,10 @@ export function findAllElement(
             : $qa(selector.selector)
         );
       } else if (selector.isIframe) {
-        const $iframeDoc =
-          $q<HTMLIFrameElement>(selector.selector)?.contentDocument ?? null;
+        const $iframeDoc = getIframeContext(selector, $parent);
         res = Array.from($iframeDoc?.querySelectorAll(selector.subSelector) ?? []);
       } else {
-        if (selector.isIframe) {
-          const $iframeDoc =
-            $q<HTMLIFrameElement>(selector.selector)?.contentDocument ?? null;
-          // iframe 时不需要 keyWord
-          $parent = $iframeDoc?.querySelector(selector.subSelector) ?? null;
-        } else {
-          $parent = $parent ? $parent : $q(selector.selector);
-        }
+        $parent = $parent ? $parent.querySelector(selector.selector) : $q(selector.selector);
         if (!$parent) return res;
         res = contains(selector.subSelector, selector.keyWord, $parent);
         if (selector.sibling) {
@@ -220,12 +235,10 @@ export function findAllElement(
       }
     } else {
       // 有下一步的选择器时，selector 是用来定位父节点的
-      const localSel = { ...selector };
+      const localSel: Selector = { ...selector };
       delete localSel.nextSelector;
-      const $p = findElement(localSel);
-      if ($p) {
-        res = findAllElement(selector.nextSelector, $p);
-      }
+      const parents = findAllElement(localSel, $parent);
+      res = parents.flatMap(($p) => findAllElement(selector.nextSelector, $p));
     }
   }
 
