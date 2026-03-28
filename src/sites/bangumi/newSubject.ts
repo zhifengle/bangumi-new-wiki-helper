@@ -4,7 +4,7 @@ import {
   isCoverValue,
   SingleInfo,
   SubjectWikiInfo,
-} from '../../interface/subject';
+} from '../../interface/subjectInfo';
 import { $q, $qa } from '../../utils/domUtils';
 import { sleep } from '../../utils/async/sleep';
 import { initImageWidget } from './imageWidget';
@@ -260,3 +260,4 @@ export function initUploadImg(wikiInfo: SubjectWikiInfo) {
     initImageWidget(uploadForm, getCoverValue(coverInfo?.value)?.dataUrl);
   }
 }
+

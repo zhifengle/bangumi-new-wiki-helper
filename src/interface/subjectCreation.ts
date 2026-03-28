@@ -1,4 +1,4 @@
-import { SubjectQueryInfo } from './subject';
+import { SubjectQueryInfo } from './subjectInfo';
 import { AuxSitePayload } from './types';
 import { SubjectTypeId } from './wiki';
 
@@ -11,3 +11,4 @@ export type CheckSubjectAndOpenPayload = CreateSubjectEntryPayload & {
   subjectInfo?: SubjectQueryInfo;
   disableDate?: boolean;
 };
+

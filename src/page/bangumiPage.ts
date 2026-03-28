@@ -3,7 +3,7 @@ import {
   initNewSubject,
   initUploadImg,
 } from '../sites/bangumi/newSubject';
-import { SubjectWikiInfo } from '../interface/subject';
+import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { $q } from '../utils/domUtils';
 import { BangumiPageRuntimeAdapter } from './bangumiRuntime';
 
@@ -77,3 +77,4 @@ export async function initBangumiPage(runtime: BangumiPageRuntimeAdapter) {
       break;
   }
 }
+

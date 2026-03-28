@@ -3,7 +3,7 @@ import { SubjectTypeId } from '../../interface/wiki';
 import { FormItem, sendForm, sendFormImg } from '../../utils/ajax';
 import { getBgmHost, getFormByIframe } from './common';
 import { dataURItoBlob } from '../../utils/dealImage';
-import { SingleInfo, SubjectWikiInfo } from '../../interface/subject';
+import { SingleInfo, SubjectWikiInfo } from '../../interface/subjectInfo';
 import { MusicDiscTrack } from '../../interface/types';
 import { sleep } from '../../utils/async/sleep';
 import { genRandomStr } from '../../utils/utils';
@@ -203,3 +203,4 @@ export async function addPersonRelatedCV(
     ...personInfo,
   ]);
 }
+

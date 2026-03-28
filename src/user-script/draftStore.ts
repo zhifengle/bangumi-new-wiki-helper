@@ -1,4 +1,4 @@
-import { SubjectWikiInfo } from '../interface/subject';
+import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { BangumiPageState } from '../page/bangumiRuntime';
 import { DraftStore } from '../runtime/draftStore';
 import { AUTO_FILL_FORM, CHARA_DATA, SUBJECT_ID, WIKI_DATA } from './constants';
@@ -41,3 +41,4 @@ export const userScriptDraftStore: DraftStore = {
     GM_setValue(AUTO_FILL_FORM, 0);
   },
 };
+

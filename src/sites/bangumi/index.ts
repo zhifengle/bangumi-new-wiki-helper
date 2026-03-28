@@ -1,9 +1,9 @@
-import {SearchResult, SubjectQueryInfo} from '../../interface/subject';
+import {SearchResult, SubjectQueryInfo} from '../../interface/subjectInfo';
 import {sleep} from '../../utils/async/sleep';
 import {fetchText} from '../../utils/fetchData';
 import {SubjectTypeId} from '../../interface/wiki';
 import {dealDate} from '../../utils/utils';
-import {filterResults} from '../common';
+import { filterResults } from '../core/search';
 
 export enum BangumiDomain {
   chii = 'chii.in',
@@ -294,3 +294,4 @@ export function changeDomain(
     .replace(new RegExp(domainArr.join('|').replace('.', '\\.')), domain)
     .replace(/https?/, protocol);
 }
+

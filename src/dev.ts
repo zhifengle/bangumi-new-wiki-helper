@@ -1,10 +1,10 @@
-import { SingleInfo } from './interface/subject';
-import { adultComicModel } from './models/adultcomic';
-import { getWikiData } from './sites/common';
+import { SingleInfo } from './interface/subjectInfo';
+import { adultComicSubject } from './sites/adultcomic/subject';
+import { getWikiData } from './sites/core/extract';
 import { findElement } from './utils/domUtils';
 
 async function test() {
-  // const infoList: (SingleInfo | void)[] = await getWikiData(adultComicModel);
+  // const infoList: (SingleInfo | void)[] = await getWikiData(adultComicSubject);
   // console.info('wiki info list: ', infoList);
 
   const $el = findElement({
@@ -16,3 +16,6 @@ async function test() {
   console.info($el);
 }
 test();
+
+
+

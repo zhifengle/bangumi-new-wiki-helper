@@ -1,4 +1,4 @@
-import { SubjectWikiInfo } from '../interface/subject';
+import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { SubjectTypeId } from '../interface/wiki';
 
 export const book: SubjectWikiInfo = {
@@ -69,3 +69,4 @@ export const testUrls: string[] = [
   // ゆびさきコネクション
   'https://dlsoft.dmm.co.jp/detail/has_0091',
 ];
+

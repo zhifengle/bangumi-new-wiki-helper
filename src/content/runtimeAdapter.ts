@@ -1,4 +1,4 @@
-import { getCoverValue, SingleInfo } from '../interface/subject';
+import { getCoverValue, SingleInfo } from '../interface/subjectInfo';
 import {
   CharacterCreateInput,
   SourceRuntimeAdapter,
@@ -92,3 +92,4 @@ export const contentRuntimeAdapter: SourceRuntimeAdapter = {
   submitSubjectCreation,
   submitCharacterCreation,
 };
+

@@ -1,4 +1,4 @@
-import { SubjectWikiInfo } from '../../../interface/subject';
+import { SubjectWikiInfo } from '../../../interface/subjectInfo';
 import { SubjectTypeId } from '../../../interface/wiki';
 import { getSubmitBtnText } from './submit';
 
@@ -49,3 +49,4 @@ describe('newSubject submit helpers', () => {
     expect(getSubmitBtnText(wikiInfo)).toBe('添加条目并上传封面');
   });
 });
+

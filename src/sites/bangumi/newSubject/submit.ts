@@ -1,4 +1,4 @@
-import { getStringValue, SingleInfo, SubjectWikiInfo } from '../../../interface/subject';
+import { getStringValue, SingleInfo, SubjectWikiInfo } from '../../../interface/subjectInfo';
 import { sendFormImg, sendForm } from '../../../utils/ajax';
 import { $q, htmlToElement } from '../../../utils/domUtils';
 import { sleep } from '../../../utils/async/sleep';
@@ -148,3 +148,4 @@ export function initCharacterSubmit(wikiInfo: SubjectWikiInfo, dataUrl: string) 
     });
   }, 300);
 }
+

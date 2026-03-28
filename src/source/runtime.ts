@@ -1,9 +1,9 @@
-import { SingleInfo, SubjectQueryInfo, SubjectWikiInfo } from '../interface/subject';
+import { SingleInfo, SubjectQueryInfo, SubjectWikiInfo } from '../interface/subjectInfo';
 import { IMsgPayload } from '../interface/types';
-import { SiteConfig } from '../interface/wiki';
+import { SubjectSourceDefinition } from '../interface/wiki';
 
 export type SubjectCreateInput = {
-  siteConfig: SiteConfig;
+  siteConfig: SubjectSourceDefinition;
   wikiData: SubjectWikiInfo;
   queryInfo: SubjectQueryInfo;
   payload: IMsgPayload;
@@ -11,7 +11,7 @@ export type SubjectCreateInput = {
 };
 
 export type CharacterCreateInput = {
-  siteConfig: SiteConfig;
+  siteConfig: SubjectSourceDefinition;
   charaData: SubjectWikiInfo;
 };
 
@@ -22,3 +22,5 @@ export interface SourceRuntimeAdapter {
   submitSubjectCreation(input: SubjectCreateInput): Promise<void>;
   submitCharacterCreation(input: CharacterCreateInput): Promise<void>;
 }
+
+

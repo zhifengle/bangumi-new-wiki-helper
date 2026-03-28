@@ -1,4 +1,4 @@
-import { SearchResult, SingleInfo, SubjectQueryInfo } from '../../interface/subject';
+import { SearchResult, SingleInfo, SubjectQueryInfo } from '../../interface/subjectInfo';
 import { isEqualDate } from '../../utils/utils';
 
 export type FuseSearchOptions = Record<string, unknown>;
@@ -80,3 +80,4 @@ export function getQueryInfo(items: SingleInfo[]): SubjectQueryInfo {
   });
   return info;
 }
+

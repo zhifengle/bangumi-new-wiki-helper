@@ -1,5 +1,5 @@
 import { IPipeArr } from '../utils/textPipe';
-import { SingleInfo } from './subject';
+import { SingleInfo } from './subjectInfo';
 
 export interface Selector {
   selector: string;
@@ -67,7 +67,7 @@ export type ModelKey =
 export type CharaType = 'person' | 'character';
 export type CharaControlMode = 'select' | 'inline';
 
-export interface SiteConfig {
+export interface SubjectSourceDefinition {
   key: ModelKey;
   description: string;
   host: string[];
@@ -82,7 +82,7 @@ export interface SiteConfig {
   defaultInfos?: SingleInfo[];
 }
 
-export interface CharaModel {
+export interface CharacterSourceDefinition {
   key: CharaModelKey;
   // 使用同一个 key 用来关联游戏页面
   siteKey: ModelKey;
@@ -103,3 +103,5 @@ export interface CharaModel {
   itemList: InfoConfig[];
   defaultInfos?: SingleInfo[];
 }
+
+

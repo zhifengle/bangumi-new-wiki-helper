@@ -1,5 +1,5 @@
 import { IFetchOpts } from '../../interface/types';
-import { findModelByHost } from '../../models';
+import { findModelByHost } from '../../sites';
 import { findElement } from '../../utils/domUtils';
 import { fetchText } from '../../utils/fetchData';
 import { createRemoteWikiPageContext } from './context';

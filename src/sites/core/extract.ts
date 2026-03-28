@@ -1,10 +1,10 @@
-import { getStringValue, SingleInfo } from '../../interface/subject';
+import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import {
-  CharaModel,
+  CharacterSourceDefinition,
   InfoConfig,
   ModelKey,
   Selector,
-  SiteConfig,
+  SubjectSourceDefinition,
 } from '../../interface/wiki';
 import {
   clearCtxDom,
@@ -14,8 +14,8 @@ import {
   setCtxDom,
 } from '../../utils/domUtils';
 import { dealTextByPipe } from '../../utils/textPipe';
-import { getCover } from '../lib';
-import { dealFuncByCategory, getCharaHooks, getHooks } from './compat';
+import { dealFuncByCategory, getCharaHooks, getHooks } from '../catalog';
+import { getCover } from './cover';
 import { WikiPageContext } from './context';
 
 /**
@@ -135,7 +135,7 @@ export async function getWikiItem(
 }
 
 export async function getWikiData(
-  siteConfig: SiteConfig,
+  siteConfig: SubjectSourceDefinition,
   el?: Document,
   context: WikiPageContext = {}
 ) {
@@ -157,7 +157,7 @@ export async function getWikiData(
 }
 
 export async function getCharaData(
-  model: CharaModel,
+  model: CharacterSourceDefinition,
   el?: Document | Element,
   context: WikiPageContext = {}
 ) {
@@ -178,3 +178,5 @@ export async function getCharaData(
   }
   return [...rawInfo, ...defaultInfos];
 }
+
+

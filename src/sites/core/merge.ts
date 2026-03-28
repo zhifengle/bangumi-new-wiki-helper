@@ -1,4 +1,4 @@
-import { getStringValue, SingleInfo } from '../../interface/subject';
+import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import { IAuxPrefs } from '../../interface/types';
 
 function isChineseStr(str: string) {
@@ -144,3 +144,4 @@ export function combineInfoList(
       }
     });
 }
+

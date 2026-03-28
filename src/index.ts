@@ -1,7 +1,7 @@
 import { initCommon, addStyle } from './user-script';
 import { bangumi } from './user-script/bangumi';
 import { BGM_DOMAIN, PROTOCOL } from './user-script/constants';
-import { findModelByHost } from './models';
+import { findModelByHost } from './sites';
 import { initChara } from './user-script/character';
 
 function setDomain() {

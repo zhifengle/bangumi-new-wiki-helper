@@ -1,8 +1,8 @@
-import { SiteConfig } from '../interface/wiki';
+import { SubjectSourceDefinition } from '../interface/wiki';
 import { initSourceSubject } from '../source/subject';
 import { userScriptRuntimeAdapter } from './runtimeAdapter';
 
-export async function initCommon(siteConfig: SiteConfig) {
+export async function initCommon(siteConfig: SubjectSourceDefinition) {
   return initSourceSubject(siteConfig, userScriptRuntimeAdapter);
 }
 
@@ -100,3 +100,4 @@ export function addStyle() {
   const myCss = GM_getResourceText('NOTYF_CSS');
   GM_addStyle(myCss);
 }
+

@@ -1,4 +1,4 @@
-import { getStringValue, SingleInfo } from '../../../interface/subject';
+import { getStringValue, SingleInfo } from '../../../interface/subjectInfo';
 import { dealDate } from '../../../utils/utils';
 
 function hasCategory(info: SingleInfo, category: string) {
@@ -127,3 +127,4 @@ export function convertInfoValue(
   }
   return [...arr, ...newArr, '}}'].join('\n');
 }
+

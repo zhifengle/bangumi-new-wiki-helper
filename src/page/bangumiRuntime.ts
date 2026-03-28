@@ -1,4 +1,4 @@
-import { SubjectWikiInfo } from '../interface/subject';
+import { SubjectWikiInfo } from '../interface/subjectInfo';
 
 export type BangumiPageState = {
   wikiData?: SubjectWikiInfo | null;
@@ -13,3 +13,4 @@ export interface BangumiPageRuntimeAdapter {
   clearInfo(): Promise<void> | void;
   markAutoFillConsumed?(): Promise<void> | void;
 }
+

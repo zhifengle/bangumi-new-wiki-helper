@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { getchuGameModel } from '../models/getchuGame';
+import { getchuSubject } from '../sites/getchu/subject';
 import { initSourceCharacter } from './character';
 import { SourceRuntimeAdapter } from './runtime';
 
@@ -59,7 +59,7 @@ describe('initSourceCharacter', () => {
       submitCharacterCreation: jest.fn().mockResolvedValue(undefined),
     };
 
-    await initSourceCharacter(getchuGameModel, runtime);
+    await initSourceCharacter(getchuSubject, runtime);
     expect(runtime.fetchHtml).not.toHaveBeenCalled();
 
     const buttons = document.querySelectorAll<HTMLElement>('.e-wiki-new-character');
@@ -78,9 +78,9 @@ describe('initSourceCharacter', () => {
       ])
     );
     expect(runtime.submitCharacterCreation).toHaveBeenCalledWith({
-      siteConfig: getchuGameModel,
+      siteConfig: getchuSubject,
       charaData: expect.objectContaining({
-        type: getchuGameModel.type,
+        type: getchuSubject.type,
         infos: expect.arrayContaining([
           expect.objectContaining({
             name: '姓名',

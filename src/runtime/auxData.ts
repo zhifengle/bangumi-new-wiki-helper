@@ -1,5 +1,6 @@
 import { AuxSitePayload } from '../interface/types';
-import { combineInfoList, getWikiDataByURL } from '../sites/common';
+import { combineInfoList } from '../sites/core/merge';
+import { getWikiDataByURL } from '../sites/core/remote';
 import { genAnonymousLinkText } from '../utils/domUtils';
 import { RuntimeCapabilities, RuntimeNotifyPayload } from './capabilities';
 

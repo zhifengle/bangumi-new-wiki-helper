@@ -1,4 +1,4 @@
-import { SearchResult } from '../../interface/subject';
+import { SearchResult } from '../../interface/subjectInfo';
 import { filterResults, getQueryInfo } from './search';
 
 type FuseCtor = new <T>(
@@ -135,3 +135,4 @@ describe('core search helpers', () => {
     ).toEqual(items[0]);
   });
 });
+

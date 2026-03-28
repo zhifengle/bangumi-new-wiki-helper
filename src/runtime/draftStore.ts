@@ -1,4 +1,4 @@
-import { SubjectWikiInfo } from '../interface/subject';
+import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { BangumiPageState } from '../page/bangumiRuntime';
 
 export interface DraftStore {
@@ -12,3 +12,4 @@ export interface DraftStore {
   clearBangumiPageState(): Promise<void>;
   consumeAutoFill?(): Promise<void>;
 }
+

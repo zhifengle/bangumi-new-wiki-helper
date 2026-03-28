@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill';
-import { SubjectWikiInfo } from '../interface/subject';
+import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { BangumiPageState } from '../page/bangumiRuntime';
 import { BrowserStorageState } from './browserConfig';
 import { DraftStore } from './draftStore';
@@ -62,3 +62,4 @@ export const browserDraftStore: DraftStore = {
     await browser.storage.local.remove(['wikiData', 'charaData']);
   },
 };
+

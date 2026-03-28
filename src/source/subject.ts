@@ -1,8 +1,10 @@
-import { SubjectWikiInfo } from '../interface/subject';
+import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { IMsgPayload } from '../interface/types';
-import { SiteConfig } from '../interface/wiki';
+import { SubjectSourceDefinition } from '../interface/wiki';
 import { getHooks } from '../sites';
-import { getQueryInfo, getWikiData, insertControlBtn } from '../sites/common';
+import { insertControlBtn } from '../sites/core/controls';
+import { getWikiData } from '../sites/core/extract';
+import { getQueryInfo } from '../sites/core/search';
 import { findElement } from '../utils/domUtils';
 import { SourceRuntimeAdapter } from './runtime';
 
@@ -23,7 +25,7 @@ function normalizeHookResult(
 }
 
 export async function initSourceSubject(
-  siteConfig: SiteConfig,
+  siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter
 ) {
   const $page = findElement(siteConfig.pageSelectors);
@@ -54,3 +56,5 @@ export async function initSourceSubject(
     });
   });
 }
+
+

@@ -1,7 +1,8 @@
-import { getStringValue, SubjectWikiInfo } from '../interface/subject';
-import { InfoConfig, Selector, SiteConfig } from '../interface/wiki';
-import { getCharaModel } from '../models';
-import { addCharaUI, getCharaData, insertControlBtnChara } from '../sites/common';
+import { getStringValue, SubjectWikiInfo } from '../interface/subjectInfo';
+import { InfoConfig, Selector, SubjectSourceDefinition } from '../interface/wiki';
+import { getCharaModel } from '../sites';
+import { addCharaUI, insertControlBtnChara } from '../sites/core/controls';
+import { getCharaData } from '../sites/core/extract';
 import { findAllElement, findElement } from '../utils/domUtils';
 import { SourceRuntimeAdapter } from './runtime';
 
@@ -36,7 +37,7 @@ function hasIframeItemSelector(itemSelector: Selector | Selector[]) {
 }
 
 async function submitCharacter(
-  siteConfig: SiteConfig,
+  siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter,
   charaInfo: SubjectWikiInfo['infos']
 ) {
@@ -54,7 +55,7 @@ async function submitCharacter(
 }
 
 export async function initSourceCharacter(
-  siteConfig: SiteConfig,
+  siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter
 ) {
   const $page = findElement(siteConfig.pageSelectors);
@@ -114,3 +115,5 @@ export async function initSourceCharacter(
     }
   });
 }
+
+

@@ -1,5 +1,5 @@
 import { RuntimeNotifyPayload } from './capabilities';
-import { SearchResult } from '../interface/subject';
+import { SearchResult } from '../interface/subjectInfo';
 import {
   CheckSubjectAndOpenPayload,
   CreateSubjectEntryPayload,
@@ -85,3 +85,4 @@ export async function checkSubjectAndOpenEntry(
     runtime
   );
 }
+

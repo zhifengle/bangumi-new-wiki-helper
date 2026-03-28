@@ -1,9 +1,13 @@
 import { SubjectTypeId } from '../interface/wiki';
-import { combineInfoList, getWikiDataByURL } from '../sites/common';
+import { combineInfoList } from '../sites/core/merge';
+import { getWikiDataByURL } from '../sites/core/remote';
 import { updateSubjectDraftFromAuxSite, AuxDataRuntime } from './auxData';
 
-jest.mock('../sites/common', () => ({
+jest.mock('../sites/core/merge', () => ({
   combineInfoList: jest.fn(),
+}));
+
+jest.mock('../sites/core/remote', () => ({
   getWikiDataByURL: jest.fn(),
 }));
 

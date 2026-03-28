@@ -1,4 +1,4 @@
-import { SubjectWikiInfo } from '../interface/subject';
+import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { BangumiDomain } from '../sites/bangumi';
 
 export type BrowserConfig = {
@@ -45,3 +45,4 @@ export function buildBangumiHost(
   const protocol = config.useHttps ? 'https' : 'http';
   return `${protocol}://${config.domain}`;
 }
+
