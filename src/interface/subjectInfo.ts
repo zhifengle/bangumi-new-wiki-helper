@@ -1,5 +1,5 @@
-import { MusicDiscTrack } from './types';
-import { SubjectTypeId } from './wiki';
+import type { MusicDiscTrack } from './types';
+import type { SubjectTypeId } from './wiki';
 
 interface BaseSubject {
   name: string;

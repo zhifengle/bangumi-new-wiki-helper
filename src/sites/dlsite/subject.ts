@@ -31,7 +31,11 @@ const commonSelector: Selector = {
   subSelector: 'th',
   sibling: true,
 };
-const arrDict = [
+const arrDict: Array<{
+  name: string;
+  key: string[];
+  categrory?: InfoConfig['category'];
+}> = [
   {
     name: '发行日期',
     key: ['販売日', '贩卖日', '販賣日'],

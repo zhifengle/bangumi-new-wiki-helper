@@ -1,11 +1,49 @@
 /**
  * @jest-environment jsdom
  */
-import { dealItemText, getWikiData } from './extract';
+import { SingleInfo } from '../../interface/subjectInfo';
+import {
+  CharacterSourceDefinition,
+  InfoConfig,
+  SubjectSourceDefinition,
+  SubjectTypeId,
+} from '../../interface/wiki';
+import * as catalog from '../catalog';
+import { clearCtxDom, getCtxDom } from '../../utils/domUtils';
+import { dealItemText, getCharaData, getWikiData } from './extract';
 import { steamdbSubject } from '../steamdb/subject';
 import { amazonJpBookSubject } from '../amazonJpBook/subject';
 
+function createTestSubject(itemList: InfoConfig[]): SubjectSourceDefinition {
+  return {
+    key: 'steam_game',
+    description: 'test subject',
+    host: [],
+    pageSelectors: [{ selector: '#root' }],
+    controlSelector: { selector: '#root' },
+    type: SubjectTypeId.game,
+    itemList,
+  };
+}
+
+function createTestChara(itemList: InfoConfig[]): CharacterSourceDefinition {
+  return {
+    key: 'getchu_game_chara',
+    siteKey: 'getchu_game',
+    description: 'test chara',
+    itemSelector: { selector: '.item' },
+    controlSelector: { selector: '.item' },
+    type: SubjectTypeId.game,
+    itemList,
+  };
+}
+
 describe('core extract helpers', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    clearCtxDom();
+  });
+
   test('dealItemText normalizes prefixed metadata text', () => {
     expect(dealItemText('言語: 日本語', '', ['言語'])).toEqual('日本語');
     expect(dealItemText('言語： 日本語', '', ['言語'])).toEqual('日本語');
@@ -138,5 +176,176 @@ describe('core extract helpers', () => {
         }),
       ])
     );
+  });
+
+  test('getWikiData prefers innerText for summary categories', async () => {
+    jest
+      .spyOn(catalog, 'getHooks')
+      .mockReturnValue(async (infos: SingleInfo[]) => infos);
+    const doc = document.implementation.createHTMLDocument('wiki');
+    doc.body.innerHTML = `
+      <div id="root"></div>
+      <div id="summary">text content fallback</div>
+    `;
+    const summary = doc.querySelector('#summary') as HTMLElement;
+    Object.defineProperty(summary, 'innerText', {
+      configurable: true,
+      value: '第一行\n第二行',
+    });
+
+    const infos = await getWikiData(
+      createTestSubject([
+        {
+          name: '简介',
+          selector: { selector: '#summary' },
+          category: 'subject_summary',
+        },
+      ]),
+      doc
+    );
+
+    expect(infos).toEqual([
+      expect.objectContaining({
+        name: '简介',
+        value: '第一行\n第二行',
+        category: 'subject_summary',
+      }),
+    ]);
+  });
+
+  test('getWikiData skips failed items and clears ctx dom', async () => {
+    jest
+      .spyOn(catalog, 'getHooks')
+      .mockReturnValue(async (infos: SingleInfo[]) => infos);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const doc = document.implementation.createHTMLDocument('wiki');
+    doc.body.innerHTML = `
+      <div id="root"></div>
+      <div id="good">标题</div>
+      <div id="bad">炸掉</div>
+    `;
+
+    const infos = await getWikiData(
+      createTestSubject([
+        {
+          name: '名称',
+          selector: { selector: '#good' },
+          category: 'subject_title',
+        },
+        {
+          name: '异常字段',
+          selector: { selector: '#bad' },
+          pipes: [
+            () => {
+              throw new Error('pipe exploded');
+            },
+          ],
+        },
+      ]),
+      doc
+    );
+
+    expect(infos).toEqual([
+      expect.objectContaining({
+        name: '名称',
+        value: '标题',
+        category: 'subject_title',
+      }),
+    ]);
+    expect(errorSpy).toHaveBeenCalled();
+    expect(getCtxDom()).toBeNull();
+  });
+
+  test('getWikiData allows hook to clear all infos with empty array', async () => {
+    jest.spyOn(catalog, 'getHooks').mockReturnValue(async () => []);
+    const doc = document.implementation.createHTMLDocument('wiki');
+    doc.body.innerHTML = `
+      <div id="root"></div>
+      <div id="title">标题</div>
+    `;
+
+    const infos = await getWikiData(
+      createTestSubject([
+        {
+          name: '名称',
+          selector: { selector: '#title' },
+          category: 'subject_title',
+        },
+      ]),
+      doc
+    );
+
+    expect(infos).toEqual([]);
+    expect(getCtxDom()).toBeNull();
+  });
+
+  test('getWikiData clears ctx dom when hook throws', async () => {
+    jest.spyOn(catalog, 'getHooks').mockReturnValue(async () => {
+      throw new Error('hook failed');
+    });
+    const doc = document.implementation.createHTMLDocument('wiki');
+    doc.body.innerHTML = `
+      <div id="root"></div>
+      <div id="title">标题</div>
+    `;
+
+    await expect(
+      getWikiData(
+        createTestSubject([
+          {
+            name: '名称',
+            selector: { selector: '#title' },
+            category: 'subject_title',
+          },
+        ]),
+        doc
+      )
+    ).rejects.toThrow('hook failed');
+    expect(getCtxDom()).toBeNull();
+  });
+
+  test('getCharaData skips failed items and clears ctx dom', async () => {
+    jest
+      .spyOn(catalog, 'getCharaHooks')
+      .mockReturnValue(async (infos: SingleInfo[]) => infos);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const doc = document.implementation.createHTMLDocument('chara');
+    doc.body.innerHTML = `
+      <div class="item">
+        <div class="good">角色名</div>
+        <div class="bad">炸掉</div>
+      </div>
+    `;
+    const item = doc.querySelector('.item');
+
+    const infos = await getCharaData(
+      createTestChara([
+        {
+          name: '角色名',
+          selector: { selector: '.good' },
+          category: 'subject_title',
+        },
+        {
+          name: '异常字段',
+          selector: { selector: '.bad' },
+          pipes: [
+            () => {
+              throw new Error('pipe exploded');
+            },
+          ],
+        },
+      ]),
+      item!
+    );
+
+    expect(infos).toEqual([
+      expect.objectContaining({
+        name: '角色名',
+        value: '角色名',
+        category: 'subject_title',
+      }),
+    ]);
+    expect(errorSpy).toHaveBeenCalled();
+    expect(getCtxDom()).toBeNull();
   });
 });

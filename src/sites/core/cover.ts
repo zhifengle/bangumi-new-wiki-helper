@@ -1,7 +1,7 @@
-import { IFetchOpts } from '../../interface/types';
-import { ModelKey } from '../../interface/wiki';
+import type { IFetchOpts } from '../../interface/types';
+import type { SubjectModelKey } from '../../interface/wiki';
 import { getImageDataByURL } from '../../utils/dealImage';
-import { WikiPageContext } from './context';
+import type { WikiPageContext } from './context';
 
 function getCurrentPageUrl() {
   return typeof location === 'undefined' ? '' : location.href;
@@ -9,7 +9,7 @@ function getCurrentPageUrl() {
 
 export async function getCover(
   $d: Element,
-  site: ModelKey,
+  site: SubjectModelKey,
   context: WikiPageContext = {}
 ) {
   let url;

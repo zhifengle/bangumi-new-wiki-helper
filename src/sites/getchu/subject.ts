@@ -4,6 +4,7 @@ import {
   SubjectSourceDefinition,
   SubjectTypeId,
 } from '../../interface/wiki';
+import { createStartsWithPattern } from '../../utils/textPattern';
 
 export const getchuSubject: SubjectSourceDefinition = {
   key: 'getchu_game',
@@ -48,7 +49,7 @@ const configArr = Object.keys(dict).map((key) => {
     name: dict[key],
     selector: {
       // 匹配关键字开头 2020/03/18
-      keyWord: '^' + key,
+      keyWord: createStartsWithPattern(key),
       ...commonSelector,
     },
   } as InfoConfig;

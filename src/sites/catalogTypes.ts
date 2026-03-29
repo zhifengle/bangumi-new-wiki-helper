@@ -1,5 +1,8 @@
 import { IFuncPromise, IMsgPayload } from '../interface/types';
-import { CharacterSourceDefinition, SubjectSourceDefinition } from '../interface/wiki';
+import type {
+  CharacterSourceDefinition,
+  SubjectSourceDefinition,
+} from '../interface/wiki';
 
 export type SiteDealFunc = (value?: string | null) => string;
 

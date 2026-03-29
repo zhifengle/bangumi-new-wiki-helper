@@ -1,4 +1,6 @@
-import { Selector } from '../interface/wiki';
+import type { Selector, SelectorInput } from '../interface/wiki';
+import type { TextPatternInput } from '../interface/textPattern';
+import { matchesTextPatterns, toTextPatterns } from './textPattern';
 
 type QueryContext = ParentNode | null;
 
@@ -92,16 +94,18 @@ export function injectScript(fn: (...args: unknown[]) => unknown, data: unknown)
  */
 export function contains(
   selector: string,
-  text: string | string[],
+  text: TextPatternInput | undefined,
   $parent?: QueryContext
 ): Element[] {
   const elements = $parent
     ? Array.from($parent.querySelectorAll(selector))
     : Array.from($qa(selector));
-  const targetText = typeof text === 'string' ? text : text.join('|');
-  const matcher = new RegExp(targetText, 'i');
+  const patterns = toTextPatterns(text);
+  if (!patterns.length) {
+    return [];
+  }
   return elements.filter((element) => {
-    return matcher.test(getText(element));
+    return matchesTextPatterns(getText(element), patterns, 'i');
   });
 }
 
@@ -157,7 +161,7 @@ function isElement(element: Element | null): element is Element {
 }
 
 export function findElement(
-  selector: Selector | Selector[],
+  selector: SelectorInput,
   $parent?: QueryContext
 ): Element | null {
   let r: Element | null = null;
@@ -193,7 +197,7 @@ export function findElement(
 }
 
 export function findAllElement(
-  selector: Selector | Selector[],
+  selector: SelectorInput,
   $parent?: QueryContext
 ): Element[] {
   let res: Element[] = [];

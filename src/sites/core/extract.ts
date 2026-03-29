@@ -1,9 +1,11 @@
-import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
-import {
+import { getStringValue } from '../../interface/subjectInfo';
+import type { SingleInfo } from '../../interface/subjectInfo';
+import type {
   CharacterSourceDefinition,
   InfoConfig,
-  ModelKey,
   Selector,
+  SelectorInput,
+  SubjectModelKey,
   SubjectSourceDefinition,
 } from '../../interface/wiki';
 import {
@@ -13,10 +15,16 @@ import {
   getText,
   setCtxDom,
 } from '../../utils/domUtils';
+import type { TextPattern } from '../../interface/textPattern';
 import { dealTextByPipe } from '../../utils/textPipe';
+import { toTextPatterns } from '../../utils/textPattern';
 import { dealFuncByCategory, getCharaHooks, getHooks } from '../catalog';
 import { getCover } from './cover';
-import { WikiPageContext } from './context';
+import type { WikiPageContext } from './context';
+import {
+  createKeywordPipeArgsDict,
+  normalizeTextByCategory,
+} from './textNormalizer';
 
 /**
  * 处理单项 wiki 信息
@@ -27,104 +35,149 @@ import { WikiPageContext } from './context';
 export function dealItemText(
   str: string,
   category: string = '',
-  keyWords: string[] = []
+  keyWords: TextPattern[] = []
 ): string {
-  const separators = [':', '：'];
-  if (['subject_summary', 'subject_title'].indexOf(category) !== -1) {
-    return str;
+  return normalizeTextByCategory(str, category, keyWords);
+}
+
+type SelectorMatch = {
+  element: Element;
+  selector: Selector;
+};
+
+function resolveSelectorMatch(
+  selector: SelectorInput
+): SelectorMatch | undefined {
+  if (selector instanceof Array) {
+    for (const candidate of selector) {
+      const match = resolveSelectorMatch(candidate);
+      if (match) {
+        return match;
+      }
+    }
+    return;
   }
-  const textList = ['\\(.*?\\)', '（.*?）']; // 去掉多余的括号信息
-  // const keyStr = keyWords.sort((a, b) => b.length - a.length).join('|')
-  // `(${keyStr})(${separators.join('|')})?`
-  return str
-    .replace(new RegExp(textList.join('|'), 'g'), '')
-    .replace(
-      new RegExp(keyWords.map((k) => `${k}\s*?(:|：)?`).join('|'), 'g'),
-      ''
-    )
-    .replace(/[^\d:]+?(:|：)/, '')
-    .trim();
+
+  const element = findElement(selector);
+  if (!element) {
+    return;
+  }
+
+  return {
+    element,
+    selector,
+  };
+}
+
+function getSelectorKeyWords(selector: Selector): TextPattern[] {
+  return toTextPatterns(selector.keyWord);
+}
+
+function isCoverCategory(category: string): boolean {
+  return category === 'cover' || category === 'crt_cover';
+}
+
+function isSummaryCategory(category: string): boolean {
+  return category === 'subject_summary' || category === 'crt_summary';
+}
+
+function shouldUseInnerText(category: string, infoConfig: InfoConfig): boolean {
+  return isSummaryCategory(category) || Boolean(infoConfig.pipes?.includes('ti'));
+}
+
+function readRawText(
+  element: Element,
+  category: string,
+  infoConfig: InfoConfig
+): string {
+  const target = element as HTMLElement;
+  if (shouldUseInnerText(category, infoConfig)) {
+    const innerText = getInnerText(target);
+    if (innerText || infoConfig.pipes?.includes('ti')) {
+      return innerText;
+    }
+  }
+  return getText(target);
+}
+
+function transformTextValue(
+  rawText: string,
+  infoConfig: InfoConfig,
+  site: SubjectModelKey,
+  category: string,
+  keyWords: TextPattern[]
+): string {
+  const pipeArgsDict = createKeywordPipeArgsDict(keyWords);
+  if (infoConfig.pipes?.length) {
+    return dealTextByPipe(rawText, infoConfig.pipes, pipeArgsDict);
+  }
+  const normalizedText = normalizeTextByCategory(rawText, category, keyWords);
+  if (category === 'date') {
+    return dealFuncByCategory(site, category)(normalizedText);
+  }
+  if (
+    category === 'subject_title' ||
+    category === 'alias' ||
+    isSummaryCategory(category)
+  ) {
+    return dealFuncByCategory(site, category)(normalizedText);
+  }
+  return normalizedText;
+}
+
+function postProcessValue(
+  category: string,
+  value: SingleInfo['value'] | undefined
+): SingleInfo['value'] | undefined {
+  if (category === 'creator') {
+    return dealTextByPipe(getStringValue(value), ['ta']);
+  }
+  return value;
+}
+
+async function extractItemValue(
+  infoConfig: InfoConfig,
+  site: SubjectModelKey,
+  context: WikiPageContext,
+  element: Element,
+  keyWords: TextPattern[]
+): Promise<SingleInfo['value'] | undefined> {
+  const category = infoConfig.category || '';
+  if (isCoverCategory(category)) {
+    return getCover(element, site, context);
+  }
+  if (category === 'website') {
+    return dealFuncByCategory(site, 'website')(element.getAttribute('href'));
+  }
+
+  const rawText = readRawText(element, category, infoConfig);
+  const value = transformTextValue(
+    rawText,
+    infoConfig,
+    site,
+    category,
+    keyWords
+  );
+  return postProcessValue(category, value);
 }
 
 export async function getWikiItem(
   infoConfig: InfoConfig,
-  site: ModelKey,
+  site: SubjectModelKey,
   context: WikiPageContext = {}
-) {
+): Promise<SingleInfo | undefined> {
   if (!infoConfig) return;
-  const sl = infoConfig.selector;
-  let $d: Element;
-  let targetSelector: Selector;
-  if (sl instanceof Array) {
-    let i = 0;
-    targetSelector = sl[i];
-    while (!($d = findElement(targetSelector)) && i < sl.length) {
-      targetSelector = sl[++i];
-    }
-  } else {
-    targetSelector = sl;
-    $d = findElement(targetSelector);
-  }
-  if (!$d) return;
-  let keyWords: string[];
-  if (targetSelector.keyWord instanceof Array) {
-    keyWords = targetSelector.keyWord;
-  } else {
-    keyWords = [targetSelector.keyWord];
-  }
-  let val: SingleInfo['value'] | undefined;
-  let txt = getText($d as HTMLElement);
-  if (infoConfig.pipes?.includes('ti')) {
-    txt = getInnerText($d as HTMLElement);
-  }
-  const pipeArgsDict = {
-    k: [keyWords],
-  };
-  switch (infoConfig.category) {
-    case 'cover':
-    case 'crt_cover':
-      val = await getCover($d, site, context);
-      break;
-    case 'subject_summary':
-      // 优先使用 innerText
-      const innerTxt = getInnerText($d as HTMLElement);
-      if (innerTxt) {
-        txt = innerTxt;
-      }
-    case 'alias':
-    case 'subject_title':
-      // 有管道优先使用管道处理数据. 兼容之前使用写法
-      if (infoConfig.pipes) {
-        val = dealTextByPipe(txt, infoConfig.pipes, pipeArgsDict);
-      } else {
-        val = dealFuncByCategory(site, infoConfig.category)(txt);
-      }
-      break;
-    case 'website':
-      val = dealFuncByCategory(site, 'website')($d.getAttribute('href'));
-      break;
-    case 'date':
-      // 有管道优先使用管道处理数据. 兼容之前使用写法
-      if (infoConfig.pipes) {
-        val = dealTextByPipe(txt, infoConfig.pipes, pipeArgsDict);
-      } else {
-        // 日期预处理，不能删除
-        val = dealItemText(txt, infoConfig.category, keyWords);
-        val = dealFuncByCategory(site, infoConfig.category)(val);
-      }
-      break;
-    default:
-      // 有管道优先使用管道处理数据. 兼容之前使用写法
-      if (infoConfig.pipes) {
-        val = dealTextByPipe(txt, infoConfig.pipes, pipeArgsDict);
-      } else {
-        val = dealItemText(txt, infoConfig.category, keyWords);
-      }
-  }
-  // 信息后处理
-  if (infoConfig.category === 'creator') {
-    val = getStringValue(val).replace(/\s/g, '');
-  }
+  const match = resolveSelectorMatch(infoConfig.selector);
+  if (!match) return;
+
+  const keyWords = getSelectorKeyWords(match.selector);
+  const val = await extractItemValue(
+    infoConfig,
+    site,
+    context,
+    match.element,
+    keyWords
+  );
   if (val) {
     return {
       name: infoConfig.name,
@@ -134,26 +187,64 @@ export async function getWikiItem(
   }
 }
 
+function isSingleInfo(info: SingleInfo | undefined): info is SingleInfo {
+  return Boolean(info);
+}
+
+async function getWikiItems(
+  itemList: InfoConfig[],
+  site: SubjectModelKey,
+  context: WikiPageContext
+): Promise<SingleInfo[]> {
+  const results = await Promise.allSettled(
+    itemList.map((item) => getWikiItem(item, site, context))
+  );
+
+  return results.flatMap((result, index) => {
+    if (result.status === 'fulfilled') {
+      return isSingleInfo(result.value) ? [result.value] : [];
+    }
+    console.error(
+      `[extract] failed to get wiki item: ${itemList[index]?.name}`,
+      result.reason
+    );
+    return [];
+  });
+}
+
+async function withContext<T>(
+  el: Document | Element | undefined,
+  fn: () => Promise<T>
+): Promise<T> {
+  el ? setCtxDom(el) : clearCtxDom();
+  try {
+    return await fn();
+  } finally {
+    clearCtxDom();
+  }
+}
+
+function applyHookResult(
+  rawInfo: SingleInfo[],
+  hookRes: unknown
+): SingleInfo[] {
+  return Array.isArray(hookRes) ? hookRes : rawInfo;
+}
+
 export async function getWikiData(
   siteConfig: SubjectSourceDefinition,
   el?: Document,
   context: WikiPageContext = {}
 ) {
-  el ? setCtxDom(el) : clearCtxDom();
-  const r = await Promise.all(
-    siteConfig.itemList.map((item) => getWikiItem(item, siteConfig.key, context))
+  const rawInfo = await withContext(el, () =>
+    getWikiItems(siteConfig.itemList, siteConfig.key, context)
   );
-  clearCtxDom();
   const defaultInfos = siteConfig.defaultInfos || [];
-  let rawInfo = r.filter((i) => i);
   const hookRes = await getHooks(siteConfig, 'afterGetWikiData')(
     rawInfo,
     siteConfig
   );
-  if (Array.isArray(hookRes) && hookRes.length) {
-    rawInfo = hookRes;
-  }
-  return [...rawInfo, ...defaultInfos];
+  return [...applyHookResult(rawInfo, hookRes), ...defaultInfos];
 }
 
 export async function getCharaData(
@@ -161,22 +252,16 @@ export async function getCharaData(
   el?: Document | Element,
   context: WikiPageContext = {}
 ) {
-  el ? setCtxDom(el) : clearCtxDom();
-  const r = await Promise.all(
-    model.itemList.map((item) => getWikiItem(item, model.key, context))
+  const rawInfo = await withContext(el, () =>
+    getWikiItems(model.itemList, model.siteKey, context)
   );
-  clearCtxDom();
   const defaultInfos = model.defaultInfos || [];
-  let rawInfo = r.filter((i) => i);
   const hookRes = await getCharaHooks(model, 'afterGetWikiData')(
     rawInfo,
     model,
     el
   );
-  if (Array.isArray(hookRes) && hookRes.length) {
-    rawInfo = hookRes;
-  }
-  return [...rawInfo, ...defaultInfos];
+  return [...applyHookResult(rawInfo, hookRes), ...defaultInfos];
 }
 
 

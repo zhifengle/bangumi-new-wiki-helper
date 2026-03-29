@@ -1,12 +1,16 @@
 import { getStringValue, SubjectWikiInfo } from '../interface/subjectInfo';
-import { InfoConfig, Selector, SubjectSourceDefinition } from '../interface/wiki';
+import type {
+  InfoConfig,
+  SelectorInput,
+  SubjectSourceDefinition,
+} from '../interface/wiki';
 import { getCharaModel } from '../sites';
 import { addCharaUI, insertControlBtnChara } from '../sites/core/controls';
 import { getCharaData } from '../sites/core/extract';
 import { findAllElement, findElement } from '../utils/domUtils';
 import { SourceRuntimeAdapter } from './runtime';
 
-function getIframeSelector(itemSelector: Selector | Selector[]): string {
+function getIframeSelector(itemSelector: SelectorInput): string {
   if (itemSelector instanceof Array) {
     return itemSelector.find((item) => item.isIframe === true)?.selector || '';
   }
@@ -14,7 +18,7 @@ function getIframeSelector(itemSelector: Selector | Selector[]): string {
 }
 
 async function getIframeDoc(
-  itemSelector: Selector | Selector[],
+  itemSelector: SelectorInput,
   runtime: SourceRuntimeAdapter
 ) {
   const iframeSel = getIframeSelector(itemSelector);
@@ -32,7 +36,7 @@ async function getIframeDoc(
   return new DOMParser().parseFromString(rawHtml, 'text/html');
 }
 
-function hasIframeItemSelector(itemSelector: Selector | Selector[]) {
+function hasIframeItemSelector(itemSelector: SelectorInput) {
   return Boolean(getIframeSelector(itemSelector));
 }
 

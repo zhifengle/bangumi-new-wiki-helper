@@ -62,7 +62,7 @@ amazonJpMusicSubject.itemList.push(
       {
         selector: '#bylineInfo',
         subSelector: '.author',
-        keyWord: '\\(アーティスト\\)',
+        keyWord: /\(アーティスト\)/,
         nextSelector: [
           {
             selector: '.contributorNameID',

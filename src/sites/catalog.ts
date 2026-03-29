@@ -1,6 +1,11 @@
 import { IFuncPromise, ITiming } from '../interface/types';
-import { CharacterSourceDefinition, CharaModelKey, ModelKey, SubjectSourceDefinition } from '../interface/wiki';
-import { SiteTools } from './catalogTypes';
+import type {
+  CharacterModelKey,
+  CharacterSourceDefinition,
+  SubjectModelKey,
+  SubjectSourceDefinition,
+} from '../interface/wiki';
+import type { SiteTools } from './catalogTypes';
 import { adultcomicIntegration } from './adultcomic';
 import { amazonJpBookIntegration } from './amazonJpBook';
 import { amazonJpMusicIntegration } from './amazonJpMusic';
@@ -48,7 +53,7 @@ function buildSiteToolsMap(integrations: SiteIntegration[]) {
       acc[integration.site.key] = integration.tools;
     }
     return acc;
-  }, {} as Partial<Record<ModelKey, SiteTools>>);
+  }, {} as Partial<Record<SubjectModelKey, SiteTools>>);
 }
 
 function buildCharaToolsMap(integrations: CharaIntegration[]) {
@@ -57,7 +62,7 @@ function buildCharaToolsMap(integrations: CharaIntegration[]) {
       acc[integration.model.key] = integration.tools;
     }
     return acc;
-  }, {} as Partial<Record<CharaModelKey, SiteTools>>);
+  }, {} as Partial<Record<CharacterModelKey, SiteTools>>);
 }
 
 const siteToolsMap = buildSiteToolsMap(siteIntegrations);
@@ -80,7 +85,9 @@ export function findModelByHost(host: string): SubjectSourceDefinition[] {
     .filter((model) => model.host.includes(host));
 }
 
-export function getCharaModel(key: ModelKey): CharacterSourceDefinition {
+export function getCharaModel(
+  key: SubjectModelKey
+): CharacterSourceDefinition | null {
   const target = charaIntegrations.find(
     (integration) => integration.model.siteKey === key
   );
@@ -88,11 +95,11 @@ export function getCharaModel(key: ModelKey): CharacterSourceDefinition {
   return target.model;
 }
 
-function getSiteTools(key: ModelKey): SiteTools | undefined {
+function getSiteTools(key: SubjectModelKey): SiteTools | undefined {
   return siteToolsMap[key];
 }
 
-function getCharaTools(key: CharaModelKey): SiteTools | undefined {
+function getCharaTools(key: CharacterModelKey): SiteTools | undefined {
   return charaToolsMap[key];
 }
 
@@ -111,12 +118,14 @@ export function getCharaHooks(
 }
 
 export function dealFuncByCategory(
-  key: ModelKey,
-  category: string
+  key: SubjectModelKey,
+  category?: string
 ): (value?: string | null) => string {
-  const filter = getSiteTools(key)?.filters?.find(
-    (item) => item.category === category
-  );
+  const filter = category
+    ? getSiteTools(key)?.filters?.find(
+        (item) => item.category === category
+      )
+    : undefined;
   if (filter?.dealFunc) {
     return filter.dealFunc;
   }

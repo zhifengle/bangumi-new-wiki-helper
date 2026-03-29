@@ -38,7 +38,11 @@ const contentIframe: Selector = {
   isIframe: true,
   subSelector: 'body',
 };
-const arrDict = [
+const arrDict: Array<{
+  name: string;
+  key: string[];
+  category?: InfoConfig['category'];
+}> = [
   {
     name: '发行日期',
     key: ['配信開始日'],

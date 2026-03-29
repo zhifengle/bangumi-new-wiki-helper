@@ -1,11 +1,26 @@
 import { dealDate } from './utils';
+import type { TextPattern } from '../interface/textPattern';
+import {
+  getTextPatternSource,
+  isTextPattern,
+  replaceTextPatterns,
+} from './textPattern';
 
 export interface ITextPipe {
   rawInfo: string;
   out?: string;
 }
 
-export type IPipe = 't' | 'ta' | 'ti' | 'k' | 'p' | 'pn' | 'num' | 'date';
+export type IPipe =
+  | 't'
+  | 'ta'
+  | 'ti'
+  | 'k'
+  | 'p'
+  | 'pn'
+  | 'num'
+  | 'date'
+  | 'label';
 export type IPipeArgsDict = Partial<Record<IPipe, unknown[]>>;
 export type IFuncPipe = (pipe: ITextPipe, ...args: unknown[]) => ITextPipe;
 export type IPipeArr = (IPipe | IFuncPipe)[];
@@ -23,7 +38,7 @@ export const pipeFnDict: {
   k: (pipe, keyWords = []) =>
     trimKeywords(
       pipe,
-      Array.isArray(keyWords) ? keyWords.map((item) => String(item)) : []
+      Array.isArray(keyWords) ? keyWords.filter(isTextPattern) : []
     ),
   // p: 括号
   p: trimParenthesis,
@@ -32,17 +47,25 @@ export const pipeFnDict: {
   // num: 提取数字
   num: getNum,
   date: getDate,
+  // label: 去掉前缀标签，例如 “作者:”
+  label: trimLeadingLabel,
 };
 
 export function getStr(pipe: ITextPipe): string {
-  return (pipe.out || pipe.rawInfo).trim();
+  return (pipe.out ?? pipe.rawInfo).trim();
 }
 
-export function trim(pipe: ITextPipe, textList: string[]): ITextPipe {
+export function trim(pipe: ITextPipe, patterns: TextPattern[]): ITextPipe {
   let str = getStr(pipe);
+  if (!patterns.length) {
+    return {
+      ...pipe,
+      out: str,
+    };
+  }
   return {
     ...pipe,
-    out: str.replace(new RegExp(textList.join('|'), 'g'), ''),
+    out: replaceTextPatterns(str, patterns),
   };
 }
 
@@ -62,22 +85,36 @@ function trimSpace(pipe: ITextPipe): ITextPipe {
 }
 
 function trimParenthesis(pipe: ITextPipe): ITextPipe {
-  const textList = ['\\(.*?\\)', '（.*?）'];
-  // const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
-  return trim(pipe, textList);
+  return trim(pipe, [/\(.*?\)/, /（.*?）/]);
 }
 
 // 保留括号里面的数字. 比如一些图书的 1 2 3
 function trimParenthesisN(pipe: ITextPipe): ITextPipe {
-  // const textList = ['\\(.*?\\)', '（.*?）'];
-  const textList = ['\\([^d]*?\\)', '（[^d]*?）']; // 去掉多余的括号信息
-  return trim(pipe, textList);
+  return trim(pipe, [/\([^\d]*?\)/, /（[^\d]*?）/]);
 }
-export function trimKeywords(pipe: ITextPipe, keyWords: string[] = []): ITextPipe {
-  return trim(
-    pipe,
-    keyWords.map((k) => `${k}\\s*?(:|：)?`)
-  );
+
+function createKeywordPatterns(keyWords: TextPattern[] = []): RegExp[] {
+  return keyWords.map((pattern) => {
+    if (pattern instanceof RegExp) {
+      const flags = pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`;
+      return new RegExp(`${pattern.source}\\s*?(:|：)?`, flags);
+    }
+    return new RegExp(`${getTextPatternSource(pattern)}\\s*?(:|：)?`, 'g');
+  });
+}
+
+export function trimKeywords(
+  pipe: ITextPipe,
+  keyWords: TextPattern[] = []
+): ITextPipe {
+  return trim(pipe, createKeywordPatterns(keyWords));
+}
+
+export function trimLeadingLabel(pipe: ITextPipe): ITextPipe {
+  return {
+    ...pipe,
+    out: getStr(pipe).replace(/[^\d:]+?(:|：)/, '').trim(),
+  };
 }
 
 export function getNum(pipe: ITextPipe): ITextPipe {
@@ -121,5 +158,5 @@ export function dealTextByPipe(
       }
     }
   }
-  return current.out || str;
+  return current.out ?? str;
 }

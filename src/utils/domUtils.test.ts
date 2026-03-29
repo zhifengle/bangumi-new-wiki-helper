@@ -126,7 +126,7 @@ describe('domUtils helpers', () => {
     const result = findElement({
       selector: '#bylineInfo',
       subSelector: '.author',
-      keyWord: '\\(アーティスト\\)',
+      keyWord: /\(アーティスト\)/,
       nextSelector: [
         {
           selector: '.contributorNameID',
@@ -139,6 +139,24 @@ describe('domUtils helpers', () => {
 
     expect(result?.tagName).toBe('A');
     expect(result?.textContent).toBe('Artist Link');
+  });
+
+  test('findElement treats plain string keywords as literal text', () => {
+    document.body.innerHTML = `
+      <div id="info">
+        <div class="line">C++</div>
+        <div class="value">Literal Match</div>
+      </div>
+    `;
+
+    const result = findElement({
+      selector: '#info',
+      subSelector: '.line',
+      keyWord: 'C++',
+      sibling: true,
+    });
+
+    expect(result?.textContent).toBe('Literal Match');
   });
 
   test('findElement returns the keyword-matched element without sibling like steamModel website selector', () => {
