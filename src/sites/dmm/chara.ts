@@ -1,33 +1,37 @@
-import { CharacterSourceDefinition, SubjectTypeId } from '../../interface/wiki';
+import {
+  CharacterSourceDefinition,
+  Selector,
+  SubjectTypeId,
+} from '../../interface/wiki';
+
+const modernCharacterSectionSelector: Selector = {
+  selector: '#detailGuide .detailGuide__content',
+  subSelector: '.detailGuide__capt',
+  keyWord: 'キャラクター',
+  sibling: true,
+};
+
+const modernCharacterToolbarSelector: Selector = {
+  selector: '#detailGuide .detailGuide__content',
+  subSelector: '.detailGuide__capt',
+  keyWord: 'キャラクター',
+};
+
+const modernCharacterItemSelector: Selector = {
+  ...modernCharacterSectionSelector,
+  nextSelector: {
+    selector: '.detailGuide__box-chr',
+  },
+};
 
 export const dmmChara: CharacterSourceDefinition = {
   key: 'dmm_game_chara',
   siteKey: 'dmm_game',
   description: 'dmm 游戏角色',
   type: SubjectTypeId.game,
-  itemSelector: {
-    selector: '#if_view',
-    isIframe: true,
-    subSelector: 'body',
-    nextSelector: {
-      selector: '.guide-sect .guide-box-chr',
-    },
-  },
-  toolbarSelector: [
-    {
-      selector: '#title',
-    },
-    // {
-    //   selector: '#if_view',
-    //   isIframe: true,
-    //   subSelector: 'body',
-    //   nextSelector: {
-    //     selector: '.guide-content',
-    //     subSelector: 'guide-capt',
-    //     keyWord: 'キャラクター',
-    //   },
-    // },
-  ],
+  itemSelector: modernCharacterItemSelector,
+  presenceSelector: modernCharacterItemSelector,
+  toolbarSelector: modernCharacterToolbarSelector,
   itemList: [],
 };
 
@@ -36,7 +40,7 @@ dmmChara.itemList.push(
   {
     name: '姓名',
     selector: {
-      selector: '.guide-tx16.guide-bold.guide-lin-hgt',
+      selector: '.detailGuide__tx16.detailGuide__bold.detailGuide__lin-hgt',
     },
     category: 'crt_name',
     pipes: ['p', 'ta'],

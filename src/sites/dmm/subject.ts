@@ -1,9 +1,19 @@
 import {
   InfoConfig,
   Selector,
+  SelectorInput,
   SubjectSourceDefinition,
   SubjectTypeId,
 } from '../../interface/wiki';
+
+const modernTitleSelector: Selector = {
+  selector: 'h1.productTitle__item--headline',
+};
+
+const modernControlSelector: Selector = {
+  ...modernTitleSelector,
+  closest: '.productTitle',
+};
 
 export const dmmSubject: SubjectSourceDefinition = {
   key: 'dmm_game',
@@ -16,16 +26,13 @@ export const dmmSubject: SubjectSourceDefinition = {
       subSelector: 'span',
       keyWord: 'ゲーム',
     },
+    modernTitleSelector,
   ],
-  controlSelector: [
-    {
-      selector: 'h1#title',
-    },
-  ],
+  controlSelector: [{ selector: 'h1#title' }, modernControlSelector],
   itemList: [],
 };
 
-const commonSelector: Selector = {
+const legacyInfoSelector: Selector = {
   selector: '.main-area-center .container02 table',
   subSelector: 'tr',
   nextSelector: {
@@ -33,11 +40,36 @@ const commonSelector: Selector = {
   },
 };
 
-const contentIframe: Selector = {
-  selector: '#if_view',
-  isIframe: true,
-  subSelector: 'body',
+const modernInfoSelector: Selector = {
+  selector: '.productLayout__secondaryColumn',
+  subSelector:
+    '.contentsDetailTop__tableDataLeft > p, .contentsDetailBottom__tableDataLeft > p',
+  closest: '.contentsDetailTop__tableRow, .contentsDetailBottom__tableRow',
+  nextSelector: {
+    selector:
+      '.contentsDetailTop__tableDataRight, .contentsDetailBottom__tableDataRight',
+  },
 };
+
+function createInfoSelector(keyWord: string[]): SelectorInput {
+  return [
+    {
+      ...legacyInfoSelector,
+      keyWord,
+      nextSelector: {
+        selector: '.type-right',
+      },
+    },
+    {
+      ...modernInfoSelector,
+      keyWord,
+      nextSelector: {
+        selector:
+          '.contentsDetailTop__tableDataRight, .contentsDetailBottom__tableDataRight',
+      },
+    },
+  ];
+}
 const arrDict: Array<{
   name: string;
   key: string[];
@@ -73,10 +105,7 @@ const arrDict: Array<{
 const configArr = arrDict.map((obj) => {
   const r = {
     name: obj.name,
-    selector: {
-      keyWord: obj.key,
-      ...commonSelector,
-    },
+    selector: createInfoSelector(obj.key),
   } as InfoConfig;
   if (obj.category) {
     r.category = obj.category;
@@ -86,21 +115,20 @@ const configArr = arrDict.map((obj) => {
 dmmSubject.itemList.push(
   {
     name: '游戏名',
-    selector: {
-      selector: '#title',
-    },
+    selector: [
+      {
+        selector: '#title',
+      },
+      modernTitleSelector,
+      {
+        selector: 'meta[property="og:title"]',
+      },
+    ],
     category: 'subject_title',
   },
   {
     name: '开发',
-    selector: [
-      {
-        selector: '.ranking-and-brand .brand',
-        subSelector: 'td',
-        keyWord: 'ブランド',
-        sibling: true,
-      },
-    ],
+    selector: createInfoSelector(['ブランド']),
   },
   ...configArr,
   // 部分页面的图片是预览图，不少封面。所以改在 hook 里面，提取图片。
@@ -118,20 +146,9 @@ dmmSubject.itemList.push(
   // },
   {
     name: '游戏简介',
-    selector: [
-      {
-        ...contentIframe,
-        nextSelector: {
-          selector: '#guide-content',
-          subSelector: '.guide-capt',
-          keyWord: '作品紹介',
-          sibling: true,
-        },
-      },
-      {
-        selector: '.read-text-area .text-overflow',
-      },
-    ],
+    selector: {
+      selector: '.read-text-area .text-overflow',
+    },
     category: 'subject_summary',
   }
 );

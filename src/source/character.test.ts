@@ -104,34 +104,60 @@ describe('initSourceCharacter', () => {
     infoSpy.mockRestore();
   });
 
-  test('uses toolbarSelector as the select-mode character UI anchor', async () => {
+  test('extracts characters from the current DMM detail page without iframe', async () => {
     document.body.innerHTML = `
-      <div class="ntgnav-mainItem is-active"><span>ゲーム</span></div>
-      <h1 id="title">DMM Title</h1>
-      <iframe id="if_view" src="https://example.com/chara"></iframe>
-    `;
-    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
-    const runtime: SourceRuntimeAdapter = {
-      fetchHtml: jest.fn().mockResolvedValue(`
-        <body>
-          <div class="guide-sect">
-            <div class="guide-box-chr">
-              <div>
-                <span class="guide-tx16 guide-bold guide-lin-hgt">Alice（ありす）</span>
-                CV：测试声优
+      <div class="productTitle">
+        <h1 class="productTitle__item productTitle__item--headline">DMM Title</h1>
+      </div>
+      <div id="detailGuide" class="detailGuide">
+        <div class="detailGuide__content">
+          <p class="detailGuide__capt">キャラクター</p>
+          <div class="detailGuide__sect">
+            <div class="detailGuide__box-chr">
+              <img src="https://example.com/alice.jpg" alt="Alice" />
+              <div class="detailGuide__box-date">
+                <p>
+                  <span class="detailGuide__bold detailGuide__color02">
+                    明朗快活なバイト学生
+                  </span>
+                  <br>
+                  <span class="detailGuide__tx16 detailGuide__bold detailGuide__lin-hgt">
+                    Alice（ありす）
+                  </span>
+                  &emsp;CV：测试声优
+                </p>
+                <p>第一段简介<br>第二段简介</p>
+                <p class="detailGuide__tx14 detailGuide__bold">「角色台词」</p>
               </div>
-              <div class="box">趣味：音乐</div>
             </div>
-            <div class="guide-box-chr">
-              <div>
-                <span class="guide-tx16 guide-bold guide-lin-hgt">Bob（ぼぶ）</span>
-                CV：第二声优
+            <div class="detailGuide__box-chr">
+              <img src="https://example.com/bob.jpg" alt="Bob" />
+              <div class="detailGuide__box-date">
+                <p>
+                  <span class="detailGuide__bold detailGuide__color02">
+                    社会の荒波に揉まれた悲しき青年
+                  </span>
+                  <br>
+                  <span class="detailGuide__tx16 detailGuide__bold detailGuide__lin-hgt">
+                    Bob（ぼぶ）※名前変更あり。
+                  </span>
+                </p>
+                <p>第三段简介<br>第四段简介</p>
               </div>
-              <div class="box">趣味：游戏</div>
             </div>
           </div>
-        </body>
-      `),
+        </div>
+      </div>
+    `;
+    for (const $p of Array.from(document.querySelectorAll<HTMLElement>('.detailGuide__box-date p'))) {
+      Object.defineProperty($p, 'innerText', {
+        configurable: true,
+        value: ($p.textContent || '').replace(/\s+/g, ' ').trim(),
+      });
+    }
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    const runtime: SourceRuntimeAdapter = {
+      fetchHtml: jest.fn().mockResolvedValue(''),
       hydrateSubjectCover: jest.fn().mockResolvedValue(undefined),
       hydrateCharacterCover: jest.fn().mockResolvedValue(undefined),
       submitSubjectCreation: jest.fn().mockResolvedValue(undefined),
@@ -140,10 +166,13 @@ describe('initSourceCharacter', () => {
 
     await initSourceCharacter(dmmSubject, runtime);
 
+    expect(runtime.fetchHtml).not.toHaveBeenCalled();
+
     const wrap = document.querySelector('.e-bnwh-add-chara-wrap');
     const select = wrap?.querySelector<HTMLSelectElement>('.e-bnwh-select');
+    const characterHeader = document.querySelector('.detailGuide__capt');
     expect(wrap).not.toBeNull();
-    expect(select?.options).toHaveLength(2);
+    expect(wrap?.previousElementSibling).toBe(characterHeader);
     expect(Array.from(select?.options ?? []).map((option) => option.value)).toEqual([
       'Alice',
       'Bob',
@@ -163,6 +192,19 @@ describe('initSourceCharacter', () => {
             name: '姓名',
             value: 'Alice',
             category: 'crt_name',
+          }),
+          expect.objectContaining({
+            name: '纯假名',
+            value: 'ありす',
+          }),
+          expect.objectContaining({
+            name: 'CV',
+            value: '测试声优',
+          }),
+          expect.objectContaining({
+            name: '人物简介',
+            value: expect.stringContaining('第一段简介'),
+            category: 'crt_summary',
           }),
         ]),
       }),
