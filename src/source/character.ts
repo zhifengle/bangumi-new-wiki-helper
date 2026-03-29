@@ -6,6 +6,7 @@ import type {
 } from '../interface/wiki';
 import { getCharaModel } from '../sites';
 import { addCharaUI, insertControlBtnChara } from '../sites/core/controls';
+import { createWikiExtractContext } from '../sites/core/context';
 import { getCharaData } from '../sites/core/extract';
 import { findAllElement, findElement } from '../utils/domUtils';
 import { SourceRuntimeAdapter } from './runtime';
@@ -78,7 +79,10 @@ export async function initSourceCharacter(
   if (charaModel.controlMode === 'inline') {
     itemArr.forEach(($target) => {
       insertControlBtnChara($target, async () => {
-        const charaInfo = await getCharaData(charaModel, $target);
+        const charaInfo = await getCharaData(
+          charaModel,
+          createWikiExtractContext($target)
+        );
         await submitCharacter(siteConfig, runtime, charaInfo);
       });
     });
@@ -95,7 +99,7 @@ export async function initSourceCharacter(
           ...charaModel,
           itemList: [nameConfig],
         },
-        $target
+        createWikiExtractContext($target)
       );
       return getStringValue(
         infos.find((item) => item.category === 'crt_name')?.value
@@ -114,7 +118,10 @@ export async function initSourceCharacter(
       }
     }
     for (const $target of targetList) {
-      const charaInfo = await getCharaData(charaModel, $target);
+      const charaInfo = await getCharaData(
+        charaModel,
+        createWikiExtractContext($target)
+      );
       await submitCharacter(siteConfig, runtime, charaInfo);
     }
   });

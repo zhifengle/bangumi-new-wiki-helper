@@ -2,7 +2,10 @@ import { IFetchOpts } from '../../interface/types';
 import { findModelByHost } from '../../sites';
 import { findElement } from '../../utils/domUtils';
 import { fetchText } from '../../utils/fetchData';
-import { createRemoteWikiPageContext } from './context';
+import {
+  createRemoteWikiPageContext,
+  createWikiExtractContext,
+} from './context';
 import { getWikiData } from './extract';
 
 // 后台抓取其它网站的 wiki 信息
@@ -26,7 +29,10 @@ export async function getWikiDataByURL(url: string, opts: IFetchOpts = {}) {
       if (!$page) return [];
       const $title = findElement(model.controlSelector, $doc);
       if (!$title) return [];
-      return await getWikiData(model, $doc, createRemoteWikiPageContext(url));
+      return await getWikiData(
+        model,
+        createWikiExtractContext($doc, createRemoteWikiPageContext(url))
+      );
     } catch (error) {
       return [];
     }

@@ -2,21 +2,7 @@ import type { Selector, SelectorInput } from '../interface/wiki';
 import type { TextPatternInput } from '../interface/textPattern';
 import { matchesTextPatterns, toTextPatterns } from './textPattern';
 
-type QueryContext = ParentNode | null;
-
-let contextDom: QueryContext = null;
-
-export function setCtxDom(dom: QueryContext) {
-  contextDom = dom;
-}
-
-export function getCtxDom() {
-  return contextDom;
-}
-
-export function clearCtxDom() {
-  setCtxDom(null);
-}
+export type QueryContext = ParentNode | null | undefined;
 
 /**
  * 为页面添加样式
@@ -56,24 +42,22 @@ export function getInnerText(elem?: HTMLElement | null): string {
  * dollar 选择单个
  * @param {string} selector
  */
-export function $q<E extends Element = Element>(selector: string): E | null {
-  const ctxDom = getCtxDom();
-  if (ctxDom) {
-    return ctxDom.querySelector(selector);
-  }
-  return document.querySelector(selector);
+export function $q<E extends Element = Element>(
+  selector: string,
+  $parent?: QueryContext
+): E | null {
+  return ($parent ?? document).querySelector(selector);
 }
 
 /**
  * dollar 选择所有元素
  * @param {string} selector
  */
-export function $qa<E extends Element>(selector: string): NodeListOf<E> {
-  const ctxDom = getCtxDom();
-  if (ctxDom) {
-    return ctxDom.querySelectorAll(selector);
-  }
-  return document.querySelectorAll(selector);
+export function $qa<E extends Element>(
+  selector: string,
+  $parent?: QueryContext
+): NodeListOf<E> {
+  return ($parent ?? document).querySelectorAll(selector);
 }
 
 /**
@@ -97,9 +81,7 @@ export function contains(
   text: TextPatternInput | undefined,
   $parent?: QueryContext
 ): Element[] {
-  const elements = $parent
-    ? Array.from($parent.querySelectorAll(selector))
-    : Array.from($qa(selector));
+  const elements = Array.from($qa(selector, $parent));
   const patterns = toTextPatterns(text);
   if (!patterns.length) {
     return [];
@@ -130,7 +112,7 @@ function getIframeContext(
     return $parent;
   }
 
-  return $q<HTMLIFrameElement>(selector.selector)?.contentDocument ?? null;
+  return $q<HTMLIFrameElement>(selector.selector, $parent)?.contentDocument ?? null;
 }
 
 function findElementByKeyWord(
@@ -139,7 +121,7 @@ function findElementByKeyWord(
 ): Element | null {
   let res: Element | null = null;
   if ($parent) {
-    $parent = $parent.querySelector(selector.selector);
+    $parent = $q(selector.selector, $parent);
   } else {
     $parent = $q(selector.selector);
   }
@@ -174,9 +156,7 @@ export function findElement(
       }
     } else {
       if (!selector.subSelector) {
-        r = $parent
-          ? $parent.querySelector(selector.selector)
-          : $q(selector.selector);
+        r = $q(selector.selector, $parent);
       } else if (selector.isIframe) {
         const $iframeDoc = getIframeContext(selector, $parent);
         r = $iframeDoc?.querySelector(selector.subSelector) ?? null;
@@ -218,15 +198,13 @@ export function findAllElement(
       // 没子选择器
       if (!selector.subSelector) {
         res = Array.from(
-          $parent
-            ? $parent.querySelectorAll(selector.selector)
-            : $qa(selector.selector)
+          $qa(selector.selector, $parent)
         );
       } else if (selector.isIframe) {
         const $iframeDoc = getIframeContext(selector, $parent);
         res = Array.from($iframeDoc?.querySelectorAll(selector.subSelector) ?? []);
       } else {
-        $parent = $parent ? $parent.querySelector(selector.selector) : $q(selector.selector);
+        $parent = $q(selector.selector, $parent);
         if (!$parent) return res;
         res = contains(selector.subSelector, selector.keyWord, $parent);
         if (selector.sibling) {

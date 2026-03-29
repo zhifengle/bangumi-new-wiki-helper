@@ -8,19 +8,13 @@ import type {
   SubjectModelKey,
   SubjectSourceDefinition,
 } from '../../interface/wiki';
-import {
-  clearCtxDom,
-  findElement,
-  getInnerText,
-  getText,
-  setCtxDom,
-} from '../../utils/domUtils';
+import { findElement, getInnerText, getText } from '../../utils/domUtils';
 import type { TextPattern } from '../../interface/textPattern';
 import { dealTextByPipe } from '../../utils/textPipe';
 import { toTextPatterns } from '../../utils/textPattern';
 import { dealFuncByCategory, getCharaHooks, getHooks } from '../catalog';
 import { getCover } from './cover';
-import type { WikiPageContext } from './context';
+import type { WikiExtractContext, WikiExtractRoot } from './context';
 import {
   createKeywordPipeArgsDict,
   normalizeTextByCategory,
@@ -46,11 +40,12 @@ type SelectorMatch = {
 };
 
 function resolveSelectorMatch(
-  selector: SelectorInput
+  selector: SelectorInput,
+  root?: WikiExtractRoot
 ): SelectorMatch | undefined {
   if (selector instanceof Array) {
     for (const candidate of selector) {
-      const match = resolveSelectorMatch(candidate);
+      const match = resolveSelectorMatch(candidate, root);
       if (match) {
         return match;
       }
@@ -58,7 +53,7 @@ function resolveSelectorMatch(
     return;
   }
 
-  const element = findElement(selector);
+  const element = findElement(selector, root);
   if (!element) {
     return;
   }
@@ -138,7 +133,7 @@ function postProcessValue(
 async function extractItemValue(
   infoConfig: InfoConfig,
   site: SubjectModelKey,
-  context: WikiPageContext,
+  context: WikiExtractContext,
   element: Element,
   keyWords: TextPattern[]
 ): Promise<SingleInfo['value'] | undefined> {
@@ -164,10 +159,10 @@ async function extractItemValue(
 export async function getWikiItem(
   infoConfig: InfoConfig,
   site: SubjectModelKey,
-  context: WikiPageContext = {}
+  context: WikiExtractContext = {}
 ): Promise<SingleInfo | undefined> {
   if (!infoConfig) return;
-  const match = resolveSelectorMatch(infoConfig.selector);
+  const match = resolveSelectorMatch(infoConfig.selector, context.root);
   if (!match) return;
 
   const keyWords = getSelectorKeyWords(match.selector);
@@ -194,7 +189,7 @@ function isSingleInfo(info: SingleInfo | undefined): info is SingleInfo {
 async function getWikiItems(
   itemList: InfoConfig[],
   site: SubjectModelKey,
-  context: WikiPageContext
+  context: WikiExtractContext
 ): Promise<SingleInfo[]> {
   const results = await Promise.allSettled(
     itemList.map((item) => getWikiItem(item, site, context))
@@ -212,18 +207,6 @@ async function getWikiItems(
   });
 }
 
-async function withContext<T>(
-  el: Document | Element | undefined,
-  fn: () => Promise<T>
-): Promise<T> {
-  el ? setCtxDom(el) : clearCtxDom();
-  try {
-    return await fn();
-  } finally {
-    clearCtxDom();
-  }
-}
-
 function applyHookResult(
   rawInfo: SingleInfo[],
   hookRes: unknown
@@ -233,12 +216,9 @@ function applyHookResult(
 
 export async function getWikiData(
   siteConfig: SubjectSourceDefinition,
-  el?: Document,
-  context: WikiPageContext = {}
+  context: WikiExtractContext = {}
 ) {
-  const rawInfo = await withContext(el, () =>
-    getWikiItems(siteConfig.itemList, siteConfig.key, context)
-  );
+  const rawInfo = await getWikiItems(siteConfig.itemList, siteConfig.key, context);
   const defaultInfos = siteConfig.defaultInfos || [];
   const hookRes = await getHooks(siteConfig, 'afterGetWikiData')(
     rawInfo,
@@ -249,17 +229,14 @@ export async function getWikiData(
 
 export async function getCharaData(
   model: CharacterSourceDefinition,
-  el?: Document | Element,
-  context: WikiPageContext = {}
+  context: WikiExtractContext = {}
 ) {
-  const rawInfo = await withContext(el, () =>
-    getWikiItems(model.itemList, model.siteKey, context)
-  );
+  const rawInfo = await getWikiItems(model.itemList, model.siteKey, context);
   const defaultInfos = model.defaultInfos || [];
   const hookRes = await getCharaHooks(model, 'afterGetWikiData')(
     rawInfo,
     model,
-    el
+    context.root
   );
   return [...applyHookResult(rawInfo, hookRes), ...defaultInfos];
 }

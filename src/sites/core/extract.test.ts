@@ -9,7 +9,7 @@ import {
   SubjectTypeId,
 } from '../../interface/wiki';
 import * as catalog from '../catalog';
-import { clearCtxDom, getCtxDom } from '../../utils/domUtils';
+import { createWikiExtractContext } from './context';
 import { dealItemText, getCharaData, getWikiData } from './extract';
 import { steamdbSubject } from '../steamdb/subject';
 import { amazonJpBookSubject } from '../amazonJpBook/subject';
@@ -41,7 +41,6 @@ function createTestChara(itemList: InfoConfig[]): CharacterSourceDefinition {
 describe('core extract helpers', () => {
   afterEach(() => {
     jest.restoreAllMocks();
-    clearCtxDom();
   });
 
   test('dealItemText normalizes prefixed metadata text', () => {
@@ -69,7 +68,10 @@ describe('core extract helpers', () => {
     const jsdom = require('jsdom');
     const { JSDOM } = jsdom;
     const dom = new JSDOM(rawHtml);
-    const infos = await getWikiData(steamdbSubject, dom.window.document);
+    const infos = await getWikiData(
+      steamdbSubject,
+      createWikiExtractContext(dom.window.document)
+    );
 
     expect(infos).toHaveLength(9);
     expect(infos).toEqual(
@@ -88,7 +90,10 @@ describe('core extract helpers', () => {
     const jsdom = require('jsdom');
     const { JSDOM } = jsdom;
     const dom = new JSDOM(rawHtml);
-    const infos = await getWikiData(amazonJpBookSubject, dom.window.document);
+    const infos = await getWikiData(
+      amazonJpBookSubject,
+      createWikiExtractContext(dom.window.document)
+    );
 
     expect(infos).toHaveLength(9);
     expect(infos).toEqual(
@@ -135,7 +140,10 @@ describe('core extract helpers', () => {
     const jsdom = require('jsdom');
     const { JSDOM } = jsdom;
     const dom = new JSDOM(rawHtml);
-    const infos = await getWikiData(amazonJpBookSubject, dom.window.document);
+    const infos = await getWikiData(
+      amazonJpBookSubject,
+      createWikiExtractContext(dom.window.document)
+    );
 
     expect(infos).toEqual(
       expect.arrayContaining([
@@ -201,7 +209,7 @@ describe('core extract helpers', () => {
           category: 'subject_summary',
         },
       ]),
-      doc
+      createWikiExtractContext(doc)
     );
 
     expect(infos).toEqual([
@@ -213,7 +221,7 @@ describe('core extract helpers', () => {
     ]);
   });
 
-  test('getWikiData skips failed items and clears ctx dom', async () => {
+  test('getWikiData skips failed items without aborting the page', async () => {
     jest
       .spyOn(catalog, 'getHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
@@ -242,7 +250,7 @@ describe('core extract helpers', () => {
           ],
         },
       ]),
-      doc
+      createWikiExtractContext(doc)
     );
 
     expect(infos).toEqual([
@@ -253,7 +261,6 @@ describe('core extract helpers', () => {
       }),
     ]);
     expect(errorSpy).toHaveBeenCalled();
-    expect(getCtxDom()).toBeNull();
   });
 
   test('getWikiData allows hook to clear all infos with empty array', async () => {
@@ -272,14 +279,41 @@ describe('core extract helpers', () => {
           category: 'subject_title',
         },
       ]),
-      doc
+      createWikiExtractContext(doc)
     );
 
     expect(infos).toEqual([]);
-    expect(getCtxDom()).toBeNull();
   });
 
-  test('getWikiData clears ctx dom when hook throws', async () => {
+  test('getWikiData keeps selector queries scoped to the provided root', async () => {
+    jest
+      .spyOn(catalog, 'getHooks')
+      .mockReturnValue(async (infos: SingleInfo[]) => infos);
+    document.body.innerHTML = '<div id="title">全局标题</div>';
+    const doc = document.implementation.createHTMLDocument('wiki');
+    doc.body.innerHTML = '<div id="title">局部标题</div>';
+
+    const infos = await getWikiData(
+      createTestSubject([
+        {
+          name: '名称',
+          selector: { selector: '#title' },
+          category: 'subject_title',
+        },
+      ]),
+      createWikiExtractContext(doc)
+    );
+
+    expect(infos).toEqual([
+      expect.objectContaining({
+        name: '名称',
+        value: '局部标题',
+        category: 'subject_title',
+      }),
+    ]);
+  });
+
+  test('getWikiData still surfaces hook failures', async () => {
     jest.spyOn(catalog, 'getHooks').mockReturnValue(async () => {
       throw new Error('hook failed');
     });
@@ -298,13 +332,12 @@ describe('core extract helpers', () => {
             category: 'subject_title',
           },
         ]),
-        doc
+        createWikiExtractContext(doc)
       )
     ).rejects.toThrow('hook failed');
-    expect(getCtxDom()).toBeNull();
   });
 
-  test('getCharaData skips failed items and clears ctx dom', async () => {
+  test('getCharaData skips failed items without aborting the character block', async () => {
     jest
       .spyOn(catalog, 'getCharaHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
@@ -335,7 +368,7 @@ describe('core extract helpers', () => {
           ],
         },
       ]),
-      item!
+      createWikiExtractContext(item!)
     );
 
     expect(infos).toEqual([
@@ -346,6 +379,42 @@ describe('core extract helpers', () => {
       }),
     ]);
     expect(errorSpy).toHaveBeenCalled();
-    expect(getCtxDom()).toBeNull();
+  });
+
+  test('getCharaData keeps selector queries scoped to the provided item root', async () => {
+    jest
+      .spyOn(catalog, 'getCharaHooks')
+      .mockReturnValue(async (infos: SingleInfo[]) => infos);
+    document.body.innerHTML = `
+      <div class="item">
+        <div class="good">全局角色</div>
+      </div>
+    `;
+    const doc = document.implementation.createHTMLDocument('chara');
+    doc.body.innerHTML = `
+      <div class="item">
+        <div class="good">局部角色</div>
+      </div>
+    `;
+    const item = doc.querySelector('.item');
+
+    const infos = await getCharaData(
+      createTestChara([
+        {
+          name: '角色名',
+          selector: { selector: '.good' },
+          category: 'subject_title',
+        },
+      ]),
+      createWikiExtractContext(item!)
+    );
+
+    expect(infos).toEqual([
+      expect.objectContaining({
+        name: '角色名',
+        value: '局部角色',
+        category: 'subject_title',
+      }),
+    ]);
   });
 });
