@@ -1,6 +1,6 @@
 import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import { findElement } from '../../utils/domUtils';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 
 function dealTitle(str: string): string {
   str = str.trim().split('\n')[0];
@@ -9,7 +9,7 @@ function dealTitle(str: string): string {
     ''
   );
 }
-export const moepediaTools: SiteTools = {
+export const moepediaTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
       const $el = findElement([

@@ -6,7 +6,7 @@ import { dmmCharaTools, dmmTools } from './tools';
 export const dmmIntegration = defineSiteIntegration({
   site: dmmSubject,
   tools: dmmTools,
-  charas: [
+  characters: [
     {
       model: dmmChara,
       tools: dmmCharaTools,

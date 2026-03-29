@@ -32,7 +32,6 @@ function createTestChara(itemList: InfoConfig[]): CharacterSourceDefinition {
     siteKey: 'getchu_game',
     description: 'test chara',
     itemSelector: { selector: '.item' },
-    controlSelector: { selector: '.item' },
     type: SubjectTypeId.game,
     itemList,
   };
@@ -188,7 +187,7 @@ describe('core extract helpers', () => {
 
   test('getWikiData prefers innerText for summary categories', async () => {
     jest
-      .spyOn(catalog, 'getHooks')
+      .spyOn(catalog, 'getSubjectHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
     const doc = document.implementation.createHTMLDocument('wiki');
     doc.body.innerHTML = `
@@ -223,7 +222,7 @@ describe('core extract helpers', () => {
 
   test('getWikiData skips failed items without aborting the page', async () => {
     jest
-      .spyOn(catalog, 'getHooks')
+      .spyOn(catalog, 'getSubjectHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const doc = document.implementation.createHTMLDocument('wiki');
@@ -264,7 +263,7 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData allows hook to clear all infos with empty array', async () => {
-    jest.spyOn(catalog, 'getHooks').mockReturnValue(async () => []);
+    jest.spyOn(catalog, 'getSubjectHooks').mockReturnValue(async () => []);
     const doc = document.implementation.createHTMLDocument('wiki');
     doc.body.innerHTML = `
       <div id="root"></div>
@@ -287,7 +286,7 @@ describe('core extract helpers', () => {
 
   test('getWikiData keeps selector queries scoped to the provided root', async () => {
     jest
-      .spyOn(catalog, 'getHooks')
+      .spyOn(catalog, 'getSubjectHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
     document.body.innerHTML = '<div id="title">全局标题</div>';
     const doc = document.implementation.createHTMLDocument('wiki');
@@ -314,7 +313,7 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData still surfaces hook failures', async () => {
-    jest.spyOn(catalog, 'getHooks').mockReturnValue(async () => {
+    jest.spyOn(catalog, 'getSubjectHooks').mockReturnValue(async () => {
       throw new Error('hook failed');
     });
     const doc = document.implementation.createHTMLDocument('wiki');
@@ -339,7 +338,7 @@ describe('core extract helpers', () => {
 
   test('getCharaData skips failed items without aborting the character block', async () => {
     jest
-      .spyOn(catalog, 'getCharaHooks')
+      .spyOn(catalog, 'getCharacterHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const doc = document.implementation.createHTMLDocument('chara');
@@ -383,7 +382,7 @@ describe('core extract helpers', () => {
 
   test('getCharaData keeps selector queries scoped to the provided item root', async () => {
     jest
-      .spyOn(catalog, 'getCharaHooks')
+      .spyOn(catalog, 'getCharacterHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
     document.body.innerHTML = `
       <div class="item">

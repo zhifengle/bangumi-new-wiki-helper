@@ -1,7 +1,7 @@
 import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { IMsgPayload } from '../interface/types';
 import { SubjectSourceDefinition } from '../interface/wiki';
-import { getHooks } from '../sites';
+import { getSubjectHooks } from '../sites';
 import { insertControlBtn } from '../sites/core/controls';
 import { getWikiData } from '../sites/core/extract';
 import { getQueryInfo } from '../sites/core/search';
@@ -33,7 +33,7 @@ export async function initSourceSubject(
   const $title = findElement(siteConfig.controlSelector);
   if (!$title) return;
   const normalizedHookRes = normalizeHookResult(
-    await getHooks(siteConfig, 'beforeCreate')(siteConfig)
+    await getSubjectHooks(siteConfig, 'beforeCreate')()
   );
   if (!normalizedHookRes) return;
   const { payload } = normalizedHookRes;

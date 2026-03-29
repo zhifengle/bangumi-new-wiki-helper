@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import { dmmSubject } from '../sites/dmm/subject';
 import { getchuSubject } from '../sites/getchu/subject';
 import { initSourceCharacter } from './character';
 import { SourceRuntimeAdapter } from './runtime';
@@ -95,6 +96,73 @@ describe('initSourceCharacter', () => {
             name: '人物简介',
             value: '开朗活泼的女主角',
             category: 'crt_summary',
+          }),
+        ]),
+      }),
+    });
+
+    infoSpy.mockRestore();
+  });
+
+  test('uses toolbarSelector as the select-mode character UI anchor', async () => {
+    document.body.innerHTML = `
+      <div class="ntgnav-mainItem is-active"><span>ゲーム</span></div>
+      <h1 id="title">DMM Title</h1>
+      <iframe id="if_view" src="https://example.com/chara"></iframe>
+    `;
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    const runtime: SourceRuntimeAdapter = {
+      fetchHtml: jest.fn().mockResolvedValue(`
+        <body>
+          <div class="guide-sect">
+            <div class="guide-box-chr">
+              <div>
+                <span class="guide-tx16 guide-bold guide-lin-hgt">Alice（ありす）</span>
+                CV：测试声优
+              </div>
+              <div class="box">趣味：音乐</div>
+            </div>
+            <div class="guide-box-chr">
+              <div>
+                <span class="guide-tx16 guide-bold guide-lin-hgt">Bob（ぼぶ）</span>
+                CV：第二声优
+              </div>
+              <div class="box">趣味：游戏</div>
+            </div>
+          </div>
+        </body>
+      `),
+      hydrateSubjectCover: jest.fn().mockResolvedValue(undefined),
+      hydrateCharacterCover: jest.fn().mockResolvedValue(undefined),
+      submitSubjectCreation: jest.fn().mockResolvedValue(undefined),
+      submitCharacterCreation: jest.fn().mockResolvedValue(undefined),
+    };
+
+    await initSourceCharacter(dmmSubject, runtime);
+
+    const wrap = document.querySelector('.e-bnwh-add-chara-wrap');
+    const select = wrap?.querySelector<HTMLSelectElement>('.e-bnwh-select');
+    expect(wrap).not.toBeNull();
+    expect(select?.options).toHaveLength(2);
+    expect(Array.from(select?.options ?? []).map((option) => option.value)).toEqual([
+      'Alice',
+      'Bob',
+    ]);
+
+    wrap
+      ?.querySelector<HTMLElement>('.e-wiki-new-character')
+      ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncEvents();
+
+    expect(runtime.submitCharacterCreation).toHaveBeenCalledWith({
+      siteConfig: dmmSubject,
+      charaData: expect.objectContaining({
+        type: dmmSubject.type,
+        infos: expect.arrayContaining([
+          expect.objectContaining({
+            name: '姓名',
+            value: 'Alice',
+            category: 'crt_name',
           }),
         ]),
       }),

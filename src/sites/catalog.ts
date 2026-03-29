@@ -1,11 +1,17 @@
-import { IFuncPromise, ITiming } from '../interface/types';
 import type {
   CharacterModelKey,
   CharacterSourceDefinition,
   SubjectModelKey,
   SubjectSourceDefinition,
 } from '../interface/wiki';
-import type { SiteTools } from './catalogTypes';
+import type {
+  CharacterAfterGetWikiDataHook,
+  CharacterIntegration,
+  CharacterTools,
+  SubjectAfterGetWikiDataHook,
+  SubjectBeforeCreateHook,
+  SubjectTools,
+} from './catalogTypes';
 import { adultcomicIntegration } from './adultcomic';
 import { amazonJpBookIntegration } from './amazonJpBook';
 import { amazonJpMusicIntegration } from './amazonJpMusic';
@@ -21,7 +27,7 @@ import { jdBookIntegration } from './jdBook';
 import { moepediaIntegration } from './moepedia';
 import { steamIntegration } from './steam';
 import { steamdbIntegration } from './steamdb';
-import type { CharaIntegration, SiteIntegration } from './catalogTypes';
+import type { SiteIntegration } from './catalogTypes';
 import { vgmdbIntegration } from './vgmdb';
 
 const siteIntegrations: SiteIntegration[] = [
@@ -43,8 +49,8 @@ const siteIntegrations: SiteIntegration[] = [
   vgmdbIntegration,
 ];
 
-const charaIntegrations = siteIntegrations.flatMap(
-  (integration) => integration.charas ?? []
+const characterIntegrations = siteIntegrations.flatMap(
+  (integration) => integration.characters ?? []
 );
 
 function buildSiteToolsMap(integrations: SiteIntegration[]) {
@@ -53,30 +59,31 @@ function buildSiteToolsMap(integrations: SiteIntegration[]) {
       acc[integration.site.key] = integration.tools;
     }
     return acc;
-  }, {} as Partial<Record<SubjectModelKey, SiteTools>>);
+  }, {} as Partial<Record<SubjectModelKey, SubjectTools>>);
 }
 
-function buildCharaToolsMap(integrations: CharaIntegration[]) {
+function buildCharacterToolsMap(integrations: CharacterIntegration[]) {
   return integrations.reduce((acc, integration) => {
     if (integration.tools) {
       acc[integration.model.key] = integration.tools;
     }
     return acc;
-  }, {} as Partial<Record<CharacterModelKey, SiteTools>>);
+  }, {} as Partial<Record<CharacterModelKey, CharacterTools>>);
 }
 
 const siteToolsMap = buildSiteToolsMap(siteIntegrations);
-const charaToolsMap = buildCharaToolsMap(charaIntegrations);
+const characterToolsMap = buildCharacterToolsMap(characterIntegrations);
 
-const noOps: IFuncPromise = () => Promise.resolve(true);
+const noOpBeforeCreate: SubjectBeforeCreateHook = async () => true;
+const noOpSubjectAfterGetWikiData: SubjectAfterGetWikiDataHook = async (
+  infos
+) => infos;
+const noOpCharacterAfterGetWikiData: CharacterAfterGetWikiDataHook = async (
+  infos
+) => infos;
 
 function identity<T>(x: T): T {
   return x;
-}
-
-function resolveHook(hooks: SiteTools['hooks'] | undefined, timing: ITiming) {
-  if (!hooks) return noOps;
-  return hooks[timing] || noOps;
 }
 
 export function findModelByHost(host: string): SubjectSourceDefinition[] {
@@ -85,36 +92,68 @@ export function findModelByHost(host: string): SubjectSourceDefinition[] {
     .filter((model) => model.host.includes(host));
 }
 
-export function getCharaModel(
+export function getCharacterModels(
   key: SubjectModelKey
-): CharacterSourceDefinition | null {
-  const target = charaIntegrations.find(
-    (integration) => integration.model.siteKey === key
-  );
-  if (!target) return null;
-  return target.model;
+): CharacterSourceDefinition[] {
+  return characterIntegrations
+    .filter(
+      (integration) => integration.model.siteKey === key
+    )
+    .map((integration) => integration.model);
 }
 
-function getSiteTools(key: SubjectModelKey): SiteTools | undefined {
+function getSiteTools(key: SubjectModelKey): SubjectTools | undefined {
   return siteToolsMap[key];
 }
 
-function getCharaTools(key: CharacterModelKey): SiteTools | undefined {
-  return charaToolsMap[key];
+function getCharacterTools(
+  key: CharacterModelKey
+): CharacterTools | undefined {
+  return characterToolsMap[key];
 }
 
-export function getHooks(
+export function getSubjectHooks(
   siteConfig: SubjectSourceDefinition,
-  timing: ITiming
-): IFuncPromise {
-  return resolveHook(getSiteTools(siteConfig.key)?.hooks, timing);
+  timing: 'beforeCreate'
+): SubjectBeforeCreateHook;
+export function getSubjectHooks(
+  siteConfig: SubjectSourceDefinition,
+  timing: 'afterGetWikiData'
+): SubjectAfterGetWikiDataHook;
+export function getSubjectHooks(
+  siteConfig: SubjectSourceDefinition,
+  timing: 'beforeCreate' | 'afterGetWikiData'
+) {
+  const hooks = getSiteTools(siteConfig.key)?.hooks;
+  if (!hooks) {
+    return timing === 'beforeCreate'
+      ? noOpBeforeCreate
+      : noOpSubjectAfterGetWikiData;
+  }
+  return hooks[timing] || (
+    timing === 'beforeCreate'
+      ? noOpBeforeCreate
+      : noOpSubjectAfterGetWikiData
+  );
 }
 
-export function getCharaHooks(
+export function getCharacterHooks(
   config: CharacterSourceDefinition,
-  timing: ITiming
-): IFuncPromise {
-  return resolveHook(getCharaTools(config.key)?.hooks, timing);
+  timing: 'afterGetWikiData' = 'afterGetWikiData'
+): CharacterAfterGetWikiDataHook {
+  const hooks = getCharacterTools(config.key)?.hooks;
+  if (!hooks) {
+    return noOpCharacterAfterGetWikiData;
+  }
+  return hooks[timing] || noOpCharacterAfterGetWikiData;
+}
+
+export function getCharacterIntegrations(
+  key: SubjectModelKey
+): CharacterIntegration[] {
+  return characterIntegrations.filter(
+    (integration) => integration.model.siteKey === key
+  );
 }
 
 export function dealFuncByCategory(

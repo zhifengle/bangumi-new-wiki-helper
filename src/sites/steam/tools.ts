@@ -1,8 +1,8 @@
 import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import { dealDate, formatDate } from '../../utils/utils';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 
-export const steamTools: SiteTools = {
+export const steamTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
       return {

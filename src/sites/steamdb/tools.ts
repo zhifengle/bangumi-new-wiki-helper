@@ -1,9 +1,9 @@
 import { getCoverValue, getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import { getImageDataByURL } from '../../utils/dealImage';
 import { formatDate } from '../../utils/utils';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 
-export const steamdbTools: SiteTools = {
+export const steamdbTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
       return {

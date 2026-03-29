@@ -1,5 +1,5 @@
 import { SingleInfo } from '../../interface/subjectInfo';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 import {
   DOUBAN_MUSIC_FIELD_MAP,
   getDoubanMusicFieldValue,
@@ -7,7 +7,7 @@ import {
   groupDoubanTracksByDisc,
 } from '../douban/shared';
 
-export const doubanMusicTools: SiteTools = {
+export const doubanMusicTools: SubjectTools = {
   hooks: {
     async afterGetWikiData(infos: SingleInfo[]) {
       const result = [...infos];

@@ -13,7 +13,7 @@ export const dmmChara: CharacterSourceDefinition = {
       selector: '.guide-sect .guide-box-chr',
     },
   },
-  controlSelector: [
+  toolbarSelector: [
     {
       selector: '#title',
     },

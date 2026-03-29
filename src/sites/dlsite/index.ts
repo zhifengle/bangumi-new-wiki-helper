@@ -6,7 +6,7 @@ import { dlsiteCharaTools, dlsiteTools } from './tools';
 export const dlsiteIntegration = defineSiteIntegration({
   site: dlsiteSubject,
   tools: dlsiteTools,
-  charas: [
+  characters: [
     {
       model: dlsiteChara,
       tools: dlsiteCharaTools,

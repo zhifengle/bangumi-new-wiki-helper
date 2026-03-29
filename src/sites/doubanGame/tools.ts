@@ -1,5 +1,5 @@
 import { SingleInfo } from '../../interface/subjectInfo';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 import {
   getDoubanModifyUrl,
   getDoubanPlatformLinks,
@@ -7,7 +7,7 @@ import {
   splitInfoValues,
 } from '../douban/shared';
 
-export const doubanGameTools: SiteTools = {
+export const doubanGameTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
       const href = window.location.href;

@@ -1,8 +1,8 @@
 import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 import { getAmazonCoverInfo } from '../amazon/shared';
 
-export const amazonJpMusicTools: SiteTools = {
+export const amazonJpMusicTools: SubjectTools = {
   hooks: {
     async afterGetWikiData(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];

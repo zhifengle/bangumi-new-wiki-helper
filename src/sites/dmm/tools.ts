@@ -4,7 +4,7 @@ import { getImageDataByURL } from '../../utils/dealImage';
 import { $qa, findElement } from '../../utils/domUtils';
 import { dealDate } from '../../utils/utils';
 import { getCover } from '../core/cover';
-import { SiteTools } from '../catalogTypes';
+import { CharacterTools, SubjectTools } from '../catalogTypes';
 
 const dmmCharaInfoDict: Record<string, string> = {
   趣味: '爱好',
@@ -15,7 +15,7 @@ const dmmCharaInfoDict: Record<string, string> = {
   血液型: '血型',
 };
 
-export const dmmTools: SiteTools = {
+export const dmmTools: SubjectTools = {
   hooks: {
     async afterGetWikiData(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
@@ -93,7 +93,7 @@ export const dmmTools: SiteTools = {
   ],
 };
 
-export const dmmCharaTools: SiteTools = {
+export const dmmCharaTools: CharacterTools = {
   hooks: {
     async afterGetWikiData(
       infos: SingleInfo[],

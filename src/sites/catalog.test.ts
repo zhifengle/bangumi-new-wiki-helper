@@ -1,8 +1,8 @@
 import {
   dealFuncByCategory,
+  getCharacterModels,
+  getSubjectHooks,
   findModelByHost,
-  getHooks,
-  getCharaModel,
 } from './catalog';
 import { getchuIntegration } from './getchu';
 import { getchuChara } from './getchu/chara';
@@ -14,7 +14,7 @@ describe('sites catalog registry', () => {
   test('keeps per-site bundle structure inside each site directory', () => {
     expect(getchuIntegration.site).toBe(getchuSubject);
     expect(getchuIntegration.tools).toBe(getchuSubjectTools);
-    expect(getchuIntegration.charas?.[0]?.model).toBe(getchuChara);
+    expect(getchuIntegration.characters?.[0]?.model).toBe(getchuChara);
   });
 
   test('resolves configured filters through the public catalog api', () => {
@@ -33,12 +33,12 @@ describe('sites catalog registry', () => {
     expect(findModelByHost('https://steamdb.info/')).toEqual([]);
   });
 
-  test('resolves getchu game to its character source from the sites catalog', () => {
-    expect(getCharaModel('getchu_game')).toEqual(getchuChara);
+  test('resolves getchu game to its character sources from the sites catalog', () => {
+    expect(getCharacterModels('getchu_game')).toEqual([getchuChara]);
   });
 
   test('resolves site hooks through the public catalog api', () => {
-    expect(getHooks(getchuSubject, 'beforeCreate')).toBe(
+    expect(getSubjectHooks(getchuSubject, 'beforeCreate')).toBe(
       getchuSubjectTools.hooks?.beforeCreate
     );
   });

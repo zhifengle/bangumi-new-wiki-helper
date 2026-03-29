@@ -1,7 +1,7 @@
 import { AllSubject, SearchResult } from '../../interface/subjectInfo';
 import { fetchText } from '../../utils/fetchData';
 import { findElement, getText } from '../../utils/domUtils';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 
 enum ErogamescapeCategory {
   game = 'game',
@@ -129,7 +129,7 @@ export async function getWebsite(
   // }
 }
 
-export const erogamescapeTools: SiteTools = {
+export const erogamescapeTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
       const $el = findElement([

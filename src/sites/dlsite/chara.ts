@@ -9,7 +9,7 @@ export const dlsiteChara: CharacterSourceDefinition = {
   itemSelector: {
     selector: '.work_parts_multiimage_item',
   },
-  controlSelector: [
+  toolbarSelector: [
     {
       selector: '.work_parts.type_multiimages *:first-child',
     },

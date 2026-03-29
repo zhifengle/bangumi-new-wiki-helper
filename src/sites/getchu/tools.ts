@@ -2,7 +2,7 @@ import { SingleInfo } from '../../interface/subjectInfo';
 import { CharacterSourceDefinition } from '../../interface/wiki';
 import { getText } from '../../utils/domUtils';
 import { convertImgToBase64 } from '../../utils/dealImage';
-import { SiteTools } from '../catalogTypes';
+import { CharacterTools, SubjectTools } from '../catalogTypes';
 
 const GETCHU_CHARA_NAME_SELECTOR = '.chara-name';
 const getchuCharacterInfoNameDict: Record<string, string> = {
@@ -150,7 +150,7 @@ export const getchuTools = {
   },
 };
 
-export const getchuCharaTools: SiteTools = {
+export const getchuCharaTools: CharacterTools = {
   hooks: {
     async afterGetWikiData(
       infos: SingleInfo[],
@@ -162,7 +162,7 @@ export const getchuCharaTools: SiteTools = {
   },
 };
 
-export const getchuSubjectTools: SiteTools = {
+export const getchuSubjectTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
       const $t = document.querySelector('#soft-title');

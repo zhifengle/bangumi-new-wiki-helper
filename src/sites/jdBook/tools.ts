@@ -1,7 +1,7 @@
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 import { trimParenthesis } from '../core/trim';
 
-export const jdBookTools: SiteTools = {
+export const jdBookTools: SubjectTools = {
   filters: [
     {
       category: 'subject_title',

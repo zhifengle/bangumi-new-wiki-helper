@@ -10,7 +10,7 @@ export const getchuChara: CharacterSourceDefinition = {
   itemSelector: {
     selector: '.chara-text .chara-name',
   },
-  controlSelector: {
+  presenceSelector: {
     selector: '#wrapper',
     subSelector: '.tabletitle',
     sibling: true,

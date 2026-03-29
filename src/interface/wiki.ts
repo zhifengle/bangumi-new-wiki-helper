@@ -135,8 +135,12 @@ export interface CharacterSourceDefinition
   host?: string[];
   // 包含角色信息的父节点
   itemSelector: SelectorInput;
-  // 插入控制按钮位置的元素选择器
-  controlSelector: SelectorInput;
+  // 角色区存在性判断锚点。
+  // 适合 inline/select 共用的“这个页面上是否真的有这块角色区”判断。
+  presenceSelector?: SelectorInput;
+  // select 模式下统一角色 UI 的挂载位置。
+  // inline 模式通常不需要它，因为按钮是插到 item 上的。
+  toolbarSelector?: SelectorInput;
   // 角色控件模式
   controlMode?: CharaControlMode;
   // @TODO person character

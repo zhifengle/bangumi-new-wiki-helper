@@ -2,9 +2,9 @@ import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import { CharacterSourceDefinition } from '../../interface/wiki';
 import { getImageDataByURL } from '../../utils/dealImage';
 import { dealDate } from '../../utils/utils';
-import { SiteTools } from '../catalogTypes';
+import { CharacterTools, SubjectTools } from '../catalogTypes';
 
-export const dlsiteTools: SiteTools = {
+export const dlsiteTools: SubjectTools = {
   hooks: {
     async afterGetWikiData(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
@@ -75,7 +75,7 @@ export const dlsiteTools: SiteTools = {
   ],
 };
 
-export const dlsiteCharaTools: SiteTools = {
+export const dlsiteCharaTools: CharacterTools = {
   hooks: {
     async afterGetWikiData(
       infos: SingleInfo[],

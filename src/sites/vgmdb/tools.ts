@@ -1,8 +1,8 @@
 import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import { getImageDataByURL } from '../../utils/dealImage';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 
-export const vgmdbTools: SiteTools = {
+export const vgmdbTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
       const $t = document.querySelector(

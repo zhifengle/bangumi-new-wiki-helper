@@ -1,6 +1,6 @@
 import { SingleInfo } from '../../interface/subjectInfo';
 import { getImageDataByURL } from '../../utils/dealImage';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 import {
   DOUBAN_GAME_PLATFORM_MAP,
   getDoubanDescriptionInfos,
@@ -9,7 +9,7 @@ import {
   splitInfoValues,
 } from '../douban/shared';
 
-export const doubanGameEditTools: SiteTools = {
+export const doubanGameEditTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
       const href = window.location.href;

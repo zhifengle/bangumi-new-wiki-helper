@@ -1,7 +1,7 @@
 import { SingleInfo } from '../../interface/subjectInfo';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 
-export const adultComicTools: SiteTools = {
+export const adultComicTools: SubjectTools = {
   hooks: {
     async afterGetWikiData(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];

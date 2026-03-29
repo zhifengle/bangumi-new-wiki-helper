@@ -6,7 +6,7 @@ import { getchuCharaTools, getchuSubjectTools } from './tools';
 export const getchuIntegration = defineSiteIntegration({
   site: getchuSubject,
   tools: getchuSubjectTools,
-  charas: [
+  characters: [
     {
       model: getchuChara,
       tools: getchuCharaTools,

@@ -1,10 +1,11 @@
 import { getStringValue, SubjectWikiInfo } from '../interface/subjectInfo';
 import type {
+  CharacterSourceDefinition,
   InfoConfig,
   SelectorInput,
   SubjectSourceDefinition,
 } from '../interface/wiki';
-import { getCharaModel } from '../sites';
+import { getCharacterModels } from '../sites';
 import { addCharaUI, insertControlBtnChara } from '../sites/core/controls';
 import { createWikiExtractContext } from '../sites/core/context';
 import { getCharaData } from '../sites/core/extract';
@@ -37,10 +38,6 @@ async function getIframeDoc(
   return new DOMParser().parseFromString(rawHtml, 'text/html');
 }
 
-function hasIframeItemSelector(itemSelector: SelectorInput) {
-  return Boolean(getIframeSelector(itemSelector));
-}
-
 async function submitCharacter(
   siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter,
@@ -59,28 +56,27 @@ async function submitCharacter(
   });
 }
 
-export async function initSourceCharacter(
+async function initCharacterModel(
   siteConfig: SubjectSourceDefinition,
-  runtime: SourceRuntimeAdapter
+  runtime: SourceRuntimeAdapter,
+  characterModel: CharacterSourceDefinition
 ) {
-  const $page = findElement(siteConfig.pageSelectors);
-  if (!$page) return;
-  const charaModel = getCharaModel(siteConfig.key);
-  if (!charaModel) return;
-  const $controlEl = findElement(charaModel.controlSelector);
-  if (!$controlEl) return;
-  const iframeDoc = hasIframeItemSelector(charaModel.itemSelector)
-    ? await getIframeDoc(charaModel.itemSelector, runtime)
+  const presenceSelector = characterModel.presenceSelector;
+  if (presenceSelector && !findElement(presenceSelector)) return;
+
+  const iframeDoc = getIframeSelector(characterModel.itemSelector)
+    ? await getIframeDoc(characterModel.itemSelector, runtime)
     : null;
   const itemArr = iframeDoc
-    ? findAllElement(charaModel.itemSelector, iframeDoc)
-    : findAllElement(charaModel.itemSelector);
+    ? findAllElement(characterModel.itemSelector, iframeDoc)
+    : findAllElement(characterModel.itemSelector);
   if (!itemArr.length) return;
-  if (charaModel.controlMode === 'inline') {
+
+  if ((characterModel.controlMode ?? 'select') === 'inline') {
     itemArr.forEach(($target) => {
       insertControlBtnChara($target, async () => {
         const charaInfo = await getCharaData(
-          charaModel,
+          characterModel,
           createWikiExtractContext($target)
         );
         await submitCharacter(siteConfig, runtime, charaInfo);
@@ -88,7 +84,13 @@ export async function initSourceCharacter(
     });
     return;
   }
-  const nameConfig: InfoConfig = charaModel.itemList.find(
+
+  const toolbarSelector = characterModel.toolbarSelector;
+  if (!toolbarSelector) return;
+  const $toolbarEl = findElement(toolbarSelector);
+  if (!$toolbarEl) return;
+
+  const nameConfig: InfoConfig = characterModel.itemList.find(
     (item) => item.category == 'crt_name'
   );
   if (!nameConfig) return;
@@ -96,7 +98,7 @@ export async function initSourceCharacter(
     itemArr.map(async ($target) => {
       const infos = await getCharaData(
         {
-          ...charaModel,
+          ...characterModel,
           itemList: [nameConfig],
         },
         createWikiExtractContext($target)
@@ -106,7 +108,7 @@ export async function initSourceCharacter(
       );
     })
   );
-  addCharaUI($controlEl, names, async (_e: Event, selectedName: string) => {
+  addCharaUI($toolbarEl, names, async (_e: Event, selectedName: string) => {
     let targetList: Element[] = [];
     if (selectedName === 'all') {
       // @TODO 一次性新建全部
@@ -119,12 +121,26 @@ export async function initSourceCharacter(
     }
     for (const $target of targetList) {
       const charaInfo = await getCharaData(
-        charaModel,
+        characterModel,
         createWikiExtractContext($target)
       );
       await submitCharacter(siteConfig, runtime, charaInfo);
     }
   });
+}
+
+export async function initSourceCharacter(
+  siteConfig: SubjectSourceDefinition,
+  runtime: SourceRuntimeAdapter
+) {
+  const $page = findElement(siteConfig.pageSelectors);
+  if (!$page) return;
+  const characterModels = getCharacterModels(siteConfig.key);
+  if (!characterModels.length) return;
+
+  for (const characterModel of characterModels) {
+    await initCharacterModel(siteConfig, runtime, characterModel);
+  }
 }
 
 

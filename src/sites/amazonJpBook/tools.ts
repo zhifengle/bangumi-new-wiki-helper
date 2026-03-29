@@ -1,10 +1,10 @@
 import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 import { amazonUtils, getAmazonCoverInfo } from '../amazon/shared';
 
 export { amazonUtils } from '../amazon/shared';
 
-export const amazonJpBookTools: SiteTools = {
+export const amazonJpBookTools: SubjectTools = {
   filters: [
     {
       category: 'subject_title',

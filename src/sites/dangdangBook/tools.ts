@@ -1,8 +1,8 @@
-import { SiteTools } from '../catalogTypes';
+import { SubjectTools } from '../catalogTypes';
 import { trimParenthesis } from '../core/trim';
 import { dealDate } from '../../utils/utils';
 
-export const dangdangBookTools: SiteTools = {
+export const dangdangBookTools: SubjectTools = {
   filters: [
     {
       category: 'date',

@@ -12,7 +12,11 @@ import { findElement, getInnerText, getText } from '../../utils/domUtils';
 import type { TextPattern } from '../../interface/textPattern';
 import { dealTextByPipe } from '../../utils/textPipe';
 import { toTextPatterns } from '../../utils/textPattern';
-import { dealFuncByCategory, getCharaHooks, getHooks } from '../catalog';
+import {
+  dealFuncByCategory,
+  getCharacterHooks,
+  getSubjectHooks,
+} from '../catalog';
 import { getCover } from './cover';
 import type { WikiExtractContext, WikiExtractRoot } from './context';
 import {
@@ -220,7 +224,7 @@ export async function getWikiData(
 ) {
   const rawInfo = await getWikiItems(siteConfig.itemList, siteConfig.key, context);
   const defaultInfos = siteConfig.defaultInfos || [];
-  const hookRes = await getHooks(siteConfig, 'afterGetWikiData')(
+  const hookRes = await getSubjectHooks(siteConfig, 'afterGetWikiData')(
     rawInfo,
     siteConfig
   );
@@ -233,7 +237,7 @@ export async function getCharaData(
 ) {
   const rawInfo = await getWikiItems(model.itemList, model.siteKey, context);
   const defaultInfos = model.defaultInfos || [];
-  const hookRes = await getCharaHooks(model, 'afterGetWikiData')(
+  const hookRes = await getCharacterHooks(model, 'afterGetWikiData')(
     rawInfo,
     model,
     context.root
