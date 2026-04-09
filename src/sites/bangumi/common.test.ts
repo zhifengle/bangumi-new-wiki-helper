@@ -1,6 +1,4 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
 import { convertItemInfo, getItemInfos, getTotalPageNum } from './common';
 
 function createSubjectItemMarkup() {

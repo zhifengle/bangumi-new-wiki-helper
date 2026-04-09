@@ -1,3 +1,4 @@
+import { vi, type MockedFunction, type SpyInstance } from 'vitest';
 import browser from 'webextension-polyfill';
 import { SubjectTypeId } from '../interface/wiki';
 import { BangumiDomain } from '../sites/bangumi';
@@ -8,7 +9,7 @@ import {
 } from './backgroundApp';
 import { DEFAULT_BROWSER_CONFIG } from '../runtime/browserConfig';
 
-jest.mock('webextension-polyfill', () => ({}));
+vi.mock('webextension-polyfill', () => ({}));
 
 function createBrowserMock() {
   const runtimeListeners: Array<(request: unknown) => unknown> = [];
@@ -18,24 +19,24 @@ function createBrowserMock() {
 
   const browserMock = {
     tabs: {
-      query: jest.fn().mockResolvedValue([{ id: 7 }]),
-      sendMessage: jest.fn().mockResolvedValue(undefined),
-      create: jest.fn().mockResolvedValue(undefined),
+      query: vi.fn().mockResolvedValue([{ id: 7 }]),
+      sendMessage: vi.fn().mockResolvedValue(undefined),
+      create: vi.fn().mockResolvedValue(undefined),
     },
     runtime: {
       onMessage: {
-        addListener: jest.fn((listener: (request: unknown) => unknown) => {
+        addListener: vi.fn((listener: (request: unknown) => unknown) => {
           runtimeListeners.push(listener);
         }),
       },
     },
     storage: {
       local: {
-        get: jest.fn(),
-        set: jest.fn().mockResolvedValue(undefined),
+        get: vi.fn(),
+        set: vi.fn().mockResolvedValue(undefined),
       },
       onChanged: {
-        addListener: jest.fn(
+        addListener: vi.fn(
           (listener: (changes: Record<string, { newValue?: unknown }>) => unknown) => {
             storageListeners.push(listener);
           }
@@ -44,7 +45,7 @@ function createBrowserMock() {
     },
     webRequest: {
       onBeforeSendHeaders: {
-        addListener: jest.fn(),
+        addListener: vi.fn(),
       },
     },
   } as unknown as typeof browser;
@@ -57,11 +58,11 @@ function createBrowserMock() {
 }
 
 describe('backgroundApp', () => {
-  let consoleLogSpy: jest.SpyInstance;
+  let consoleLogSpy: SpyInstance;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    vi.clearAllMocks();
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -70,7 +71,7 @@ describe('backgroundApp', () => {
 
   test('seeds default config on init and registers listeners', async () => {
     const { browserMock } = createBrowserMock();
-    browserMock.storage.local.get = jest.fn().mockResolvedValue({});
+    browserMock.storage.local.get = vi.fn().mockResolvedValue({});
     const controller = createBackgroundController({
       browserApi: browserMock,
       appVersion: 'test-version',
@@ -96,22 +97,22 @@ describe('backgroundApp', () => {
 
   test('routes background messages with normalized config', async () => {
     const { browserMock } = createBrowserMock();
-    const checkSubjectEntry = jest.fn().mockResolvedValue(undefined);
-    const createSubjectEntry = jest.fn().mockResolvedValue(undefined);
+    const checkSubjectEntry = vi.fn().mockResolvedValue(undefined);
+    const createSubjectEntry = vi.fn().mockResolvedValue(undefined);
     const transport = {
-      fetchHtml: jest.fn().mockResolvedValue('<html />'),
-      fetchImage: jest.fn().mockResolvedValue('data:image/png;base64,1'),
+      fetchHtml: vi.fn().mockResolvedValue('<html />'),
+      fetchImage: vi.fn().mockResolvedValue('data:image/png;base64,1'),
     };
-    const createCapabilities = jest.fn().mockReturnValue({
+    const createCapabilities = vi.fn().mockReturnValue({
       transport,
       storage: {
-        saveSubjectId: jest.fn().mockResolvedValue(undefined),
+        saveSubjectId: vi.fn().mockResolvedValue(undefined),
       },
       notifier: {
-        notify: jest.fn().mockResolvedValue(undefined),
+        notify: vi.fn().mockResolvedValue(undefined),
       },
       navigator: {
-        openTab: jest.fn().mockResolvedValue(undefined),
+        openTab: vi.fn().mockResolvedValue(undefined),
       },
     });
     const controller = createBackgroundController({
@@ -186,7 +187,7 @@ describe('backgroundApp', () => {
 
   test('updates config when browser storage changes', async () => {
     const { browserMock, storageListeners } = createBrowserMock();
-    browserMock.storage.local.get = jest
+    browserMock.storage.local.get = vi
       .fn()
       .mockResolvedValueOnce({
         version: 'test-version',

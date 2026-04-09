@@ -1,6 +1,5 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 import {
   addCharaUI,
   insertControlBtn,
@@ -15,11 +14,11 @@ async function flushAsyncEvents() {
 describe('core controls helpers', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="anchor"></div>';
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('insertControlBtn wires subject creation and duplicate-check buttons', async () => {
-    const handler = jest.fn().mockResolvedValue(undefined);
+    const handler = vi.fn().mockResolvedValue(undefined);
     const anchor = document.querySelector('#anchor')!;
 
     insertControlBtn(anchor, handler);
@@ -36,8 +35,8 @@ describe('core controls helpers', () => {
   });
 
   test('insertControlBtn keeps notmatched text when duplicate search fails', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    const handler = jest.fn().mockRejectedValue('notmatched');
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const handler = vi.fn().mockRejectedValue('notmatched');
     const anchor = document.querySelector('#anchor')!;
 
     insertControlBtn(anchor, handler);
@@ -53,7 +52,7 @@ describe('core controls helpers', () => {
   });
 
   test('insertControlBtnChara wires the character button click handler', async () => {
-    const handler = jest.fn().mockResolvedValue(undefined);
+    const handler = vi.fn().mockResolvedValue(undefined);
     const anchor = document.querySelector('#anchor')!;
 
     insertControlBtnChara(anchor, handler);
@@ -66,7 +65,7 @@ describe('core controls helpers', () => {
   });
 
   test('addCharaUI submits the selected character name', async () => {
-    const handler = jest.fn().mockResolvedValue(undefined);
+    const handler = vi.fn().mockResolvedValue(undefined);
     const anchor = document.querySelector('#anchor')!;
 
     addCharaUI(anchor, ['Alice', 'Bob'], handler);

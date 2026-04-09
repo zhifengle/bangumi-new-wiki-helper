@@ -1,18 +1,17 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 import { createImageWidgetEditor } from './editor';
 import { applyInitialPreviewData, bindPreviewControls } from './preview';
 import { resolveInitialPreviewSource } from './state';
 
 function installCanvasContextMock() {
-  return jest
+  return vi
     .spyOn(HTMLCanvasElement.prototype, 'getContext')
     .mockImplementation(() => {
       return {
-        drawImage: jest.fn(),
-        moveTo: jest.fn(),
-        strokeRect: jest.fn(),
+        drawImage: vi.fn(),
+        moveTo: vi.fn(),
+        strokeRect: vi.fn(),
       } as unknown as CanvasRenderingContext2D;
     });
 }
@@ -27,7 +26,7 @@ describe('imageWidget preview bindings', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   test('reset restores external preview state instead of keeping the current image', () => {

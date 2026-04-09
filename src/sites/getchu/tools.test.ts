@@ -1,6 +1,4 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
 import { getchuTools } from './tools';
 
 describe('getchu tools', () => {

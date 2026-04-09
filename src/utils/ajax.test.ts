@@ -1,6 +1,5 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 import { sendForm, sendFormImg } from './ajax';
 
 type MockXhr = {
@@ -33,8 +32,9 @@ describe('ajax helpers', () => {
         this.onload?.();
       },
     };
-    window.XMLHttpRequest = jest
-      .fn(() => mockXhr as unknown as XMLHttpRequest) as unknown as typeof XMLHttpRequest;
+    window.XMLHttpRequest = vi.fn(function MockedXMLHttpRequest() {
+      return mockXhr as unknown as XMLHttpRequest;
+    }) as unknown as typeof XMLHttpRequest;
     return mockXhr;
   }
 

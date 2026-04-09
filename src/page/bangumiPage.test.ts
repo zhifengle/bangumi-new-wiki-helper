@@ -1,6 +1,5 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { vi, type Mocked, type MockedFunction } from 'vitest';
 import { SubjectTypeId } from '../interface/wiki';
 import { initBangumiPage } from './bangumiPage';
 import { BangumiPageRuntimeAdapter } from './bangumiRuntime';
@@ -10,19 +9,19 @@ import {
   initUploadImg,
 } from '../sites/bangumi/newSubject';
 
-jest.mock('../sites/bangumi/newSubject', () => ({
-  initNewSubject: jest.fn(),
-  initNewCharacter: jest.fn(),
-  initUploadImg: jest.fn(),
+vi.mock('../sites/bangumi/newSubject', () => ({
+  initNewSubject: vi.fn(),
+  initNewCharacter: vi.fn(),
+  initUploadImg: vi.fn(),
 }));
 
-const mockedInitNewSubject = initNewSubject as jest.MockedFunction<
+const mockedInitNewSubject = initNewSubject as MockedFunction<
   typeof initNewSubject
 >;
-const mockedInitNewCharacter = initNewCharacter as jest.MockedFunction<
+const mockedInitNewCharacter = initNewCharacter as MockedFunction<
   typeof initNewCharacter
 >;
-const mockedInitUploadImg = initUploadImg as jest.MockedFunction<
+const mockedInitUploadImg = initUploadImg as MockedFunction<
   typeof initUploadImg
 >;
 
@@ -32,27 +31,27 @@ function setPath(pathname: string) {
 
 function createRuntime(
   overrides: Partial<BangumiPageRuntimeAdapter & { state: unknown }> = {}
-): jest.Mocked<BangumiPageRuntimeAdapter> {
+): Mocked<BangumiPageRuntimeAdapter> {
   return {
-    loadPageState: jest
+    loadPageState: vi
       .fn()
       .mockResolvedValue((overrides as { state?: unknown }).state ?? {}),
-    clearInfo: jest.fn(),
-    markAutoFillConsumed: jest.fn(),
+    clearInfo: vi.fn(),
+    markAutoFillConsumed: vi.fn(),
   };
 }
 
 describe('initBangumiPage', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     document.body.innerHTML = '';
   });
 
   test('initializes new subject page and consumes autofill state', async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     setPath('/new_subject/4');
     document.body.innerHTML = '<button class="e-wiki-fill-form">fill</button>';
-    const clickSpy = jest.fn();
+    const clickSpy = vi.fn();
     document
       .querySelector('.e-wiki-fill-form')
       ?.addEventListener('click', clickSpy);
@@ -69,13 +68,13 @@ describe('initBangumiPage', () => {
     });
 
     await initBangumiPage(runtime);
-    jest.advanceTimersByTime(10);
+    vi.advanceTimersByTime(10);
     await Promise.resolve();
 
     expect(mockedInitNewSubject).toHaveBeenCalledWith(wikiData);
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(runtime.markAutoFillConsumed).toHaveBeenCalled();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   test('responds to clearInfo script message', async () => {

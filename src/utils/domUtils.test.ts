@@ -1,6 +1,5 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 import {
   createFetchDataIframe,
   findElement,
@@ -29,7 +28,7 @@ describe('domUtils helpers', () => {
   beforeEach(() => {
     document.head.innerHTML = '';
     document.body.innerHTML = '';
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   test('getText reads meta, input and plain element content', () => {
@@ -505,12 +504,12 @@ describe('domUtils helpers', () => {
   });
 
   test('loadIframe rejects when the iframe times out', async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     const iframe = document.createElement('iframe');
     const pending = loadIframe(iframe, 'https://example.com/frame', 10);
     const rejection = expect(pending).rejects.toThrow('iframe timeout');
 
-    await jest.advanceTimersByTimeAsync(10);
+    await vi.advanceTimersByTimeAsync(10);
 
     await rejection;
     expect(iframe.onload).toBeNull();

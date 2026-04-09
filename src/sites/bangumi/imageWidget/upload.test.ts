@@ -1,18 +1,20 @@
-/**
- * @jest-environment jsdom
- */
-const mockSendFormImg = jest.fn();
-const mockSleep = jest.fn().mockResolvedValue(undefined);
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 
-jest.mock('../../../utils/ajax', () => ({
+const { mockSendFormImg, mockSleep } = vi.hoisted(() => ({
+  mockSendFormImg: vi.fn(),
+  mockSleep: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../../../utils/ajax', () => ({
   sendFormImg: mockSendFormImg,
 }));
 
-jest.mock('../../../utils/fetchData', () => ({
-  fetchText: jest.fn(),
+vi.mock('../../../utils/fetchData', () => ({
+  fetchText: vi.fn(),
 }));
 
-jest.mock('../../../utils/async/sleep', () => ({
+vi.mock('../../../utils/async/sleep', () => ({
   sleep: mockSleep,
 }));
 
@@ -20,11 +22,11 @@ import { bindUploadButton } from './upload';
 
 describe('imageWidget upload bindings', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest
+    vi.clearAllMocks();
+    vi
       .spyOn(HTMLCanvasElement.prototype, 'toDataURL')
       .mockReturnValue('data:image/png;base64,canvas');
-    jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
     document.body.innerHTML = `
       <table>
         <tr>
@@ -43,7 +45,7 @@ describe('imageWidget upload bindings', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   test('restores the upload button after a failed upload attempt', async () => {

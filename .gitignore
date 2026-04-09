@@ -9,3 +9,4 @@ node_modules
 *.pem
 *-bk.test.ts
 web-ext-artifacts
+test-results/

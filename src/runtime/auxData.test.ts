@@ -1,68 +1,65 @@
+import { vi, type MockedFunction } from 'vitest';
 import { SubjectTypeId } from '../interface/wiki';
 import { combineInfoList } from '../sites/core/merge';
 import { getWikiDataByURL } from '../sites/core/remote';
 import { updateSubjectDraftFromAuxSite, AuxDataRuntime } from './auxData';
 
-jest.mock('../sites/core/merge', () => ({
-  combineInfoList: jest.fn(),
+vi.mock('../sites/core/merge', () => ({
+  combineInfoList: vi.fn(),
 }));
 
-jest.mock('../sites/core/remote', () => ({
-  getWikiDataByURL: jest.fn(),
+vi.mock('../sites/core/remote', () => ({
+  getWikiDataByURL: vi.fn(),
 }));
 
-const mockedCombineInfoList = combineInfoList as jest.MockedFunction<
-  typeof combineInfoList
->;
-const mockedGetWikiDataByURL = getWikiDataByURL as jest.MockedFunction<
-  typeof getWikiDataByURL
->;
+const mockedCombineInfoList = combineInfoList as MockedFunction<typeof combineInfoList>;
+const mockedGetWikiDataByURL = getWikiDataByURL as MockedFunction<typeof getWikiDataByURL>;
 
 type MockedAuxDataRuntime = AuxDataRuntime & {
   storage: {
-    saveSubjectDraft: jest.MockedFunction<AuxDataRuntime['storage']['saveSubjectDraft']>;
-    loadSubjectDraft: jest.MockedFunction<AuxDataRuntime['storage']['loadSubjectDraft']>;
-    saveCharacterDraft: jest.MockedFunction<
+    saveSubjectDraft: MockedFunction<AuxDataRuntime['storage']['saveSubjectDraft']>;
+    loadSubjectDraft: MockedFunction<AuxDataRuntime['storage']['loadSubjectDraft']>;
+    saveCharacterDraft: MockedFunction<
       AuxDataRuntime['storage']['saveCharacterDraft']
     >;
-    loadCharacterDraft: jest.MockedFunction<
+    loadCharacterDraft: MockedFunction<
       AuxDataRuntime['storage']['loadCharacterDraft']
     >;
-    saveSubjectId: jest.MockedFunction<AuxDataRuntime['storage']['saveSubjectId']>;
-    loadSubjectId: jest.MockedFunction<AuxDataRuntime['storage']['loadSubjectId']>;
-    loadBangumiPageState: jest.MockedFunction<
+    saveSubjectId: MockedFunction<AuxDataRuntime['storage']['saveSubjectId']>;
+    loadSubjectId: MockedFunction<AuxDataRuntime['storage']['loadSubjectId']>;
+    loadBangumiPageState: MockedFunction<
       AuxDataRuntime['storage']['loadBangumiPageState']
     >;
-    clearBangumiPageState: jest.MockedFunction<
+    clearBangumiPageState: MockedFunction<
       AuxDataRuntime['storage']['clearBangumiPageState']
     >;
   };
   notifier: {
-    notify: jest.MockedFunction<AuxDataRuntime['notifier']['notify']>;
+    notify: MockedFunction<AuxDataRuntime['notifier']['notify']>;
   };
 };
 
 function createRuntime(): MockedAuxDataRuntime {
   return {
     storage: {
-      saveSubjectDraft: jest.fn(),
-      loadSubjectDraft: jest.fn(),
-      saveCharacterDraft: jest.fn(),
-      loadCharacterDraft: jest.fn(),
-      saveSubjectId: jest.fn(),
-      loadSubjectId: jest.fn(),
-      loadBangumiPageState: jest.fn(),
-      clearBangumiPageState: jest.fn(),
+      saveSubjectDraft: vi.fn(),
+      loadSubjectDraft: vi.fn(),
+      saveCharacterDraft: vi.fn(),
+      loadCharacterDraft: vi.fn(),
+      saveSubjectId: vi.fn(),
+      loadSubjectId: vi.fn(),
+      loadBangumiPageState: vi.fn(),
+      clearBangumiPageState: vi.fn(),
     },
     notifier: {
-      notify: jest.fn(),
+      notify: vi.fn(),
     },
   };
 }
 
 describe('updateSubjectDraftFromAuxSite', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('fetches aux data and saves merged subject draft', async () => {

@@ -1,3 +1,5 @@
+import { vi, type MockedFunction } from 'vitest';
+
 const originalFetch = globalThis.fetch;
 
 type MockResponseShape = Pick<
@@ -10,10 +12,10 @@ function createResponse(
 ): Response {
   return {
     ok: true,
-    text: jest.fn().mockResolvedValue(''),
-    json: jest.fn().mockResolvedValue({}),
-    blob: jest.fn().mockResolvedValue(new Blob()),
-    arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
+    text: vi.fn().mockResolvedValue(''),
+    json: vi.fn().mockResolvedValue({}),
+    blob: vi.fn().mockResolvedValue(new Blob()),
+    arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
     ...overrides,
   } as unknown as Response;
 }
@@ -23,18 +25,18 @@ import { fetchBinary, fetchJson, fetchText } from './fetchData';
 describe('fetchData helpers', () => {
   afterEach(() => {
     globalThis.fetch = originalFetch;
-    jest.useRealTimers();
-    jest.restoreAllMocks();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   test('fetchText decodes arraybuffer responses when decode is provided', async () => {
     const text = 'テスト内容';
     const buffer = new TextEncoder().encode(text).buffer;
-    const fetchMock = jest.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockResolvedValue(
       createResponse({
-        arrayBuffer: jest.fn().mockResolvedValue(buffer),
+        arrayBuffer: vi.fn().mockResolvedValue(buffer),
       })
-    ) as jest.MockedFunction<typeof fetch>;
+    ) as MockedFunction<typeof fetch>;
     globalThis.fetch = fetchMock;
 
     await expect(fetchText('https://example.com/page', { decode: 'utf-8' })).resolves.toBe(
@@ -51,11 +53,11 @@ describe('fetchData helpers', () => {
 
   test('fetchJson returns parsed json payloads', async () => {
     const payload = { id: 42, name: 'entry' };
-    globalThis.fetch = jest.fn().mockResolvedValue(
+    globalThis.fetch = vi.fn().mockResolvedValue(
       createResponse({
-        json: jest.fn().mockResolvedValue(payload),
+        json: vi.fn().mockResolvedValue(payload),
       })
-    ) as jest.MockedFunction<typeof fetch>;
+    ) as MockedFunction<typeof fetch>;
 
     const result = await fetchJson<{ id: number; name: string }>(
       'https://example.com/api'
@@ -66,11 +68,11 @@ describe('fetchData helpers', () => {
 
   test('fetchBinary forwards POST data as request body', async () => {
     const blob = new Blob(['cover'], { type: 'image/png' });
-    const fetchMock = jest.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockResolvedValue(
       createResponse({
-        blob: jest.fn().mockResolvedValue(blob),
+        blob: vi.fn().mockResolvedValue(blob),
       })
-    ) as jest.MockedFunction<typeof fetch>;
+    ) as MockedFunction<typeof fetch>;
     globalThis.fetch = fetchMock;
 
     await expect(
@@ -90,15 +92,15 @@ describe('fetchData helpers', () => {
   });
 
   test('fetchText rejects when the request times out', async () => {
-    jest.useFakeTimers();
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
-    globalThis.fetch = jest.fn().mockImplementation(
+    vi.useFakeTimers();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    globalThis.fetch = vi.fn().mockImplementation(
       () => new Promise(() => undefined)
-    ) as jest.MockedFunction<typeof fetch>;
+    ) as MockedFunction<typeof fetch>;
 
     const pending = fetchText('https://example.com/slow', {}, 10);
     const rejection = expect(pending).rejects.toThrow('fetch timeout');
-    await jest.advanceTimersByTimeAsync(10);
+    await vi.advanceTimersByTimeAsync(10);
 
     await rejection;
     expect(logSpy).toHaveBeenCalled();

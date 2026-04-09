@@ -1,31 +1,40 @@
-/**
- * @jest-environment jsdom
- */
-const mockInsertFillFormBtn = jest.fn();
-const mockInitImageWidget = jest.fn();
-const mockInitSubjectSubmit = jest.fn();
-const mockInitCharacterSubmit = jest.fn();
-const mockConvertInfoValue = jest.fn();
-const mockSleep = jest.fn().mockResolvedValue(undefined);
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 
-jest.mock('./newSubject/controls', () => ({
+const {
+  mockInsertFillFormBtn,
+  mockInitImageWidget,
+  mockInitSubjectSubmit,
+  mockInitCharacterSubmit,
+  mockConvertInfoValue,
+  mockSleep,
+} = vi.hoisted(() => ({
+  mockInsertFillFormBtn: vi.fn(),
+  mockInitImageWidget: vi.fn(),
+  mockInitSubjectSubmit: vi.fn(),
+  mockInitCharacterSubmit: vi.fn(),
+  mockConvertInfoValue: vi.fn(),
+  mockSleep: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('./newSubject/controls', () => ({
   insertFillFormBtn: mockInsertFillFormBtn,
 }));
 
-jest.mock('./imageWidget', () => ({
+vi.mock('./imageWidget', () => ({
   initImageWidget: mockInitImageWidget,
 }));
 
-jest.mock('./newSubject/submit', () => ({
+vi.mock('./newSubject/submit', () => ({
   initSubjectSubmit: mockInitSubjectSubmit,
   initCharacterSubmit: mockInitCharacterSubmit,
 }));
 
-jest.mock('./newSubject/mapper', () => ({
+vi.mock('./newSubject/mapper', () => ({
   convertInfoValue: mockConvertInfoValue,
 }));
 
-jest.mock('../../utils/async/sleep', () => ({
+vi.mock('../../utils/async/sleep', () => ({
   sleep: mockSleep,
 }));
 
@@ -151,7 +160,7 @@ function getCapturedHandlers(callIndex = 0) {
 
 describe('newSubject Batch C', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     renderSubjectDom();
     mockConvertInfoValue.mockReturnValue('converted-infobox');
   });
@@ -162,8 +171,8 @@ describe('newSubject Batch C', () => {
         'table tr:nth-of-type(2) > td:nth-of-type(2) input'
       )
     );
-    const firstClickSpy = jest.spyOn(typeInputs[0], 'click');
-    const secondClickSpy = jest.spyOn(typeInputs[1], 'click');
+    const firstClickSpy = vi.spyOn(typeInputs[0], 'click');
+    const secondClickSpy = vi.spyOn(typeInputs[1], 'click');
 
     await fillInfoBox(createWikiInfo());
 
@@ -196,12 +205,12 @@ describe('newSubject Batch C', () => {
     const clearButton = document.querySelector<HTMLInputElement>(
       '.e-wiki-cover-container .clear-btn'
     )!;
-    const clearClickSpy = jest.spyOn(clearButton, 'click');
+    const clearClickSpy = vi.spyOn(clearButton, 'click');
     const wikiMode = document.querySelector<HTMLElement>(
       'table small a[href="javascript:void(0)"]'
     )!;
-    const wikiClickSpy = jest.spyOn(wikiMode, 'click');
-    const dispatchSpy = jest.spyOn(window, 'dispatchEvent');
+    const wikiClickSpy = vi.spyOn(wikiMode, 'click');
+    const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
 
     initNewSubject(createWikiInfo());
     const { cancelHandler } = getCapturedHandlers(0);
@@ -253,7 +262,7 @@ describe('newSubject Batch C', () => {
     const wikiMode = document.querySelector<HTMLElement>(
       'table small a[href="javascript:void(0)"]'
     )!;
-    const wikiClickSpy = jest.spyOn(wikiMode, 'click');
+    const wikiClickSpy = vi.spyOn(wikiMode, 'click');
 
     const characterInfo = createCharacterInfo();
     initNewCharacter(characterInfo, 123);

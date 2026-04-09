@@ -1,31 +1,32 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 import { SubjectTypeId } from '../interface/wiki';
 
-const mockContentRuntimeCapabilities = {
-  transport: {
-    fetchHtml: jest.fn(),
-    fetchImage: jest.fn(),
+const { mockContentRuntimeCapabilities } = vi.hoisted(() => ({
+  mockContentRuntimeCapabilities: {
+    transport: {
+      fetchHtml: vi.fn(),
+      fetchImage: vi.fn(),
+    },
+    storage: {
+      saveSubjectDraft: vi.fn(),
+      loadSubjectDraft: vi.fn(),
+      saveCharacterDraft: vi.fn(),
+      loadCharacterDraft: vi.fn(),
+      saveSubjectId: vi.fn(),
+      loadSubjectId: vi.fn(),
+      loadBangumiPageState: vi.fn(),
+      clearBangumiPageState: vi.fn(),
+    },
+    subjectCreation: {
+      checkSubjectExist: vi.fn(),
+      createNewSubject: vi.fn(),
+      createNewCharacter: vi.fn(),
+    },
   },
-  storage: {
-    saveSubjectDraft: jest.fn(),
-    loadSubjectDraft: jest.fn(),
-    saveCharacterDraft: jest.fn(),
-    loadCharacterDraft: jest.fn(),
-    saveSubjectId: jest.fn(),
-    loadSubjectId: jest.fn(),
-    loadBangumiPageState: jest.fn(),
-    clearBangumiPageState: jest.fn(),
-  },
-  subjectCreation: {
-    checkSubjectExist: jest.fn(),
-    createNewSubject: jest.fn(),
-    createNewCharacter: jest.fn(),
-  },
-};
+}));
 
-jest.mock('./runtimeCapabilities', () => ({
+vi.mock('./runtimeCapabilities', () => ({
   contentRuntimeCapabilities: mockContentRuntimeCapabilities,
 }));
 
@@ -48,7 +49,7 @@ const siteConfig = {
 
 describe('contentRuntimeAdapter', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     Object.defineProperty(globalAny, 'location', {
       configurable: true,
       value: {

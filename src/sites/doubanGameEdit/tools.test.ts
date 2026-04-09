@@ -1,9 +1,11 @@
-/**
- * @jest-environment jsdom
- */
-const mockGetImageDataByURL = jest.fn();
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 
-jest.mock('../../utils/dealImage', () => ({
+const { mockGetImageDataByURL } = vi.hoisted(() => ({
+  mockGetImageDataByURL: vi.fn(),
+}));
+
+vi.mock('../../utils/dealImage', () => ({
   getImageDataByURL: mockGetImageDataByURL,
 }));
 
@@ -12,7 +14,7 @@ import { doubanGameEditTools } from './tools';
 
 describe('douban game edit tools', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     document.body.innerHTML = '';
     window.history.replaceState({}, '', '/');
   });

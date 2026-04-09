@@ -1,31 +1,41 @@
-/**
- * @jest-environment jsdom
- */
-const mockFetchJson = jest.fn();
-const mockFetchText = jest.fn();
-const mockSendForm = jest.fn();
-const mockSendFormImg = jest.fn();
-const mockGetBgmHost = jest.fn();
-const mockGetFormByIframe = jest.fn();
-const mockSleep = jest.fn().mockResolvedValue(undefined);
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 
-jest.mock('../../utils/fetchData', () => ({
-  fetchJson: (...args: unknown[]) => mockFetchJson(...args),
-  fetchText: (...args: unknown[]) => mockFetchText(...args),
+const {
+  mockFetchJson,
+  mockFetchText,
+  mockSendForm,
+  mockSendFormImg,
+  mockGetBgmHost,
+  mockGetFormByIframe,
+  mockSleep,
+} = vi.hoisted(() => ({
+  mockFetchJson: vi.fn(),
+  mockFetchText: vi.fn(),
+  mockSendForm: vi.fn(),
+  mockSendFormImg: vi.fn(),
+  mockGetBgmHost: vi.fn(),
+  mockGetFormByIframe: vi.fn(),
+  mockSleep: vi.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('../../utils/ajax', () => ({
-  sendForm: (...args: unknown[]) => mockSendForm(...args),
-  sendFormImg: (...args: unknown[]) => mockSendFormImg(...args),
+vi.mock('../../utils/fetchData', () => ({
+  fetchJson: mockFetchJson,
+  fetchText: mockFetchText,
 }));
 
-jest.mock('./common', () => ({
-  getBgmHost: (...args: unknown[]) => mockGetBgmHost(...args),
-  getFormByIframe: (...args: unknown[]) => mockGetFormByIframe(...args),
+vi.mock('../../utils/ajax', () => ({
+  sendForm: mockSendForm,
+  sendFormImg: mockSendFormImg,
 }));
 
-jest.mock('../../utils/async/sleep', () => ({
-  sleep: (...args: unknown[]) => mockSleep(...args),
+vi.mock('./common', () => ({
+  getBgmHost: mockGetBgmHost,
+  getFormByIframe: mockGetFormByIframe,
+}));
+
+vi.mock('../../utils/async/sleep', () => ({
+  sleep: mockSleep,
 }));
 
 import { SubjectTypeId } from '../../interface/wiki';
@@ -38,7 +48,7 @@ import {
 
 describe('bangumi related helpers', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     document.body.innerHTML = '';
     mockGetBgmHost.mockReturnValue('https://bgm.tv');
     mockSendForm.mockResolvedValue('ok');
@@ -107,7 +117,7 @@ describe('bangumi related helpers', () => {
     await addPersonRelatedSubject(['1', '2'], '88', SubjectTypeId.game, 2);
 
     expect(mockGetFormByIframe).toHaveBeenCalledWith(
-      'http://localhost/character/88/add_related/game',
+      `${window.location.origin}/character/88/add_related/game`,
       '.mainWrapper form'
     );
     expect(mockSendForm).toHaveBeenCalledWith($form, [

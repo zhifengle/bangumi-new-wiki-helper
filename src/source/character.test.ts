@@ -1,6 +1,5 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 import { dmmSubject } from '../sites/dmm/subject';
 import { getchuSubject } from '../sites/getchu/subject';
 import { initSourceCharacter } from './character';
@@ -47,17 +46,17 @@ describe('initSourceCharacter', () => {
         </div>
       </div>
     `;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('uses inline controls for getchu characters and submits parsed data', async () => {
-    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
     const runtime: SourceRuntimeAdapter = {
-      fetchHtml: jest.fn().mockResolvedValue(''),
-      hydrateSubjectCover: jest.fn().mockResolvedValue(undefined),
-      hydrateCharacterCover: jest.fn().mockResolvedValue(undefined),
-      submitSubjectCreation: jest.fn().mockResolvedValue(undefined),
-      submitCharacterCreation: jest.fn().mockResolvedValue(undefined),
+      fetchHtml: vi.fn().mockResolvedValue(''),
+      hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
+      hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
+      submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
+      submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
     };
 
     await initSourceCharacter(getchuSubject, runtime);
@@ -155,13 +154,13 @@ describe('initSourceCharacter', () => {
         value: ($p.textContent || '').replace(/\s+/g, ' ').trim(),
       });
     }
-    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
     const runtime: SourceRuntimeAdapter = {
-      fetchHtml: jest.fn().mockResolvedValue(''),
-      hydrateSubjectCover: jest.fn().mockResolvedValue(undefined),
-      hydrateCharacterCover: jest.fn().mockResolvedValue(undefined),
-      submitSubjectCreation: jest.fn().mockResolvedValue(undefined),
-      submitCharacterCreation: jest.fn().mockResolvedValue(undefined),
+      fetchHtml: vi.fn().mockResolvedValue(''),
+      hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
+      hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
+      submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
+      submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
     };
 
     await initSourceCharacter(dmmSubject, runtime);
@@ -182,6 +181,9 @@ describe('initSourceCharacter', () => {
       ?.querySelector<HTMLElement>('.e-wiki-new-character')
       ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushAsyncEvents();
+    await vi.waitFor(() => {
+      expect(runtime.submitCharacterCreation).toHaveBeenCalledTimes(1);
+    });
 
     expect(runtime.submitCharacterCreation).toHaveBeenCalledWith({
       siteConfig: dmmSubject,

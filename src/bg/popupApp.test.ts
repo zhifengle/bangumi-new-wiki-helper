@@ -1,18 +1,17 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 import browser from 'webextension-polyfill';
 import { BangumiDomain } from '../sites/bangumi';
 import { initPopupApp } from './popupApp';
 
-jest.mock('webextension-polyfill', () => ({}));
+vi.mock('webextension-polyfill', () => ({}));
 
 function createBrowserMock(config: Record<string, unknown>) {
   return {
     storage: {
       local: {
-        get: jest.fn().mockResolvedValue({ config }),
-        set: jest.fn().mockResolvedValue(undefined),
+        get: vi.fn().mockResolvedValue({ config }),
+        set: vi.fn().mockResolvedValue(undefined),
       },
     },
   } as unknown as typeof browser;
@@ -56,7 +55,7 @@ function renderPopupDom() {
 
 describe('popupApp', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     renderPopupDom();
   });
 

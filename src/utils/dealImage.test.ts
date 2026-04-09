@@ -1,9 +1,11 @@
-/**
- * @jest-environment jsdom
- */
-const mockFetchBinary = jest.fn();
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 
-jest.mock('./fetchData', () => ({
+const { mockFetchBinary } = vi.hoisted(() => ({
+  mockFetchBinary: vi.fn(),
+}));
+
+vi.mock('./fetchData', () => ({
   fetchBinary: mockFetchBinary,
 }));
 
@@ -16,7 +18,7 @@ import {
 
 describe('dealImage helpers', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('dataURItoBlob converts base64 strings into typed blobs', async () => {
@@ -55,13 +57,13 @@ describe('dealImage helpers', () => {
   });
 
   test('convertImgToBase64 renders the image onto a canvas', () => {
-    const drawImage = jest.fn();
-    const getContextSpy = jest
+    const drawImage = vi.fn();
+    const getContextSpy = vi
       .spyOn(HTMLCanvasElement.prototype, 'getContext')
       .mockReturnValue({
         drawImage,
       } as unknown as CanvasRenderingContext2D);
-    const toDataURLSpy = jest
+    const toDataURLSpy = vi
       .spyOn(HTMLCanvasElement.prototype, 'toDataURL')
       .mockReturnValue('data:image/png;base64,canvas');
     const image = document.createElement('img');

@@ -1,3 +1,4 @@
+import { vi, type Mocked, type MockedFunction } from 'vitest';
 import { SubjectTypeId } from '../interface/wiki';
 import {
   checkSubjectAndOpenEntry,
@@ -6,35 +7,31 @@ import {
 import { checkSubjectExit } from '../sites/bangumi';
 import { getSubjectId } from '../sites/bangumi/common';
 
-jest.mock('../sites/bangumi', () => ({
-  checkSubjectExit: jest.fn(),
+vi.mock('../sites/bangumi', () => ({
+  checkSubjectExit: vi.fn(),
 }));
 
-jest.mock('../sites/bangumi/common', () => ({
-  getSubjectId: jest.fn(),
+vi.mock('../sites/bangumi/common', () => ({
+  getSubjectId: vi.fn(),
 }));
 
-const mockedCheckSubjectExit = checkSubjectExit as jest.MockedFunction<
-  typeof checkSubjectExit
->;
-const mockedGetSubjectId = getSubjectId as jest.MockedFunction<
-  typeof getSubjectId
->;
+const mockedCheckSubjectExit = checkSubjectExit as MockedFunction<typeof checkSubjectExit>;
+const mockedGetSubjectId = getSubjectId as MockedFunction<typeof getSubjectId>;
 
-function createRuntime(): jest.Mocked<SubjectCreationRuntime> {
+function createRuntime(): Mocked<SubjectCreationRuntime> {
   return {
     bgmHost: 'https://bgm.tv',
-    notify: jest.fn(),
-    updateAuxData: jest.fn(),
-    saveSubjectId: jest.fn(),
-    openExistingSubject: jest.fn(),
-    openNewSubject: jest.fn(),
+    notify: vi.fn(),
+    updateAuxData: vi.fn(),
+    saveSubjectId: vi.fn(),
+    openExistingSubject: vi.fn(),
+    openNewSubject: vi.fn(),
   };
 }
 
 describe('subjectCreation runtime', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('opens an existing subject when bangumi search finds a match', async () => {

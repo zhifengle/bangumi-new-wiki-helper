@@ -1,6 +1,6 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
+import { vi } from 'vitest';
 import { SingleInfo } from '../../interface/subjectInfo';
 import {
   CharacterSourceDefinition,
@@ -13,6 +13,10 @@ import { createWikiExtractContext } from './context';
 import { dealItemText, getCharaData, getWikiData } from './extract';
 import { steamdbSubject } from '../steamdb/subject';
 import { amazonJpBookSubject } from '../amazonJpBook/subject';
+
+function readHtmlFixture(path: string) {
+  return readFileSync(new URL(path, import.meta.url), 'utf8');
+}
 
 function createTestSubject(itemList: InfoConfig[]): SubjectSourceDefinition {
   return {
@@ -39,7 +43,7 @@ function createTestChara(itemList: InfoConfig[]): CharacterSourceDefinition {
 
 describe('core extract helpers', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   test('dealItemText normalizes prefixed metadata text', () => {
@@ -63,13 +67,13 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData extracts steamdb wiki data', async () => {
-    const rawHtml = require('../../data/SteamDB.html');
-    const jsdom = require('jsdom');
-    const { JSDOM } = jsdom;
-    const dom = new JSDOM(rawHtml);
+    const dom = new DOMParser().parseFromString(
+      readHtmlFixture('../../data/SteamDB.html'),
+      'text/html'
+    );
     const infos = await getWikiData(
       steamdbSubject,
-      createWikiExtractContext(dom.window.document)
+      createWikiExtractContext(dom)
     );
 
     expect(infos).toHaveLength(9);
@@ -85,13 +89,13 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData extracts amazon jp book wiki data', async () => {
-    const rawHtml = require('../../data/amazon-book.html');
-    const jsdom = require('jsdom');
-    const { JSDOM } = jsdom;
-    const dom = new JSDOM(rawHtml);
+    const dom = new DOMParser().parseFromString(
+      readHtmlFixture('../../data/amazon-book.html'),
+      'text/html'
+    );
     const infos = await getWikiData(
       amazonJpBookSubject,
-      createWikiExtractContext(dom.window.document)
+      createWikiExtractContext(dom)
     );
 
     expect(infos).toHaveLength(9);
@@ -135,13 +139,13 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData extracts amazon jp book cn wiki data', async () => {
-    const rawHtml = require('../../data/amazon-book-cn.html');
-    const jsdom = require('jsdom');
-    const { JSDOM } = jsdom;
-    const dom = new JSDOM(rawHtml);
+    const dom = new DOMParser().parseFromString(
+      readHtmlFixture('../../data/amazon-book-cn.html'),
+      'text/html'
+    );
     const infos = await getWikiData(
       amazonJpBookSubject,
-      createWikiExtractContext(dom.window.document)
+      createWikiExtractContext(dom)
     );
 
     expect(infos).toEqual(
@@ -186,7 +190,7 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData prefers innerText for summary categories', async () => {
-    jest
+    vi
       .spyOn(catalog, 'getSubjectHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
     const doc = document.implementation.createHTMLDocument('wiki');
@@ -221,10 +225,10 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData skips failed items without aborting the page', async () => {
-    jest
+    vi
       .spyOn(catalog, 'getSubjectHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const doc = document.implementation.createHTMLDocument('wiki');
     doc.body.innerHTML = `
       <div id="root"></div>
@@ -263,7 +267,7 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData allows hook to clear all infos with empty array', async () => {
-    jest.spyOn(catalog, 'getSubjectHooks').mockReturnValue(async () => []);
+    vi.spyOn(catalog, 'getSubjectHooks').mockReturnValue(async () => []);
     const doc = document.implementation.createHTMLDocument('wiki');
     doc.body.innerHTML = `
       <div id="root"></div>
@@ -285,7 +289,7 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData keeps selector queries scoped to the provided root', async () => {
-    jest
+    vi
       .spyOn(catalog, 'getSubjectHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
     document.body.innerHTML = '<div id="title">全局标题</div>';
@@ -313,7 +317,7 @@ describe('core extract helpers', () => {
   });
 
   test('getWikiData still surfaces hook failures', async () => {
-    jest.spyOn(catalog, 'getSubjectHooks').mockReturnValue(async () => {
+    vi.spyOn(catalog, 'getSubjectHooks').mockReturnValue(async () => {
       throw new Error('hook failed');
     });
     const doc = document.implementation.createHTMLDocument('wiki');
@@ -337,10 +341,10 @@ describe('core extract helpers', () => {
   });
 
   test('getCharaData skips failed items without aborting the character block', async () => {
-    jest
+    vi
       .spyOn(catalog, 'getCharacterHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const doc = document.implementation.createHTMLDocument('chara');
     doc.body.innerHTML = `
       <div class="item">
@@ -381,7 +385,7 @@ describe('core extract helpers', () => {
   });
 
   test('getCharaData keeps selector queries scoped to the provided item root', async () => {
-    jest
+    vi
       .spyOn(catalog, 'getCharacterHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
     document.body.innerHTML = `

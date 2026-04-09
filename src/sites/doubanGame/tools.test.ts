@@ -1,6 +1,4 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
 import { SingleInfo } from '../../interface/subjectInfo';
 import { doubanGameTools } from './tools';
 

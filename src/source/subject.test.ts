@@ -1,6 +1,5 @@
-/**
- * @jest-environment jsdom
- */
+// @vitest-environment jsdom
+import { vi } from 'vitest';
 import { dmmSubject } from '../sites/dmm/subject';
 import { createWikiExtractContext } from '../sites/core/context';
 import { getWikiData } from '../sites/core/extract';
@@ -97,11 +96,11 @@ describe('DMM subject page', () => {
       configurable: true,
       value: demoSummaryLines.join('\n'),
     });
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   test('extracts subject infos from the current DMM detail layout', async () => {
@@ -186,13 +185,13 @@ describe('DMM subject page', () => {
   });
 
   test('mounts the subject controls on the modern DMM title and submits data', async () => {
-    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
     const runtime: SourceRuntimeAdapter = {
-      fetchHtml: jest.fn().mockResolvedValue(''),
-      hydrateSubjectCover: jest.fn().mockResolvedValue(undefined),
-      hydrateCharacterCover: jest.fn().mockResolvedValue(undefined),
-      submitSubjectCreation: jest.fn().mockResolvedValue(undefined),
-      submitCharacterCreation: jest.fn().mockResolvedValue(undefined),
+      fetchHtml: vi.fn().mockResolvedValue(''),
+      hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
+      hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
+      submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
+      submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
     };
 
     await initSourceSubject(dmmSubject, runtime);
