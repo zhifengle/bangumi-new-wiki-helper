@@ -22,6 +22,28 @@ export const vgmdbTools: SubjectTools = {
         $div.style.padding = '6px 0';
         $t.parentElement.insertAdjacentElement('afterend', $div);
       }
+
+      // Clean up credits DOM before extraction:
+      // 1. Remove reference markers: <span title="Referenced">*</span>
+      // 2. Remove group affiliations: " (feel)" text nodes after <a> tags
+      const credits = document.querySelector('#collapse_credits');
+      if (credits) {
+        credits
+          .querySelectorAll('span[title="Referenced"]')
+          .forEach((el) => el.remove());
+
+        for (const td of credits.querySelectorAll('tr > td:nth-child(2)')) {
+          for (const node of [...td.childNodes]) {
+            if (node.nodeType === Node.TEXT_NODE) {
+              node.textContent = node.textContent.replace(
+                /\s*\([^)]*\)/g,
+                ''
+              );
+            }
+          }
+        }
+      }
+
       return true;
     },
     async afterGetWikiData(infos: SingleInfo[]) {
@@ -32,12 +54,30 @@ export const vgmdbTools: SubjectTools = {
         value: $h1.innerText,
         category: 'subject_title',
       });
+
+      // Alternative titles as aliases
+      const titleSpans = document.querySelectorAll('h1 span.albumtitle');
+      const primaryText = $h1.innerText.trim();
+      const seen = new Set([primaryText]);
+      for (const span of titleSpans) {
+        const text = (span as HTMLElement).textContent
+          .replace(/^\s*\/\s*/, '')
+          .trim();
+        if (text && !seen.has(text)) {
+          res.push({
+            name: '别名',
+            value: text,
+            category: 'alias',
+          });
+          seen.add(text);
+        }
+      }
+
       for (const item of infos) {
         const stringValue = getStringValue(item.value);
         if (item.name === '价格' && stringValue.includes('Not for Sale')) {
           continue;
         }
-        // 替换数字
         if (item.name === '版本特性' && /\d+/.test(stringValue)) {
           res.push({
             ...item,
@@ -55,40 +95,79 @@ export const vgmdbTools: SubjectTools = {
         res.push(item);
       }
 
-      /*
-      for (const $td of document.querySelectorAll(
-        '#album_infobit_large td:first-child'
-      )) {
-        const label = ($td as HTMLElement).innerText;
-        const links = $td.nextElementSibling.querySelectorAll('a');
-        let value = '';
-        if ($td.nextElementSibling.querySelector('.artistname[lang=ja]')) {
-          value = [...links]
-            .map(
-              (node) => node.querySelector('.artistname[lang=ja]').textContent
-            )
-            .join('、');
-        } else {
-          value = [...links].map((node) => node.innerText).join('、');
-        }
-        let name = '';
-        if (label.includes('Performer')) {
-          name = '艺术家';
-        } else if (label.includes('Composer')) {
-          name = '作曲';
-        } else if (label.includes('Arranger')) {
-          name = '编曲';
-        } else if (label.includes('Lyricist')) {
-          name = '作词';
-        }
-        if (name) {
-          res.push({
-            name,
-            value,
-          });
+      // Publisher (出版方) — only if different from Label
+      const labelValue = infos.find((i) => i.name === '厂牌')?.value || '';
+      const infoTable = document.querySelector('#rightfloat');
+      if (infoTable) {
+        for (const tr of infoTable.querySelectorAll('tr.maincred')) {
+          const labelTd = tr.querySelector('td:first-child');
+          if (labelTd && labelTd.textContent.trim() === 'Publisher') {
+            const valueTd = tr.querySelector('td:nth-child(2)');
+            if (valueTd) {
+              const pubValue = (valueTd as HTMLElement).innerText.trim();
+              if (pubValue && pubValue !== labelValue) {
+                res.push({ name: '出版方', value: pubValue });
+              }
+            }
+          }
         }
       }
-      */
+
+      // Instruments — collect all matching credit rows
+      const instrumentKeywords = /^(Guitars?|Electric Guitars?|Acoustic Guitars?|Bass|Electric Bass|Drums?|Percussion|Piano|Acoustic Piano|Keyboard|Keyboards|Synthesizer|Synth|Violin|Viola|Cello|Strings|Flute|Oboe|Trumpet|Saxophone|Harmonica|All Instruments|All Other Instruments|Instruments)$/i;
+      const creditSection = document.querySelector('#collapse_credits table');
+      if (creditSection) {
+        const instrumentists: string[] = [];
+        for (const tr of creditSection.querySelectorAll(
+          'tr.maincred, tr.extracred'
+        )) {
+          const roleTd = tr.querySelector('td:first-child') as HTMLElement;
+          if (!roleTd) continue;
+          // Use the en span's title for role matching to avoid mixed-language textContent
+          const enSpan = roleTd.querySelector(
+            '.artistname[lang="en"]'
+          ) as HTMLElement;
+          const roleText = enSpan
+            ? (enSpan.title || enSpan.textContent).trim()
+            : roleTd.innerText.trim();
+          if (instrumentKeywords.test(roleText)) {
+            const valueTd = tr.querySelector(
+              'td:nth-child(2)'
+            ) as HTMLElement;
+            if (valueTd) {
+              const names = valueTd.innerText.trim();
+              if (names) instrumentists.push(names);
+            }
+          }
+        }
+        if (instrumentists.length) {
+          res.push({ name: '乐器', value: instrumentists.join('、') });
+        }
+      }
+
+      // Disc count
+      const tracklist = document.querySelector('#tracklist');
+      if (tracklist) {
+        const discHeaders = tracklist.querySelectorAll('.tl b');
+        let discCount = 0;
+        discHeaders.forEach((b) => {
+          if (/^Disc\s+\d+$/i.test(b.textContent.trim())) discCount++;
+        });
+        if (discCount > 0) {
+          res.push({ name: '碟片数量', value: String(discCount) });
+        }
+      }
+
+      // VGMdb link
+      const canonical = document.querySelector(
+        'link[rel="canonical"]'
+      ) as HTMLLinkElement;
+      const vgmdbUrl = canonical?.href || location.href.replace(/\?.*$/, '');
+      if (vgmdbUrl) {
+        res.push({ name: '链接', value: vgmdbUrl, category: 'listItem' });
+      }
+
+      // Cover image
       let url = (
         document.querySelector('meta[property="og:image"]') as HTMLMetaElement
       )?.content;
@@ -119,8 +198,8 @@ export const vgmdbTools: SubjectTools = {
           },
         });
       }
-      // 曲目列表
-      const tracklist = document.querySelector('#tracklist');
+
+      // Tracklist (episodes)
       if (tracklist) {
         let tableList = tracklist.querySelectorAll('.tl > table');
         document.querySelectorAll('#tlnav > li > a')?.forEach((item) => {
@@ -140,7 +219,6 @@ export const vgmdbTools: SubjectTools = {
         });
         res.push({
           category: 'ep',
-          // 名字留空
           name: '',
           value: discArr,
         });

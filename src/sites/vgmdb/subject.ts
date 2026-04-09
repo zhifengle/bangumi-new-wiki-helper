@@ -36,35 +36,17 @@ const creditsSelectors: Selector = {
 
 
 vgmdbSubject.itemList.push(
-  // afterGetWikiData 里面
-  // {
-  //   name: '唱片名',
-  //   selector: {
-  //     selector: '#innermain > h1 > [lang=ja]',
-  //   },
-  //   category: 'subject_title',
-  // },
+  // ---- Info table fields ----
   {
-    name: '录音',
+    name: '厂牌',
     selector: [
       {
         ...commonSelectors,
-        keyWord: 'Organizations',
+        keyWord: 'Label',
       },
     ],
+    pipes: ['ti'],
   },
-  /*
-  {
-    name: '目录编号',
-    selector: [
-      {
-        ...commonSelectors,
-        keyWord: 'Catalog Number',
-      },
-    ],
-    pipes: ['t']
-  },
-  */
   {
     name: '条形码',
     selector: [
@@ -73,7 +55,7 @@ vgmdbSubject.itemList.push(
         keyWord: 'Barcode',
       },
     ],
-    pipes: ['t']
+    pipes: ['t'],
   },
   {
     name: '发售日期',
@@ -83,10 +65,10 @@ vgmdbSubject.itemList.push(
         keyWord: 'Release Date',
         nextSelector: {
           selector: 'a',
-        }
+        },
       },
     ],
-    pipes: ['date']
+    pipes: ['date'],
   },
   {
     name: '价格',
@@ -123,6 +105,7 @@ vgmdbSubject.itemList.push(
       },
     ],
   },
+  // ---- Credits fields ----
   {
     name: '艺术家',
     selector: [
@@ -138,7 +121,7 @@ vgmdbSubject.itemList.push(
     selector: [
       {
         ...creditsSelectors,
-        keyWord: 'Composer',
+        keyWord: ['Composer', 'Music Written by', 'Composed by', 'Music by'],
       },
     ],
     pipes: ['ti'],
@@ -148,7 +131,7 @@ vgmdbSubject.itemList.push(
     selector: [
       {
         ...creditsSelectors,
-        keyWord: ['Lyricist', 'Lyrics'],
+        keyWord: ['Lyricist', 'Lyrics', 'Lyrics Written by', 'Words by'],
       },
     ],
     pipes: ['ti'],
@@ -158,7 +141,74 @@ vgmdbSubject.itemList.push(
     selector: [
       {
         ...creditsSelectors,
-        keyWord: 'Arranger',
+        keyWord: ['Arranger', 'Arranged by', 'Arrangement'],
+      },
+    ],
+    pipes: ['ti'],
+  },
+  {
+    name: '声乐',
+    selector: [
+      {
+        ...creditsSelectors,
+        keyWord: ['Vocal', 'Vocals', 'Chorus'],
+      },
+    ],
+    pipes: ['ti'],
+  },
+  // 乐器: handled in afterGetWikiData (multiple credit rows)
+  {
+    name: '录音',
+    selector: [
+      {
+        ...creditsSelectors,
+        keyWord: ['Recording', 'Recording Engineer', 'Recorded by'],
+      },
+    ],
+    pipes: ['ti'],
+  },
+  {
+    name: '混音',
+    selector: [
+      {
+        ...creditsSelectors,
+        keyWord: ['Mixing', 'Mixing Engineer', 'Mixed by'],
+      },
+    ],
+    pipes: ['ti'],
+  },
+  {
+    name: '母带制作',
+    selector: [
+      {
+        ...creditsSelectors,
+        keyWord: ['Mastering', 'Mastering Engineer', 'Mastered by'],
+      },
+    ],
+    pipes: ['ti'],
+  },
+  {
+    name: '制作人',
+    selector: [
+      {
+        ...creditsSelectors,
+        keyWord: [
+          'Producer', 'Executive Producer', 'Music Producer',
+          'Produced by', 'All Songs Produced by',
+        ],
+      },
+    ],
+    pipes: ['ti'],
+  },
+  {
+    name: '插图',
+    selector: [
+      {
+        ...creditsSelectors,
+        keyWord: [
+          'Illustrator', 'Illustration', 'Jacket Design',
+          'Jacket Illustration', 'Cover Art', 'Art Direction',
+        ],
       },
     ],
     pipes: ['ti'],
