@@ -7,6 +7,7 @@ on:
       - 'src/**/*.ts'
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,11 +17,17 @@ jobs:
       matrix:
         node-version: [24.x]
 
+    permissions:
+      contents: read
+
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npm test
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test

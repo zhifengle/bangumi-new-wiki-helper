@@ -50,7 +50,6 @@ describe('initSourceCharacter', () => {
   });
 
   test('uses inline controls for getchu characters and submits parsed data', async () => {
-    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
     const runtime: SourceRuntimeAdapter = {
       fetchHtml: vi.fn().mockResolvedValue(''),
       hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
@@ -99,8 +98,6 @@ describe('initSourceCharacter', () => {
         ]),
       }),
     });
-
-    infoSpy.mockRestore();
   });
 
   test('extracts characters from the current DMM detail page without iframe', async () => {
@@ -154,7 +151,6 @@ describe('initSourceCharacter', () => {
         value: ($p.textContent || '').replace(/\s+/g, ' ').trim(),
       });
     }
-    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
     const runtime: SourceRuntimeAdapter = {
       fetchHtml: vi.fn().mockResolvedValue(''),
       hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
@@ -211,7 +207,5 @@ describe('initSourceCharacter', () => {
         ]),
       }),
     });
-
-    infoSpy.mockRestore();
   });
 });

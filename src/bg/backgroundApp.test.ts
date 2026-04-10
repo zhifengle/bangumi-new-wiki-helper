@@ -1,4 +1,4 @@
-import { vi, type MockedFunction, type SpyInstance } from 'vitest';
+import { vi, type MockedFunction } from 'vitest';
 import browser from 'webextension-polyfill';
 import { SubjectTypeId } from '../interface/wiki';
 import { BangumiDomain } from '../sites/bangumi';
@@ -58,15 +58,8 @@ function createBrowserMock() {
 }
 
 describe('backgroundApp', () => {
-  let consoleLogSpy: SpyInstance;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    consoleLogSpy.mockRestore();
   });
 
   test('seeds default config on init and registers listeners', async () => {

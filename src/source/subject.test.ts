@@ -185,7 +185,6 @@ describe('DMM subject page', () => {
   });
 
   test('mounts the subject controls on the modern DMM title and submits data', async () => {
-    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
     const runtime: SourceRuntimeAdapter = {
       fetchHtml: vi.fn().mockResolvedValue(''),
       hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
@@ -220,7 +219,5 @@ describe('DMM subject page', () => {
         }),
       })
     );
-
-    infoSpy.mockRestore();
   });
 });

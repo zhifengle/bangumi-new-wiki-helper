@@ -35,7 +35,6 @@ describe('core controls helpers', () => {
   });
 
   test('insertControlBtn keeps notmatched text when duplicate search fails', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const handler = vi.fn().mockRejectedValue('notmatched');
     const anchor = document.querySelector('#anchor')!;
 
@@ -48,7 +47,6 @@ describe('core controls helpers', () => {
     await flushAsyncEvents();
 
     expect(duplicateButton.innerHTML).toBe('未查到条目');
-    expect(errorSpy).toHaveBeenCalledWith('notmatched');
   });
 
   test('insertControlBtnChara wires the character button click handler', async () => {

@@ -26,7 +26,6 @@ describe('imageWidget upload bindings', () => {
     vi
       .spyOn(HTMLCanvasElement.prototype, 'toDataURL')
       .mockReturnValue('data:image/png;base64,canvas');
-    vi.spyOn(console, 'log').mockImplementation(() => undefined);
     document.body.innerHTML = `
       <table>
         <tr>

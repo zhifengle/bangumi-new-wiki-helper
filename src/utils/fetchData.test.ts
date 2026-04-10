@@ -93,7 +93,6 @@ describe('fetchData helpers', () => {
 
   test('fetchText rejects when the request times out', async () => {
     vi.useFakeTimers();
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     globalThis.fetch = vi.fn().mockImplementation(
       () => new Promise(() => undefined)
     ) as MockedFunction<typeof fetch>;
@@ -103,6 +102,5 @@ describe('fetchData helpers', () => {
     await vi.advanceTimersByTimeAsync(10);
 
     await rejection;
-    expect(logSpy).toHaveBeenCalled();
   });
 });

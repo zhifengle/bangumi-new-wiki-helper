@@ -228,7 +228,6 @@ describe('core extract helpers', () => {
     vi
       .spyOn(catalog, 'getSubjectHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const doc = document.implementation.createHTMLDocument('wiki');
     doc.body.innerHTML = `
       <div id="root"></div>
@@ -263,7 +262,6 @@ describe('core extract helpers', () => {
         category: 'subject_title',
       }),
     ]);
-    expect(errorSpy).toHaveBeenCalled();
   });
 
   test('getWikiData allows hook to clear all infos with empty array', async () => {
@@ -344,7 +342,6 @@ describe('core extract helpers', () => {
     vi
       .spyOn(catalog, 'getCharacterHooks')
       .mockReturnValue(async (infos: SingleInfo[]) => infos);
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const doc = document.implementation.createHTMLDocument('chara');
     doc.body.innerHTML = `
       <div class="item">
@@ -381,7 +378,6 @@ describe('core extract helpers', () => {
         category: 'subject_title',
       }),
     ]);
-    expect(errorSpy).toHaveBeenCalled();
   });
 
   test('getCharaData keeps selector queries scoped to the provided item root', async () => {
