@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 export const sourceExtensions = ['.mjs', '.js', '.json', '.node', '.ts'];
 
 export const sharedOutput = {
-  sourcemap: true,
+  sourcemap: false,
 };
 
 export const nodeResolvePluginOptions = {
