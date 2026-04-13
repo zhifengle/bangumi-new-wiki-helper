@@ -1,0 +1,7 @@
+vendor/
+node_modules/
+dist/
+*.generated.py
+test-results/
+.tmp/
+extension/

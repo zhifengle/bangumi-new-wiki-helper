@@ -10,3 +10,4 @@ node_modules
 *-bk.test.ts
 web-ext-artifacts
 test-results/
+graphify-out/
