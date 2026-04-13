@@ -25,6 +25,7 @@
     "src"
   ],
   "exclude": [
+    "src/**/*.test.ts",
     "./extension/dist",
     "./node_modules"
   ]

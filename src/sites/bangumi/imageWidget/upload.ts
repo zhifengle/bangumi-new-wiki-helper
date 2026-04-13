@@ -3,7 +3,7 @@ import { fetchText } from '../../../utils/fetchData';
 import { sleep } from '../../../utils/async/sleep';
 import { hasValidCanvasSize } from './state';
 
-export function insertLoading($sibling: Element): Element {
+export function insertLoading($sibling: Element): HTMLDivElement {
   const $loading = document.createElement('div');
   $loading.setAttribute(
     'style',

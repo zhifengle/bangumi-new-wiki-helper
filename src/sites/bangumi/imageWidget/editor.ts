@@ -132,7 +132,7 @@ export function createImageWidgetEditor(
  */
 export function bindCanvasBlur(
   refs: Pick<ImageWidgetRefs, 'previewCanvas' | 'widthSlider' | 'radiusSlider'>
-) {
+): () => void {
   let isDrawing = false;
   const ctx = refs.previewCanvas.getContext('2d');
   if (!ctx) {
