@@ -110,7 +110,7 @@ describe('initSourceCharacter', () => {
           <p class="detailGuide__capt">キャラクター</p>
           <div class="detailGuide__sect">
             <div class="detailGuide__box-chr">
-              <img src="https://example.com/alice.jpg" alt="Alice" />
+              <img alt="Alice" />
               <div class="detailGuide__box-date">
                 <p>
                   <span class="detailGuide__bold detailGuide__color02">
@@ -127,7 +127,7 @@ describe('initSourceCharacter', () => {
               </div>
             </div>
             <div class="detailGuide__box-chr">
-              <img src="https://example.com/bob.jpg" alt="Bob" />
+              <img alt="Bob" />
               <div class="detailGuide__box-date">
                 <p>
                   <span class="detailGuide__bold detailGuide__color02">
@@ -173,10 +173,9 @@ describe('initSourceCharacter', () => {
       'Bob',
     ]);
 
-    wrap
-      ?.querySelector<HTMLElement>('.e-wiki-new-character')
-      ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    await flushAsyncEvents();
+    expect(select).not.toBeNull();
+    select!.value = 'Alice';
+    wrap?.querySelector<HTMLElement>('.e-wiki-new-character')?.click();
     await vi.waitFor(() => {
       expect(runtime.submitCharacterCreation).toHaveBeenCalledTimes(1);
     });

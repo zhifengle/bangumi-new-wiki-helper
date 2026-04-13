@@ -30,6 +30,9 @@ importers:
       '@types/firefox-webext-browser':
         specifier: 120.0.4
         version: 120.0.4
+      '@types/node':
+        specifier: ^24.10.2
+        version: 24.10.2
       '@types/webextension-polyfill':
         specifier: 0.12.3
         version: 0.12.3
