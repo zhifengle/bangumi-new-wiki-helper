@@ -7,14 +7,10 @@ import { dealTextByPipe } from '../../utils/textPipe';
 import { dealFuncByCategory } from '../catalog';
 import { getCover } from './cover';
 import type { WikiExtractContext } from './context';
-import { transformTextValue } from './transform';
+import { transformTextValue, isSummaryCategory } from './transform';
 
 function isCoverCategory(category: string): boolean {
   return category === 'cover' || category === 'crt_cover';
-}
-
-function isSummaryCategory(category: string): boolean {
-  return category === 'subject_summary' || category === 'crt_summary';
 }
 
 function shouldUseInnerText(category: string, infoConfig: InfoConfig): boolean {

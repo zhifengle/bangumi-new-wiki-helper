@@ -15,7 +15,7 @@ export function dealItemText(
   return normalizeTextByCategory(str, category, keyWords);
 }
 
-function isSummaryCategory(category: string): boolean {
+export function isSummaryCategory(category: string): boolean {
   return category === 'subject_summary' || category === 'crt_summary';
 }
 

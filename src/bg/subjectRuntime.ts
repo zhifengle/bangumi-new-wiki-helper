@@ -59,7 +59,3 @@ export function buildSubjectCreationRuntime(
     },
   };
 }
-
-export function getBangumiHost(config: BrowserConfig): string {
-  return buildBangumiHost(config);
-}
