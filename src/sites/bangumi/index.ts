@@ -132,13 +132,13 @@ export async function findSubjectByDate(
   bgmHost: string = 'https://bgm.tv',
   pageNumber: number = 1,
   type: string
-): Promise<SearchResult> {
+): Promise<SearchResult | undefined> {
   if (!subjectInfo || !subjectInfo.releaseDate || !subjectInfo.name) {
     throw new Error('invalid subject info');
   }
   const releaseDate = new Date(subjectInfo.releaseDate);
   if (isNaN(releaseDate.getTime())) {
-    throw `invalid releasedate: ${subjectInfo.releaseDate}`;
+    throw new Error(`invalid releasedate: ${subjectInfo.releaseDate}`);
   }
   const sort = releaseDate.getDate() > 15 ? 'sort=date' : '';
   const page = pageNumber ? `page=${pageNumber}` : '';
@@ -171,7 +171,7 @@ export async function findSubjectByDate(
         type
       );
     } else {
-      throw 'notmatched';
+      return undefined;
     }
   }
   return result;

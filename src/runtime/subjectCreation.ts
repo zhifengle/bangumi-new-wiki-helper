@@ -29,60 +29,68 @@ export async function createNewSubjectEntry(
   await runtime.openNewSubject(payload.type);
 }
 
-export async function checkSubjectAndOpenEntry(
+/** 清除当前非错误通知（如 loading 提示） */
+function dismissNotification(): RuntimeNotifyPayload {
+  return { type: 'info', message: '', cmd: 'dismissNotError' };
+}
+
+// 搜索 Bangumi 是否已有匹配条目
+// - 无结果：返回 undefined，调用方降级新建
+// - 网络失败：抛出异常，调用方不应继续新建
+async function searchExistingSubject(
   payload: CheckSubjectAndOpenPayload,
   runtime: SubjectCreationRuntime
-) {
-  if (!payload.subjectInfo) {
-    await createNewSubjectEntry(
-      {
-        type: payload.type,
-        auxSite: payload.auxSite,
-      },
-      runtime
-    );
-    return;
-  }
+): Promise<SearchResult | undefined> {
   await runtime.notify({
     type: 'info',
     message: `搜索中...<br/>${payload.subjectInfo?.name ?? ''}`,
     duration: 0,
   });
-  let result: SearchResult | undefined = undefined;
   try {
-    result = await checkSubjectExit(
-      payload.subjectInfo,
+    const result = await checkSubjectExit(
+      payload.subjectInfo!,
       runtime.bgmHost,
       payload.type,
       payload.disableDate
     );
     console.info('search results: ', result);
-    await runtime.notify({
-      type: 'info',
-      message: '',
-      cmd: 'dismissNotError',
-    });
+    await runtime.notify(dismissNotification());
+    return result;
   } catch (error) {
-    console.log('fetch info err:', error, error?.message);
+    console.error('search request failed:', error);
     await runtime.notify({
       type: 'error',
-      message: `Bangumi 搜索匹配结果为空: <br/><b>${
-        payload.subjectInfo?.name ?? ''
-      }</b>`,
+      message: `Bangumi 搜索请求失败: <br/><b>${payload.subjectInfo?.name ?? ''}</b>`,
       cmd: 'dismissNotError',
     });
+    throw error;
   }
-  if (result && result.url) {
+}
+
+export async function checkSubjectAndOpenEntry(
+  payload: CheckSubjectAndOpenPayload,
+  runtime: SubjectCreationRuntime
+) {
+  if (!payload.subjectInfo?.name) {
+    // 没有名称，无法搜索，直接新建
+    await createNewSubjectEntry(
+      { type: payload.type, auxSite: payload.auxSite },
+      runtime
+    );
+    return;
+  }
+
+  const result = await searchExistingSubject(payload, runtime);
+
+  if (result?.url) {
     await runtime.saveSubjectId(getSubjectId(result.url));
     await runtime.openExistingSubject(result.url);
     return;
   }
+
+  // 搜索无结果，降级新建
   await createNewSubjectEntry(
-    {
-      type: payload.type,
-      auxSite: payload.auxSite,
-    },
+    { type: payload.type, auxSite: payload.auxSite },
     runtime
   );
 }
-

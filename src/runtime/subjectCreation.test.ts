@@ -2,6 +2,7 @@ import { vi, type Mocked, type MockedFunction } from 'vitest';
 import { SubjectTypeId } from '../interface/wiki';
 import {
   checkSubjectAndOpenEntry,
+  createNewSubjectEntry,
   SubjectCreationRuntime,
 } from './subjectCreation';
 import { checkSubjectExit } from '../sites/bangumi';
@@ -29,7 +30,32 @@ function createRuntime(): Mocked<SubjectCreationRuntime> {
   };
 }
 
-describe('subjectCreation runtime', () => {
+describe('createNewSubjectEntry', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test('opens new subject page directly when no auxSite', async () => {
+    const runtime = createRuntime();
+
+    await createNewSubjectEntry({ type: SubjectTypeId.game }, runtime);
+
+    expect(runtime.updateAuxData).not.toHaveBeenCalled();
+    expect(runtime.openNewSubject).toHaveBeenCalledWith(SubjectTypeId.game);
+  });
+
+  test('updates aux data before opening new subject page when auxSite is provided', async () => {
+    const runtime = createRuntime();
+    const auxSite = { url: 'https://store.steampowered.com/app/123' };
+
+    await createNewSubjectEntry({ type: SubjectTypeId.game, auxSite }, runtime);
+
+    expect(runtime.updateAuxData).toHaveBeenCalledWith(auxSite);
+    expect(runtime.openNewSubject).toHaveBeenCalledWith(SubjectTypeId.game);
+  });
+});
+
+describe('checkSubjectAndOpenEntry', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -44,19 +70,12 @@ describe('subjectCreation runtime', () => {
     mockedGetSubjectId.mockReturnValue('42');
 
     await checkSubjectAndOpenEntry(
-      {
-        type: SubjectTypeId.game,
-        subjectInfo: {
-          name: '测试条目',
-        },
-      },
+      { type: SubjectTypeId.game, subjectInfo: { name: '测试条目' } },
       runtime
     );
 
     expect(mockedCheckSubjectExit).toHaveBeenCalledWith(
-      {
-        name: '测试条目',
-      },
+      { name: '测试条目' },
       'https://bgm.tv',
       SubjectTypeId.game,
       undefined
@@ -66,22 +85,97 @@ describe('subjectCreation runtime', () => {
     expect(runtime.openNewSubject).not.toHaveBeenCalled();
   });
 
-  test('creates a new subject entry when there is no subject info to search', async () => {
+  test('shows searching notification then dismisses it on success', async () => {
     const runtime = createRuntime();
-    const auxSite = {
-      url: 'https://store.steampowered.com/app/123',
-    };
+    mockedCheckSubjectExit.mockResolvedValue({
+      kind: 'subject',
+      name: '测试条目',
+      url: '/subject/42',
+    });
+    mockedGetSubjectId.mockReturnValue('42');
 
     await checkSubjectAndOpenEntry(
-      {
-        type: SubjectTypeId.game,
-        auxSite,
-      },
+      { type: SubjectTypeId.game, subjectInfo: { name: '测试条目' } },
+      runtime
+    );
+
+    expect(runtime.notify).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ type: 'info', message: expect.stringContaining('搜索中') })
+    );
+    expect(runtime.notify).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ type: 'info', message: '', cmd: 'dismissNotError' })
+    );
+  });
+
+  test('creates a new subject when search returns no result', async () => {
+    const runtime = createRuntime();
+    mockedCheckSubjectExit.mockResolvedValue(undefined);
+
+    await checkSubjectAndOpenEntry(
+      { type: SubjectTypeId.game, subjectInfo: { name: '测试条目' } },
+      runtime
+    );
+
+    expect(runtime.openExistingSubject).not.toHaveBeenCalled();
+    expect(runtime.openNewSubject).toHaveBeenCalledWith(SubjectTypeId.game);
+  });
+
+  test('passes auxSite to createNewSubjectEntry when search returns no result', async () => {
+    const runtime = createRuntime();
+    const auxSite = { url: 'https://store.steampowered.com/app/123' };
+    mockedCheckSubjectExit.mockResolvedValue(undefined);
+
+    await checkSubjectAndOpenEntry(
+      { type: SubjectTypeId.game, subjectInfo: { name: '测试条目' }, auxSite },
       runtime
     );
 
     expect(runtime.updateAuxData).toHaveBeenCalledWith(auxSite);
     expect(runtime.openNewSubject).toHaveBeenCalledWith(SubjectTypeId.game);
+  });
+
+  test('skips search and creates new subject when subjectInfo has no name', async () => {
+    const runtime = createRuntime();
+
+    await checkSubjectAndOpenEntry(
+      { type: SubjectTypeId.game, subjectInfo: {} },
+      runtime
+    );
+
     expect(mockedCheckSubjectExit).not.toHaveBeenCalled();
+    expect(runtime.openNewSubject).toHaveBeenCalledWith(SubjectTypeId.game);
+  });
+
+  test('skips search and creates new subject when subjectInfo is absent', async () => {
+    const runtime = createRuntime();
+    const auxSite = { url: 'https://store.steampowered.com/app/123' };
+
+    await checkSubjectAndOpenEntry(
+      { type: SubjectTypeId.game, auxSite },
+      runtime
+    );
+
+    expect(mockedCheckSubjectExit).not.toHaveBeenCalled();
+    expect(runtime.updateAuxData).toHaveBeenCalledWith(auxSite);
+    expect(runtime.openNewSubject).toHaveBeenCalledWith(SubjectTypeId.game);
+  });
+
+  test('does not create a new subject when search request fails', async () => {
+    const runtime = createRuntime();
+    mockedCheckSubjectExit.mockRejectedValue(new Error('network error'));
+
+    await expect(
+      checkSubjectAndOpenEntry(
+        { type: SubjectTypeId.game, subjectInfo: { name: '测试条目' } },
+        runtime
+      )
+    ).rejects.toThrow('network error');
+
+    expect(runtime.openNewSubject).not.toHaveBeenCalled();
+    expect(runtime.notify).toHaveBeenLastCalledWith(
+      expect.objectContaining({ type: 'error' })
+    );
   });
 });
