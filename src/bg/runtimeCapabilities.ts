@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import { RuntimeCapabilities, RuntimeNotifyPayload } from '../runtime/capabilities';
-import { browserDraftStore } from '../runtime/browserDraftStore';
+import { browserDraftStore } from '../content/draftStore';
 import { getImageDataByURL } from '../utils/dealImage';
 import { fetchText } from '../utils/fetchData';
 
