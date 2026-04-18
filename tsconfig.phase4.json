@@ -15,7 +15,7 @@
     "src/page/bangumiRuntime.ts",
     "src/runtime/auxData.ts",
     "src/runtime/browserConfig.ts",
-    "src/runtime/browserDraftStore.ts",
+    "src/content/draftStore.ts",
     "src/runtime/capabilities.ts",
     "src/runtime/draftStore.ts",
     "src/runtime/subjectCreation.ts",

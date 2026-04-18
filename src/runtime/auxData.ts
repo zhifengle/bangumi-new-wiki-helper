@@ -2,10 +2,11 @@ import { AuxSitePayload } from '../interface/types';
 import { combineInfoList } from '../sites/core/merge';
 import { getWikiDataByURL } from '../sites/core/remote';
 import { genAnonymousLinkText } from '../utils/domUtils';
-import { RuntimeCapabilities, RuntimeNotifyPayload } from './capabilities';
+import { RuntimeCapabilities, RuntimeNotifier } from './capabilities';
 
-export type AuxDataRuntime = Pick<RuntimeCapabilities, 'storage' | 'notifier'> & {
-  notifier: { notify(message: RuntimeNotifyPayload): void | Promise<void> };
+export type AuxDataRuntime = {
+  storage: RuntimeCapabilities['storage'];
+  notifier: RuntimeNotifier;
 };
 
 function buildAuxSiteLink(url: string) {

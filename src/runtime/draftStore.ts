@@ -1,5 +1,5 @@
 import { SubjectWikiInfo } from '../interface/subjectInfo';
-import { BangumiPageState } from '../page/bangumiRuntime';
+import { BangumiPageState } from '../interface/pageState';
 
 export interface DraftStore {
   saveSubjectDraft(wikiData: SubjectWikiInfo): Promise<void>;

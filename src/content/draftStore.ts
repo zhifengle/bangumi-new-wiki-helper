@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import { SubjectWikiInfo } from '../interface/subjectInfo';
-import { BangumiPageState } from '../page/bangumiRuntime';
+import { BangumiPageState } from '../interface/pageState';
 import { BrowserStorageState } from '../runtime/browserConfig';
 import { DraftStore } from '../runtime/draftStore';
 
