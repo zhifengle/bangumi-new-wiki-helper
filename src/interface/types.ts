@@ -42,6 +42,7 @@ export type AuxSitePayload = {
   url: string;
   opts?: IFetchOpts;
   prefs?: IAuxPrefs;
+  mergeOrder?: 'aux' | 'origin';
 };
 
 export type IMsgPayload = {

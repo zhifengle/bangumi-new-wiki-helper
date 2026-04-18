@@ -25,6 +25,7 @@ export async function updateSubjectDraftFromAuxSite(
     url: auxSite,
     opts: auxSiteOpts = {},
     prefs: auxPrefs = {},
+    mergeOrder = 'origin',
   } = payload;
   try {
     await runtime.notifier.notify({
@@ -55,10 +56,9 @@ export async function updateSubjectDraftFromAuxSite(
     if (!wikiData) {
       throw new Error('wikiData is empty');
     }
-    let infos = combineInfoList(wikiData.infos, auxData, auxPrefs);
-    if (auxSite.match(/store\.steampowered\.com/)) {
-      infos = combineInfoList(auxData, wikiData.infos);
-    }
+    let infos = mergeOrder === 'aux'
+      ? combineInfoList(auxData, wikiData.infos, auxPrefs)
+      : combineInfoList(wikiData.infos, auxData, auxPrefs);
     await runtime.storage.saveSubjectDraft({
       type: wikiData.type,
       subtype: wikiData.subtype || 0,
