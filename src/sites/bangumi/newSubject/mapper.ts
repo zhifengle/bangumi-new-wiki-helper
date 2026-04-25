@@ -12,119 +12,189 @@ function hasCategory(info: SingleInfo, category: string) {
   );
 }
 
-/**
- * 转换 wiki 模式下 infobox 内容
- * @param originValue
- * @param infoArr
- */
+// ─── 常量 ────────────────────────────────────────────────────────────────────
+
+const MULTI_VALUE_FIELDS = new Set(['website']);
+
+const BLOCK_FIELDS = new Set(['别名', '链接', '平台']);
+
+// ─── 工具函数 ─────────────────────────────────────────────────────────────────
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function isEmptyFieldLine(line: string, fieldName: string): boolean {
+  return new RegExp(`^\\|\\s*${escapeRegExp(fieldName)}\\s*=\\s*$`).test(
+    line.split('\n')[0].trim()
+  );
+}
+
+function isBlockStartLine(line: string, fieldName?: string): boolean {
+  const namePattern = fieldName ? escapeRegExp(fieldName) : '.+?';
+  return new RegExp(`^\\|\\s*${namePattern}\\s*=\\s*\\{\\s*$`).test(
+    line.split('\n')[0].trim()
+  );
+}
+
+function extractFieldName(line: string): string | null {
+  const m = line.match(/(?:\||\[)(.+?)([|=])/);
+  return m && m.length >= 2 ? m[1].trim() : null;
+}
+
+function ensureBlockSyntax(arr: string[], fieldName: string): string[] {
+  const blockMarker = `|${fieldName}={`;
+
+  const existingBlockIdx = arr.findIndex((v) => isBlockStartLine(v, fieldName));
+  if (existingBlockIdx > -1) {
+    const result = [...arr];
+    result[existingBlockIdx] = blockMarker;
+    return result;
+  }
+
+  const idx = arr.findIndex((v) => isEmptyFieldLine(v, fieldName));
+  if (idx > -1) {
+    const result = [...arr];
+    result[idx] = blockMarker;
+    return [...result.slice(0, idx + 1), '}', ...result.slice(idx + 1)];
+  }
+
+  return [...arr.slice(0, -1), blockMarker, '}', ...arr.slice(-1)];
+}
+
+function normaliseValue(info: SingleInfo): string {
+  let d = getStringValue(info.value);
+  if (info.category === 'date') d = dealDate(d);
+  if (info.category === 'ISBN') d = d.replace(/-/g, '');
+  return d;
+}
+
+function mergeInfoIntoLine(
+  line: string,
+  info: SingleInfo,
+  originValue: string
+): string | null {
+  const n = extractFieldName(line);
+  if (n !== info.name) return null;
+
+  const d = normaliseValue(info);
+
+  // [英文名|] 格式
+  if (/\[.+\|\]/.test(line)) {
+    return line.replace(']', '') + d + ']';
+  }
+
+  // |平台={ 块格式，避免重复插入
+  if (isBlockStartLine(line, info.name)) {
+    const infoValue = getStringValue(info.value);
+    if (!originValue.includes(`[${infoValue}]`) && !line.includes(`[${infoValue}]`)) {
+      return `${line}\n[${infoValue}]`;
+    }
+    return line;
+  }
+
+  // 普通 |字段=值 格式
+  return line.replace(/\s*=.*/, '=') + d;
+}
+
+function applyBlockFormats(arr: string[], infoArr: SingleInfo[]): string[] {
+  let result = [...arr];
+
+  // 1. 模板规范字段（别名、链接、平台等）
+  for (const fieldName of BLOCK_FIELDS) {
+    const hasInfoForField = infoArr.some((info) => info.name === fieldName);
+    if (
+      hasInfoForField &&
+      result.some(
+        (v) => isEmptyFieldLine(v, fieldName) || isBlockStartLine(v, fieldName)
+      )
+    ) {
+      result = ensureBlockSyntax(result, fieldName);
+    }
+  }
+
+  // 2. 允许多值的字段（website 等）
+  for (const fieldName of MULTI_VALUE_FIELDS) {
+    const infos = infoArr.filter((i) => i.name === fieldName);
+    if (infos.length > 1) {
+      result = ensureBlockSyntax(result, fieldName);
+    }
+  }
+
+  // 3. 标记为 listItem 的字段
+  for (const info of infoArr) {
+    if (hasCategory(info, 'listItem')) {
+      result = ensureBlockSyntax(result, info.name);
+    }
+  }
+
+  return result;
+}
+
+function reorderAuthorBeforePress(lines: string[]): string[] | null {
+  let pressIdx = -1;
+  let authorIdx = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (/\|(\s*)出版社(\s*)=/.test(lines[i])) pressIdx = i;
+    if (/作者/.test(lines[i])) authorIdx = i;
+  }
+
+  if (pressIdx === -1 || authorIdx === -1 || authorIdx <= pressIdx) return null;
+
+  const result = [...lines];
+  const [author] = result.splice(authorIdx, 1);
+  result.splice(pressIdx, 0, author);
+  return result;
+}
+
+// ─── 主函数 ───────────────────────────────────────────────────────────────────
+
 export function convertInfoValue(
   originValue: string,
   infoArr: SingleInfo[]
 ): string {
+  // 1. 初始化行数组
   let arr = originValue
     .trim()
     .split('\n')
-    .filter((v) => !!v);
-  // 处理多个.
-  const categories = ['website'];
-  for (const cat of categories) {
-    const infos = infoArr.filter((i) => i.name === cat);
-    if (infos.length > 1) {
-      const idx = arr.findIndex((v) => v.trim() === `|${cat}=`);
-      if (arr.find((v) => v.trim() === `|${cat}={`)) {
-        continue;
-      }
-      if (idx > -1) {
-        arr[idx] = `|${cat}={`;
-        // arr.splice(idx + 1, 0, '}')
-        arr = [...arr.slice(0, idx + 1), '}', ...arr.slice(idx + 1)];
-      } else {
-        arr = [...arr.slice(0, -1), `|${cat}={`, '}', ...arr.slice(-1)];
-      }
-    }
-  }
-  //处理单个但是写成多个.写法有点绕，凑合用吧
+    .filter(Boolean);
+
+  // 2. 统一处理块格式字段
+  arr = applyBlockFormats(arr, infoArr);
+
+  // 3. 将 infoArr 中的值合并进 arr
+  const unmatchedLines: string[] = [];
+
   for (const info of infoArr) {
-    if (hasCategory(info, 'listItem')) {
-      const name = info.name;
-      if (arr.find((v) => v.trim() === `|${name}={`)) {
-        continue;
-      }
-      const idx = arr.findIndex((v) => v.trim() === `|${name}=`);
-      if (idx > -1) {
-        arr[idx] = `|${name}={`;
-        arr = [...arr.slice(0, idx + 1), '}', ...arr.slice(idx + 1)];
-      } else {
-        arr = [...arr.slice(0, -1), `|${name}={`, '}', ...arr.slice(-1)];
-      }
-    }
-  }
-  const newArr = [];
-  for (const info of infoArr) {
-    let isDefault = false;
-    for (let i = 0, len = arr.length; i < len; i++) {
-      //  |发行日期=  ---> 发行日期
-      // [纯假名|] ---> 纯假名
-      const m = arr[i].match(/(?:\||\[)(.+?)([|=])/);
-      if (!m || m.length < 2) continue;
-      const n = m[1];
-      if (n === info.name) {
-        let d = getStringValue(info.value);
-        // 处理时间格式
-        if (info.category === 'date') {
-          d = dealDate(d);
-        }
-        // 2024-07-31 去除 ISBN 里面的短横线
-        if (info.category === 'ISBN') {
-          d = d.replace(/-/g, '');
-        }
-        // 匹配到 [英文名|]
-        if (/\[.+\|\]/.test(arr[i])) {
-          arr[i] = arr[i].replace(']', '') + d + ']';
-        } else if (/\|.+={/.test(arr[i])) {
-          // 避免重复
-          const infoValue = getStringValue(info.value);
-          if (!originValue.includes(`[${infoValue}]`)) {
-            // |平台={
-            arr[i] = `${arr[i]}\n[${infoValue}]`;
-          }
-        } else {
-          // 拼接： |发行日期=2020-01-01
-          arr[i] = arr[i].replace(/=[^{[]+/, '=') + d;
-        }
-        isDefault = true;
+    let matched = false;
+
+    for (let i = 0; i < arr.length; i++) {
+      const updated = mergeInfoIntoLine(arr[i], info, originValue);
+      if (updated !== null) {
+        arr[i] = updated;
+        matched = true;
         break;
       }
     }
-    // 抹去 asin 2020/7/26
-    if (!isDefault && info.name && !['asin', 'ASIN'].includes(info.name)) {
-      newArr.push(`|${info.name}=${getStringValue(info.value)}`);
-    }
-  }
-  arr.pop();
-  // 图书条目的 infobox 作者放在出版社之前
-  if (/animanga/.test(arr[0])) {
-    let pressIdx;
-    let authorIdx;
-    let resArr = [...arr, ...newArr, '}}'];
-    for (let i = 0; i < resArr.length; i++) {
-      if (/\|(\s*)出版社(\s*)=/.test(resArr[i])) {
-        pressIdx = i;
-        continue;
-      }
-      if (/作者/.test(resArr[i])) {
-        authorIdx = i;
-        continue;
-      }
-    }
-    if (pressIdx && authorIdx && authorIdx > pressIdx) {
-      const press = resArr[pressIdx];
-      const author = resArr[authorIdx];
-      resArr.splice(pressIdx, 1, author, press);
-      resArr.splice(authorIdx + 1, 1);
-      return resArr.join('\n');
-    }
-  }
-  return [...arr, ...newArr, '}}'].join('\n');
-}
 
+    // 未匹配的字段（asin 除外）追加到末尾
+    if (!matched && info.name && !['asin', 'ASIN'].includes(info.name)) {
+      unmatchedLines.push(`|${info.name}=${getStringValue(info.value)}`);
+    }
+  }
+
+  // 4. 移除末尾的 }}
+  arr.pop();
+
+  // 5. 组合最终行数组
+  const finalLines = [...arr, ...unmatchedLines, '}}'];
+
+  // 6. animanga/Book：作者排在出版社之前
+  if (/animanga/.test(arr[0])) {
+    const reordered = reorderAuthorBeforePress(finalLines);
+    if (reordered) return reordered.join('\n');
+  }
+
+  return finalLines.join('\n');
+}
