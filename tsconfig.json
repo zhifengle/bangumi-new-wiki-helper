@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
+    "rootDir": "./src",
     "outDir": "extension/dist",
+    "types": ["vitest/globals", "node"],
     "lib": [
       "es2022",
       "esnext.array",
@@ -21,11 +23,9 @@
     "moduleResolution": "node",
     "skipLibCheck": true
   },
-  "include": [
-    "src"
-  ],
+  "include": ["src/**/*"],
   "exclude": [
-    "src/**/*.test.ts",
+    // "src/**/*.test.ts",
     "./extension/dist",
     "./node_modules"
   ]
