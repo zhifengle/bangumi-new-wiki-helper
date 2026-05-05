@@ -1,6 +1,6 @@
 import { AllSubject, SearchResult } from '../../interface/subjectInfo';
 import { fetchText } from '../../utils/fetchData';
-import { findElement, getText } from '../../utils/domUtils';
+import { getText } from '../../utils/domUtils';
 import { SubjectTools } from '../catalogTypes';
 
 enum ErogamescapeCategory {
@@ -132,18 +132,11 @@ export async function getWebsite(
 export const erogamescapeTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
-      const $el = findElement([
-        {
-          selector: '#links',
-          subSelector: 'a',
-          keyWord: 'Getchu.com',
-        },
-        {
-          selector: '#bottom_inter_links_main',
-          subSelector: 'a',
-          keyWord: 'Getchu.com',
-        },
-      ]);
+      const $el = Array.from(
+        document.querySelectorAll<HTMLAnchorElement>(
+          '#links a, #bottom_inter_links_main a'
+        )
+      ).find((link) => getText(link).includes('Getchu.com'));
       const softQuery = $el?.getAttribute('href')?.match(/\?id=\d+$/);
       if (softQuery) {
         return {
@@ -165,7 +158,6 @@ export const erogamescapeTools: SubjectTools = {
       return true;
     },
   },
-  filters: [],
 };
 
 

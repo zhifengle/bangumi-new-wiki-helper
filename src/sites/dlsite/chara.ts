@@ -1,4 +1,5 @@
 import { CharacterSourceDefinition, SubjectTypeId } from '../../interface/wiki';
+import { dom, fieldKind } from '../core/extraction';
 
 export const dlsiteChara: CharacterSourceDefinition = {
   key: 'dlsite_game_chara',
@@ -6,26 +7,14 @@ export const dlsiteChara: CharacterSourceDefinition = {
   description: 'dlsite游戏角色',
   host: ['dlsite.com', 'www.dlsite.com'],
   type: SubjectTypeId.game,
-  itemSelector: {
-    selector: '.work_parts_multiimage_item',
-  },
-  toolbarSelector: [
+  itemSource: dom('.work_parts_multiimage_item').allItems(),
+  toolbarSource: dom('.work_parts.type_multiimages *:first-child'),
+  itemList: [
     {
-      selector: '.work_parts.type_multiimages *:first-child',
-    },
-    {
-      selector: '#work_name',
+      name: 'cover',
+      source: dom('.image img'),
+      kind: fieldKind.cover(),
+      emit: { category: 'crt_cover' },
     },
   ],
-  itemList: [],
 };
-
-// 限定父节点
-dlsiteChara.itemList.push({
-  name: 'cover',
-  selector: {
-    selector: '.image img',
-  },
-  category: 'crt_cover',
-});
-

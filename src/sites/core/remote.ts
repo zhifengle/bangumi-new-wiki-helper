@@ -1,12 +1,12 @@
 import { IFetchOpts } from '../../interface/types';
 import { findModelByHost } from '../../sites';
-import { findElement } from '../../utils/domUtils';
 import { fetchText } from '../../utils/fetchData';
 import {
   createRemoteWikiPageContext,
   createWikiExtractContext,
 } from './context';
 import { getWikiData } from './extract';
+import { locateSource } from './extraction';
 
 // 后台抓取其它网站的 wiki 信息
 export async function getWikiDataByURL(url: string, opts: IFetchOpts = {}) {
@@ -25,9 +25,15 @@ export async function getWikiDataByURL(url: string, opts: IFetchOpts = {}) {
     }
     try {
       // 查找标志性的元素
-      const $page = findElement(model.pageSelectors, $doc);
+      const $page = locateSource(model.pageSource, {
+        root: $doc,
+        site: model.key,
+      });
       if (!$page) return [];
-      const $title = findElement(model.controlSelector, $doc);
+      const $title = locateSource(model.controlSource, {
+        root: $doc,
+        site: model.key,
+      });
       if (!$title) return [];
       return await getWikiData(
         model,

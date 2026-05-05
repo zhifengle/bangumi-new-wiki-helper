@@ -37,7 +37,7 @@ describe('douban game tools', () => {
       },
     });
 
-    const result = (await doubanGameTools.hooks?.afterGetWikiData?.([
+    const result = (await doubanGameTools.hooks?.finalize?.([
       {
         name: '平台',
         value: 'PC / Switch',
@@ -57,7 +57,7 @@ describe('douban game tools', () => {
         },
         category: 'cover',
       },
-    ])) as SingleInfo[];
+    ], { kind: 'subject', site: 'douban_game' })) as SingleInfo[];
 
     expect(result).toEqual(
       expect.arrayContaining([

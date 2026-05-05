@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { vi } from 'vitest';
 import { SubjectTypeId } from '../interface/wiki';
+import { dom } from '../sites/core/extraction';
 
 const { mockContentRuntimeCapabilities } = vi.hoisted(() => ({
   mockContentRuntimeCapabilities: {
@@ -39,10 +40,8 @@ const siteConfig = {
   key: 'steam_game' as const,
   description: 'test site',
   host: ['store.steampowered.com'],
-  pageSelectors: [],
-  controlSelector: {
-    selector: '#app',
-  },
+  pageSource: dom('#app'),
+  controlSource: dom('#app'),
   type: SubjectTypeId.game,
   itemList: [],
 };

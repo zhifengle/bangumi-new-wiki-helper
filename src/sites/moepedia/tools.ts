@@ -1,8 +1,7 @@
 import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
-import { findElement } from '../../utils/domUtils';
 import { SubjectTools } from '../catalogTypes';
 
-function dealTitle(str: string): string {
+export function dealTitle(str: string): string {
   str = str.trim().split('\n')[0];
   return str.replace(
     /\s[^ ]*?(スペシャルプライス版|限定版|通常版|廉価版|復刻版|初回.*?版|描き下ろし|パッケージ版).*?$|＜.*＞$/g,
@@ -12,12 +11,9 @@ function dealTitle(str: string): string {
 export const moepediaTools: SubjectTools = {
   hooks: {
     async beforeCreate() {
-      const $el = findElement([
-        {
-          selector:
-            '.body-shop_list > .body-shop_item > a[href*="www.getchu.com/soft.phtml?id="]',
-        },
-      ]);
+      const $el = document.querySelector<HTMLAnchorElement>(
+        '.body-shop_list > .body-shop_item > a[href*="www.getchu.com/soft.phtml?id="]'
+      );
       const url = $el?.getAttribute('href');
       if (url) {
         return {
@@ -38,7 +34,7 @@ export const moepediaTools: SubjectTools = {
       }
       return true;
     },
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
         let val = getStringValue(info.value);

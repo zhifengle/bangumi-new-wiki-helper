@@ -1,6 +1,5 @@
 import { getCoverValue, getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import { getImageDataByURL } from '../../utils/dealImage';
-import { formatDate } from '../../utils/utils';
 import { SubjectTools } from '../catalogTypes';
 
 export const steamdbTools: SubjectTools = {
@@ -12,19 +11,11 @@ export const steamdbTools: SubjectTools = {
         },
       };
     },
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
         let newInfo: null | SingleInfo = { ...info };
         const stringValue = getStringValue(info.value);
-        if (info.name === '游戏引擎') {
-          newInfo.value = stringValue.replace(/^Engine\./g, '');
-        }
-        if (info.name === '游戏简介') {
-          if (stringValue.match(/\n.*?Steam charts, data, update history\.$/)) {
-            newInfo.value = stringValue.split('\n')[0];
-          }
-        }
         if (info.name === 'cover') {
           const coverValue = getCoverValue(info.value);
           if (coverValue?.url) {
@@ -111,16 +102,6 @@ export const steamdbTools: SubjectTools = {
       return res;
     },
   },
-  filters: [
-    {
-      category: 'date',
-      dealFunc(str: string) {
-        const arr = str.split('–');
-        if (!arr[0]) return '';
-        return formatDate(arr[0].trim());
-      },
-    },
-  ],
 };
 
 

@@ -1,112 +1,57 @@
-import { SubjectSourceDefinition, SubjectTypeId, Selector } from '../../interface/wiki';
+import { SubjectSourceDefinition, SubjectTypeId } from '../../interface/wiki';
+import { date, dom, fieldKind, firstOf } from '../core/extraction';
+
+const attr = dom('#content .thing-attr').find('dt');
+const attrValue = (key: string | string[]) => attr.hasText(key).next();
 
 export const doubanGameSubject: SubjectSourceDefinition = {
   key: 'douban_game',
   description: 'douban game',
   host: ['douban.com', 'www.douban.com'],
   type: SubjectTypeId.game,
-  pageSelectors: [
+  pageSource: dom('#content h1'),
+  controlSource: dom('#content h1'),
+  itemList: [
     {
-      selector: '#content h1',
+      name: '游戏名',
+      source: dom('#content h1'),
+      kind: fieldKind.preservedText(),
+      emit: { category: 'subject_title' },
+    },
+    {
+      name: '发行日期',
+      source: firstOf([attrValue('发行日期'), attrValue('预计上市时间')]),
+      parse: date(),
+      emit: { category: 'date' },
+    },
+    {
+      name: '别名',
+      source: attrValue('别名'),
+      emit: { category: 'alias' },
+    },
+    {
+      name: '游戏类型',
+      source: attrValue('类型'),
+    },
+    {
+      name: '开发',
+      source: attrValue('开发商'),
+    },
+    {
+      name: '发行',
+      source: attrValue('发行商'),
+    },
+    {
+      name: '游戏简介',
+      source: dom('.mod.item-desc').find('h2').hasText('简介').next(),
+      kind: fieldKind.preservedText(),
+      emit: { category: 'subject_summary' },
+    },
+    {
+      name: 'cover',
+      source: dom('#content .item-subject-info .pic > a'),
+      kind: fieldKind.cover(),
+      emit: { category: 'cover' },
     },
   ],
-  controlSelector: {
-    selector: '#content h1',
-  },
-  itemList: [],
 };
-
-const gameAttr: Selector = {
-  selector: '#content .thing-attr',
-  subSelector: 'dt',
-  sibling: true,
-};
-
-doubanGameSubject.itemList.push(
-  {
-    name: '游戏名',
-    selector: {
-      selector: '#content h1',
-    },
-    category: 'subject_title',
-  },
-  {
-    name: '发行日期',
-    selector: [
-      {
-        ...gameAttr,
-        keyWord: '发行日期',
-      },
-      {
-        ...gameAttr,
-        keyWord: '预计上市时间',
-      },
-    ],
-    category: 'date',
-  },
-  // 平台特殊处理
-  // {
-  //   name: '平台',
-  //   selector: {
-  //     ...gameAttr,
-  //     keyWord: '平台',
-  //   },
-  //   category: 'platform',
-  // },
-  {
-    name: '别名',
-    selector: {
-      ...gameAttr,
-      keyWord: '别名',
-    },
-    category: 'alias',
-  },
-  {
-    name: '游戏类型',
-    selector: {
-      ...gameAttr,
-      keyWord: '类型',
-    },
-  },
-  {
-    name: '开发',
-    selector: {
-      ...gameAttr,
-      keyWord: '开发商',
-    },
-  },
-  {
-    name: '发行',
-    selector: {
-      ...gameAttr,
-      keyWord: '发行商',
-    },
-  },
-  // {
-  //   name: 'website',
-  //   selector: {
-  //     selector: '.responsive_apppage_details_left.game_details',
-  //   },
-  //   category: 'website',
-  // },
-  {
-    name: '游戏简介',
-    selector: [
-      {
-        selector: '.mod.item-desc',
-        subSelector: 'h2',
-        keyWord: '简介',
-        sibling: true,
-      },
-    ],
-    category: 'subject_summary',
-  },
-  {
-    name: 'cover',
-    selector: {
-      selector: '#content .item-subject-info .pic > a',
-    },
-    category: 'cover',
-  }
-);
-

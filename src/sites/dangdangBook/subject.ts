@@ -1,85 +1,50 @@
 import { SubjectSourceDefinition, SubjectTypeId } from '../../interface/wiki';
+import { date, dom, fieldKind } from '../core/extraction';
+import { dangdangTitle } from './tools';
+
+const info = dom('.messbox_info').find('span');
+const desc = dom('#detail_describe').find('li');
 
 export const dangdangBookSubject: SubjectSourceDefinition = {
   key: 'dangdang_book',
   host: ['product.dangdang.com'],
   description: '当当图书',
   type: SubjectTypeId.book,
-  pageSelectors: [
+  pageSource: dom('#breadcrumb').find('a').hasText('图书'),
+  controlSource: dom('.name_info h1'),
+  itemList: [
     {
-      selector: '#breadcrumb',
-      subSelector: 'a',
-      keyWord: '图书',
+      name: '名称',
+      source: dom('.name_info h1'),
+      kind: fieldKind.preservedText(),
+      transform: (value) =>
+        typeof value === 'string' ? dangdangTitle(value) : value,
+      emit: { category: 'subject_title' },
+    },
+    {
+      name: 'ISBN',
+      source: desc.hasText('国际标准书号ISBN'),
+      emit: { category: 'ISBN' },
+    },
+    {
+      name: '发售日',
+      source: info.hasText('出版时间'),
+      parse: date(),
+      emit: { category: 'date' },
+    },
+    {
+      name: '作者',
+      source: info.hasText('作者'),
+    },
+    {
+      name: '出版社',
+      source: info.hasText('出版社'),
+    },
+    {
+      name: '内容简介',
+      source: dom('#content .descrip'),
+      kind: fieldKind.preservedText(),
+      emit: { category: 'subject_summary' },
     },
   ],
-  controlSelector: {
-    selector: '.name_info h1',
-  },
-  itemList: [],
 };
-const infoSelector = {
-  selector: '.messbox_info',
-  subSelector: 'span',
-};
-const descSelector = {
-  selector: '#detail_describe',
-  subSelector: 'li',
-};
-dangdangBookSubject.itemList.push(
-  {
-    name: '名称',
-    selector: {
-      selector: '.name_info h1',
-    },
-    category: 'subject_title',
-  },
-  // {
-  //   name: 'cover',
-  //   selector: {
-  //     selector: 'img#largePic',
-  //   },
-  //   category: 'cover',
-  // },
-  {
-    name: 'ISBN',
-    selector: {
-      ...descSelector,
-      keyWord: '国际标准书号ISBN',
-    },
-    category: 'ISBN',
-  },
-  {
-    name: '发售日',
-    selector: {
-      ...infoSelector,
-      keyWord: '出版时间',
-    },
-    category: 'date',
-  },
-  {
-    name: '作者',
-    selector: [
-      {
-        ...infoSelector,
-        keyWord: '作者',
-      },
-    ],
-  },
-  {
-    name: '出版社',
-    selector: {
-      ...infoSelector,
-      keyWord: '出版社',
-    },
-  },
-  {
-    name: '内容简介',
-    selector: [
-      {
-        selector: '#content .descrip',
-      },
-    ],
-    category: 'subject_summary',
-  }
-);
-

@@ -1,128 +1,80 @@
-import { Selector, SubjectSourceDefinition, SubjectTypeId } from '../../interface/wiki';
+import { SubjectSourceDefinition, SubjectTypeId } from '../../interface/wiki';
+import {
+  cleanText,
+  dom,
+  fieldKind,
+  firstOf,
+  strip,
+  trimAllSpace,
+} from '../core/extraction';
 
-// ref links
-// https://www.amazon.co.jp/dp/B07FQ5WPM3/
-// https://www.amazon.co.jp/dp/B0D456FXL4
-// https://www.amazon.co.jp/dp/B07GQXDHLN
+const detailRows = [
+  dom('#richProductInformation_feature_div').find('ol.a-carousel li'),
+  dom('#detailBullets_feature_div .detail-bullet-list').find('li .a-list-item'),
+  dom('#detail_bullets_id .bucket .content').find('li'),
+];
+const detailValue = (key: string | string[]) =>
+  firstOf(detailRows.map((source) => source.hasText(key)));
+const cleanDetailValue = (key: string | string[]) =>
+  cleanText.chain([strip(key), trimAllSpace()]);
 
 export const amazonJpMusicSubject: SubjectSourceDefinition = {
   key: 'amazon_jp_music',
   description: 'amazon jp music',
   host: ['amazon.co.jp', 'www.amazon.co.jp'],
   type: SubjectTypeId.music,
-  pageSelectors: [
+  pageSource: firstOf([
+    dom('#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child')
+      .find('.a-link-normal')
+      .hasText(['ミュージック', 'Music', 'MUSIC', '音楽']),
+    dom('#nav-subnav .nav-a:first-child img[alt="デジタルミュージック"]'),
+    dom('#detailBullets_feature_div + .a-unordered-list')
+      .find('.a-list-item')
+      .hasText(['ミュージック', '音楽']),
+  ]),
+  controlSource: dom('#title'),
+  itemList: [
     {
-      selector:
-        '#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child',
-      subSelector: '.a-link-normal',
-      keyWord: ['ミュージック', 'Music', 'MUSIC', '音楽'],
+      name: '名称',
+      source: dom('#productTitle'),
+      kind: fieldKind.preservedText(),
+      emit: { category: 'subject_title' },
     },
     {
-      selector: '#nav-subnav .nav-a:first-child img[alt="デジタルミュージック"]',
+      name: '艺术家',
+      source: firstOf([
+        dom('#bylineInfo')
+          .find('.author')
+          .hasText(/\(アーティスト\)/)
+          .scope(firstOf([dom('.contributorNameID'), dom('a')])),
+        dom('#byline .author span.a-size-medium'),
+        dom('#bylineInfo .author > a'),
+        dom('#bylineInfo .contributorNameID'),
+      ]),
+      clean: cleanText.chain([strip(/\(アーティスト\)/)]),
+      emit: { category: 'creator' },
     },
     {
-      selector: '#detailBullets_feature_div + .a-unordered-list',
-      subSelector: '.a-list-item',
-      keyWord: ['ミュージック', '音楽'],
+      name: '碟片数量',
+      source: detailValue(['ディスク枚数']),
+      clean: cleanDetailValue(['ディスク枚数']),
+    },
+    {
+      name: '内容简介',
+      source: firstOf([
+        dom('#productDescription').find('h3').hasText(['内容紹介', '内容']).next(),
+        dom('#productDescription'),
+      ]),
+      kind: fieldKind.preservedText(),
+      emit: { category: 'subject_summary' },
+    },
+    {
+      name: '价格',
+      source: firstOf([
+        dom('#corePrice_feature_div > div > div > span.a-price.aok-align-center > span.a-offscreen'),
+        dom('#corePriceDisplay_desktop_feature_div > div.a-section.a-spacing-none.aok-align-center.aok-relative > span.aok-offscreen'),
+        dom('#declarative_ > table > tbody > tr > td.a-text-right.dp-new-col > span > a > span'),
+      ]),
     },
   ],
-  controlSelector: {
-    selector: '#title',
-  },
-  itemList: [],
 };
-
-const commonSelectors: Selector[] = [
-  // 2021-05 日亚改版
-  {
-    selector: '#richProductInformation_feature_div',
-    subSelector: 'ol.a-carousel li',
-  },
-  {
-    selector: '#detailBullets_feature_div .detail-bullet-list',
-    subSelector: 'li .a-list-item',
-  },
-  {
-    selector: '#detail_bullets_id .bucket .content',
-    subSelector: 'li',
-  },
-];
-
-amazonJpMusicSubject.itemList.push(
-  {
-    name: '名称',
-    selector: {
-      selector: '#productTitle',
-    },
-    category: 'subject_title',
-  },
-  {
-    name: '艺术家',
-    selector: [
-      {
-        selector: '#bylineInfo',
-        subSelector: '.author',
-        keyWord: /\(アーティスト\)/,
-        nextSelector: [
-          {
-            selector: '.contributorNameID',
-          },
-          {
-            selector: 'a',
-          },
-        ],
-      },
-      {
-        selector: '#byline .author span.a-size-medium',
-      },
-      {
-        selector: '#bylineInfo .author > a',
-      },
-      {
-        selector: '#bylineInfo .contributorNameID',
-      },
-    ],
-    category: 'creator',
-    pipes: ['k'],
-  },
-  {
-    name: '碟片数量',
-    selector: commonSelectors.map((s) => {
-      return {
-        ...s,
-        keyWord: ['ディスク枚数'],
-      };
-    }),
-  },
-  {
-    name: '内容简介',
-    selector: [
-      {
-        selector: '#productDescription',
-        subSelector: 'h3',
-        sibling: true,
-        keyWord: ['内容紹介', '内容'],
-      },
-      {
-        selector: '#productDescription',
-      },
-    ],
-    category: 'subject_summary',
-  },
-  {
-    name: '价格',
-    selector: [
-      {
-        selector: '#corePrice_feature_div > div > div > span.a-price.aok-align-center > span.a-offscreen',
-      },
-      {
-        selector: '#corePriceDisplay_desktop_feature_div > div.a-section.a-spacing-none.aok-align-center.aok-relative > span.aok-offscreen',
-      },
-      {
-        selector: '#declarative_ > table > tbody > tr > td.a-text-right.dp-new-col > span > a > span',
-      },
-    ],
-  },
-  // @TOOD 艺术家, 作词, 作曲, 编曲
-);
-

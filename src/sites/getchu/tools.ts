@@ -1,5 +1,4 @@
 import { SingleInfo } from '../../interface/subjectInfo';
-import { CharacterSourceDefinition } from '../../interface/wiki';
 import { getText } from '../../utils/domUtils';
 import { convertImgToBase64 } from '../../utils/dealImage';
 import { CharacterTools, SubjectTools } from '../catalogTypes';
@@ -152,11 +151,12 @@ export const getchuTools = {
 
 export const getchuCharaTools: CharacterTools = {
   hooks: {
-    async afterGetWikiData(
+    async finalize(
       infos: SingleInfo[],
-      _model: CharacterSourceDefinition,
-      $el: Element
+      context
     ) {
+      const $el = context.kind === 'character' ? context.root : undefined;
+      if (!$el || !($el instanceof Element)) return infos;
       return [...infos, ...getchuTools.getCharacterInfo($el)];
     },
   },
@@ -172,12 +172,6 @@ export const getchuSubjectTools: SubjectTools = {
       return true;
     },
   },
-  filters: [
-    {
-      category: 'subject_title',
-      dealFunc: getchuTools.dealTitle,
-    },
-  ],
 };
 
 

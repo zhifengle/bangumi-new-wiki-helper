@@ -9,7 +9,7 @@ import {
 
 export const doubanMusicTools: SubjectTools = {
   hooks: {
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const result = [...infos];
       const $info = document.querySelector<HTMLElement>('#info');
       if ($info) {
@@ -41,7 +41,6 @@ export const doubanMusicTools: SubjectTools = {
       return result;
     },
   },
-  filters: [],
 };
 
 

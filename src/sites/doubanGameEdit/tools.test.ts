@@ -31,7 +31,7 @@ describe('douban game edit tools', () => {
     `;
     mockGetImageDataByURL.mockResolvedValue('data:image/jpeg;base64,cover');
 
-    const result = (await doubanGameEditTools.hooks?.afterGetWikiData?.([
+    const result = (await doubanGameEditTools.hooks?.finalize?.([
       {
         name: '平台',
         value: 'ARC, 红白机',
@@ -51,7 +51,7 @@ describe('douban game edit tools', () => {
         },
         category: 'cover',
       },
-    ])) as SingleInfo[];
+    ], { kind: 'subject', site: 'douban_game' })) as SingleInfo[];
 
     expect(mockGetImageDataByURL).toHaveBeenCalledWith(
       'https://img.example.com/lpic/public/cover.jpg'

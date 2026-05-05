@@ -3,7 +3,7 @@ import { SubjectTools } from '../catalogTypes';
 
 export const adultComicTools: SubjectTools = {
   hooks: {
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
         let newInfo: null | SingleInfo = { ...info };

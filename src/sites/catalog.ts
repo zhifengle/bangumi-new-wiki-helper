@@ -5,13 +5,12 @@ import type {
   SubjectSourceDefinition,
 } from '../interface/wiki';
 import type {
-  CharacterAfterGetWikiDataHook,
   CharacterIntegration,
   CharacterTools,
-  SubjectAfterGetWikiDataHook,
   SubjectBeforeCreateHook,
   SubjectTools,
 } from './catalogTypes';
+import type { FinalizeHook } from './core/extraction';
 import { adultcomicIntegration } from './adultcomic';
 import { amazonJpBookIntegration } from './amazonJpBook';
 import { amazonJpMusicIntegration } from './amazonJpMusic';
@@ -75,16 +74,7 @@ const siteToolsMap = buildSiteToolsMap(siteIntegrations);
 const characterToolsMap = buildCharacterToolsMap(characterIntegrations);
 
 const noOpBeforeCreate: SubjectBeforeCreateHook = async () => true;
-const noOpSubjectAfterGetWikiData: SubjectAfterGetWikiDataHook = async (
-  infos
-) => infos;
-const noOpCharacterAfterGetWikiData: CharacterAfterGetWikiDataHook = async (
-  infos
-) => infos;
-
-function identity<T>(x: T): T {
-  return x;
-}
+const noOpFinalize: FinalizeHook = async (infos) => infos;
 
 export function findModelByHost(host: string): SubjectSourceDefinition[] {
   return siteIntegrations
@@ -118,34 +108,40 @@ export function getSubjectHooks(
 ): SubjectBeforeCreateHook;
 export function getSubjectHooks(
   siteConfig: SubjectSourceDefinition,
-  timing: 'afterGetWikiData'
-): SubjectAfterGetWikiDataHook;
+  timing: 'finalize'
+): FinalizeHook;
 export function getSubjectHooks(
   siteConfig: SubjectSourceDefinition,
-  timing: 'beforeCreate' | 'afterGetWikiData'
+  timing: 'beforeCreate' | 'finalize'
 ) {
   const hooks = getSiteTools(siteConfig.key)?.hooks;
+  if (timing === 'finalize' && siteConfig.finalize) {
+    return siteConfig.finalize;
+  }
   if (!hooks) {
     return timing === 'beforeCreate'
       ? noOpBeforeCreate
-      : noOpSubjectAfterGetWikiData;
+      : noOpFinalize;
   }
   return hooks[timing] || (
     timing === 'beforeCreate'
       ? noOpBeforeCreate
-      : noOpSubjectAfterGetWikiData
+      : noOpFinalize
   );
 }
 
 export function getCharacterHooks(
   config: CharacterSourceDefinition,
-  timing: 'afterGetWikiData' = 'afterGetWikiData'
-): CharacterAfterGetWikiDataHook {
+  timing: 'finalize' = 'finalize'
+): FinalizeHook {
+  if (config.finalize) {
+    return config.finalize;
+  }
   const hooks = getCharacterTools(config.key)?.hooks;
   if (!hooks) {
-    return noOpCharacterAfterGetWikiData;
+    return noOpFinalize;
   }
-  return hooks[timing] || noOpCharacterAfterGetWikiData;
+  return hooks[timing] || noOpFinalize;
 }
 
 export function getCharacterIntegrations(
@@ -154,21 +150,6 @@ export function getCharacterIntegrations(
   return characterIntegrations.filter(
     (integration) => integration.model.siteKey === key
   );
-}
-
-export function dealFuncByCategory(
-  key: SubjectModelKey,
-  category?: string
-): (value?: string | null) => string {
-  const filter = category
-    ? getSiteTools(key)?.filters?.find(
-        (item) => item.category === category
-      )
-    : undefined;
-  if (filter?.dealFunc) {
-    return filter.dealFunc;
-  }
-  return (str = '') => identity((str ?? '').trim());
 }
 
 

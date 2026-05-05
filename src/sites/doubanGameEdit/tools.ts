@@ -15,7 +15,7 @@ export const doubanGameEditTools: SubjectTools = {
       const href = window.location.href;
       return /\/game\/\d+\/edit/.test(href);
     },
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const result: SingleInfo[] = [];
       for (const info of infos) {
         if (['平台', '别名'].includes(info.name)) {
@@ -51,7 +51,6 @@ export const doubanGameEditTools: SubjectTools = {
       return result;
     },
   },
-  filters: [],
 };
 
 

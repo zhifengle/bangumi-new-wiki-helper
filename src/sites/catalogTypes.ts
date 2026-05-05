@@ -4,41 +4,22 @@ import type {
   CharacterSourceDefinition,
   SubjectSourceDefinition,
 } from '../interface/wiki';
-import type { WikiExtractRoot } from './core/context';
-
-export type SiteDealFunc = (value?: string | null) => string;
-
-export type CategoryFilter = {
-  category: string;
-  dealFunc: SiteDealFunc;
-};
+import type { FinalizeHook } from './core/extraction';
 
 export type SubjectBeforeCreateResult = boolean | { payload?: IMsgPayload };
 
 export type SubjectBeforeCreateHook = () => Promise<SubjectBeforeCreateResult>;
 
-export type SubjectAfterGetWikiDataHook = (
-  infos: SingleInfo[],
-  model?: SubjectSourceDefinition
-) => Promise<SingleInfo[]>;
-
-export type CharacterAfterGetWikiDataHook = (
-  infos: SingleInfo[],
-  model?: CharacterSourceDefinition,
-  root?: WikiExtractRoot
-) => Promise<SingleInfo[]>;
-
 export type SubjectTools = {
   hooks?: {
     beforeCreate?: SubjectBeforeCreateHook;
-    afterGetWikiData?: SubjectAfterGetWikiDataHook;
+    finalize?: FinalizeHook;
   };
-  filters?: CategoryFilter[];
 };
 
 export type CharacterTools = {
   hooks?: {
-    afterGetWikiData?: CharacterAfterGetWikiDataHook;
+    finalize?: FinalizeHook;
   };
 };
 

@@ -1,5 +1,4 @@
-import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
-import { dealDate, formatDate } from '../../utils/utils';
+import { SingleInfo } from '../../interface/subjectInfo';
 import { SubjectTools } from '../catalogTypes';
 
 export const steamTools: SubjectTools = {
@@ -11,15 +10,10 @@ export const steamTools: SubjectTools = {
         },
       };
     },
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
         const newInfo: SingleInfo = { ...info };
-        if (info.name === 'website') {
-          const arr = getStringValue(newInfo.value).split('?url=');
-          newInfo.value = arr[1] || '';
-          newInfo.category = 'website,listItem';
-        }
         res.push({
           ...newInfo,
         });
@@ -34,17 +28,6 @@ export const steamTools: SubjectTools = {
       return res;
     },
   },
-  filters: [
-    {
-      category: 'date',
-      dealFunc(str: string) {
-        if (/年/.test(str)) {
-          return dealDate(str.replace(/\s/g, ''));
-        }
-        return formatDate(str);
-      },
-    },
-  ],
 };
 
 

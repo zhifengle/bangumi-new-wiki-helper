@@ -1,29 +1,14 @@
-import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
-import { CharacterSourceDefinition } from '../../interface/wiki';
+import { SingleInfo } from '../../interface/subjectInfo';
 import { getImageDataByURL } from '../../utils/dealImage';
-import { dealDate } from '../../utils/utils';
 import { CharacterTools, SubjectTools } from '../catalogTypes';
 
 export const dlsiteTools: SubjectTools = {
   hooks: {
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
-        let val = info.value;
-        const stringValue = getStringValue(info.value);
-        if (
-          stringValue &&
-          !/http/.test(stringValue) &&
-          ['原画', '剧本', '音乐', '游戏类型', '声优', '作者'].includes(info.name)
-        ) {
-          const v = stringValue.split('/');
-          if (v && v.length > 1) {
-            val = v.map((s: string) => s.trim()).join(', ');
-          }
-        }
         res.push({
           ...info,
-          value: val,
         });
       }
       if (location.hostname.includes('dlsite.com')) {
@@ -62,26 +47,16 @@ export const dlsiteTools: SubjectTools = {
       return res;
     },
   },
-  filters: [
-    {
-      category: 'date',
-      dealFunc(str: string) {
-        if (/年/.test(str)) {
-          return dealDate(str.replace(/日.+$/, '日'));
-        }
-        return str;
-      },
-    },
-  ],
 };
 
 export const dlsiteCharaTools: CharacterTools = {
   hooks: {
-    async afterGetWikiData(
+    async finalize(
       infos: SingleInfo[],
-      model: CharacterSourceDefinition,
-      el: Element
+      context
     ) {
+      const el = context.kind === 'character' ? context.root : undefined;
+      if (!el || !('querySelector' in el)) return infos;
       const res: SingleInfo[] = [...infos];
       const txt = el.querySelector('p')?.textContent || '';
       res.push({

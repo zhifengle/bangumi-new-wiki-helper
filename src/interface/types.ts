@@ -4,7 +4,7 @@ export type IFuncPromise<
   Args extends unknown[] = unknown[],
   Result = unknown,
 > = (...args: Args) => Promise<Result>;
-export type ITiming = 'beforeCreate' | 'afterGetWikiData';
+export type ITiming = 'beforeCreate' | 'finalize';
 
 export interface SubjectItem {
   name: string;

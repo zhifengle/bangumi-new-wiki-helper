@@ -1,4 +1,5 @@
 import { CharacterSourceDefinition, SubjectTypeId } from '../../interface/wiki';
+import { dom } from '../core/extraction';
 
 export const getchuChara: CharacterSourceDefinition = {
   key: 'getchu_game_chara',
@@ -7,15 +8,7 @@ export const getchuChara: CharacterSourceDefinition = {
   host: ['getchu.com', 'www.getchu.com'],
   controlMode: 'inline',
   type: SubjectTypeId.game,
-  itemSelector: {
-    selector: '.chara-text .chara-name',
-  },
-  presenceSelector: {
-    selector: '#wrapper',
-    subSelector: '.tabletitle',
-    sibling: true,
-    keyWord: ['キャラクター', '角色'],
-  },
+  itemSource: dom('.chara-text .chara-name').allItems(),
+  presenceSource: dom('#wrapper').find('.tabletitle').hasText(['キャラクター', '角色']).next(),
   itemList: [],
 };
-

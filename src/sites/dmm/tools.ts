@@ -1,8 +1,6 @@
 import { SingleInfo } from '../../interface/subjectInfo';
-import { CharacterSourceDefinition } from '../../interface/wiki';
 import { getImageDataByURL } from '../../utils/dealImage';
 import { $qa, getInnerText } from '../../utils/domUtils';
-import { dealDate } from '../../utils/utils';
 import { CharacterTools, SubjectTools } from '../catalogTypes';
 
 function normalizeDmmCharacterName(name: string): string {
@@ -46,7 +44,7 @@ function splitSummaryBlocks(summary: string): string[] {
   return blocks;
 }
 
-function cleanupDmmSubjectSummary(summary: string): string {
+export function cleanupDmmSubjectSummary(summary: string): string {
   const normalized = summary.trim();
   const head = normalized.slice(0, 300);
   if (!looksLikeDmmNoticeBlock(head)) {
@@ -83,17 +81,12 @@ function getDmmCharacterSummary($el: Element): string {
 
 export const dmmTools: SubjectTools = {
   hooks: {
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       const hasCover = infos.some((info) => info.category == 'cover');
       for (const info of infos) {
-        let val = info.value;
-        if (info.category === 'subject_summary' && typeof val === 'string') {
-          val = cleanupDmmSubjectSummary(val);
-        }
         res.push({
           ...info,
-          value: val,
         });
       }
       if (!hasCover) {
@@ -125,28 +118,16 @@ export const dmmTools: SubjectTools = {
       return res;
     },
   },
-  filters: [
-    {
-      category: 'date',
-      dealFunc(str: string) {
-        const re = /\d{4}\/\d{1,2}(\/\d{1,2})?/;
-        const m = str.match(re);
-        if (m) {
-          return dealDate(m[0]);
-        }
-        return str;
-      },
-    },
-  ],
 };
 
 export const dmmCharaTools: CharacterTools = {
   hooks: {
-    async afterGetWikiData(
+    async finalize(
       infos: SingleInfo[],
-      model: CharacterSourceDefinition,
-      $el: Element
+      context
     ) {
+      const $el = context.kind === 'character' ? context.root : undefined;
+      if (!$el || !($el instanceof Element)) return infos;
       const res: SingleInfo[] = infos.map((info) => {
         if (info.category === 'crt_name' && typeof info.value === 'string') {
           return {

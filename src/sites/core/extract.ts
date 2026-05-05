@@ -8,40 +8,39 @@ import {
   getSubjectHooks,
 } from '../catalog';
 import type { WikiExtractContext } from './context';
-import { getWikiItems } from './extractItems';
+import { extractFields } from './extraction';
 
-export { dealItemText } from './transform';
-
-function applyHookResult(
-  rawInfo: SingleInfo[],
-  hookRes: unknown
-): SingleInfo[] {
-  return Array.isArray(hookRes) ? hookRes : rawInfo;
-}
+export { locateSource } from './extraction';
 
 export async function getWikiData(
   siteConfig: SubjectSourceDefinition,
   context: WikiExtractContext = {}
 ) {
-  const rawInfo = await getWikiItems(siteConfig.itemList, siteConfig.key, context);
-  const defaultInfos = siteConfig.defaultInfos || [];
-  const hookRes = await getSubjectHooks(siteConfig, 'afterGetWikiData')(
-    rawInfo,
-    siteConfig
-  );
-  return [...applyHookResult(rawInfo, hookRes), ...defaultInfos];
+  const rawInfo = await extractFields(siteConfig.itemList, {
+    ...context,
+    site: siteConfig.key,
+  });
+  const hookRes = await getSubjectHooks(siteConfig, 'finalize')(rawInfo, {
+    ...context,
+    kind: 'subject',
+    site: siteConfig.key,
+  });
+  return [...hookRes, ...(siteConfig.defaults || [])];
 }
 
 export async function getCharaData(
   model: CharacterSourceDefinition,
   context: WikiExtractContext = {}
 ) {
-  const rawInfo = await getWikiItems(model.itemList, model.siteKey, context);
-  const defaultInfos = model.defaultInfos || [];
-  const hookRes = await getCharacterHooks(model, 'afterGetWikiData')(
-    rawInfo,
-    model,
-    context.root
-  );
-  return [...applyHookResult(rawInfo, hookRes), ...defaultInfos];
+  const rawInfo = await extractFields(model.itemList, {
+    ...context,
+    site: model.siteKey,
+  });
+  const hookRes = await getCharacterHooks(model, 'finalize')(rawInfo, {
+    ...context,
+    kind: 'character',
+    site: model.siteKey,
+    root: context.root!,
+  });
+  return [...hookRes, ...(model.defaults || [])];
 }

@@ -46,7 +46,7 @@ export const vgmdbTools: SubjectTools = {
 
       return true;
     },
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       const $h1 = document.querySelector('#innermain > h1') as HTMLElement;
       res.push({

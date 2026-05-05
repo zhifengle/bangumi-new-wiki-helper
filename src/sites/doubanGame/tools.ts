@@ -29,7 +29,7 @@ export const doubanGameTools: SubjectTools = {
         };
       }
     },
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const result: SingleInfo[] = [];
       for (const info of infos) {
         if (['平台', '别名'].includes(info.name)) {
@@ -60,7 +60,6 @@ export const doubanGameTools: SubjectTools = {
       return result;
     },
   },
-  filters: [],
 };
 
 

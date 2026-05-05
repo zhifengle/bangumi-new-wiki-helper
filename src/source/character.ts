@@ -1,42 +1,14 @@
 import { getStringValue, SubjectWikiInfo } from '../interface/subjectInfo';
 import type {
   CharacterSourceDefinition,
-  InfoConfig,
-  SelectorInput,
   SubjectSourceDefinition,
 } from '../interface/wiki';
 import { getCharacterModels } from '../sites';
 import { addCharaUI, insertControlBtnChara } from '../sites/core/controls';
 import { createWikiExtractContext } from '../sites/core/context';
 import { getCharaData } from '../sites/core/extract';
-import { findAllElement, findElement } from '../utils/domUtils';
+import { locateSource } from '../sites/core/extraction';
 import { SourceRuntimeAdapter } from './runtime';
-
-function getIframeSelector(itemSelector: SelectorInput): string {
-  if (itemSelector instanceof Array) {
-    return itemSelector.find((item) => item.isIframe === true)?.selector || '';
-  }
-  return itemSelector.isIframe ? itemSelector.selector : '';
-}
-
-async function getIframeDoc(
-  itemSelector: SelectorInput,
-  runtime: SourceRuntimeAdapter
-) {
-  const iframeSel = getIframeSelector(itemSelector);
-  if (!iframeSel) {
-    return null;
-  }
-  const url = findElement({
-    selector: iframeSel,
-  })?.getAttribute('src');
-  if (!url) {
-    return null;
-  }
-  console.log('fetch html by runtime adapter');
-  const rawHtml = await runtime.fetchHtml(url);
-  return new DOMParser().parseFromString(rawHtml, 'text/html');
-}
 
 async function submitCharacter(
   siteConfig: SubjectSourceDefinition,
@@ -61,15 +33,17 @@ async function initCharacterModel(
   runtime: SourceRuntimeAdapter,
   characterModel: CharacterSourceDefinition
 ) {
-  const presenceSelector = characterModel.presenceSelector;
-  if (presenceSelector && !findElement(presenceSelector)) return;
+  const presenceSource = characterModel.presenceSource;
+  if (presenceSource && !locateSource(presenceSource, { site: siteConfig.key })) return;
 
-  const iframeDoc = getIframeSelector(characterModel.itemSelector)
-    ? await getIframeDoc(characterModel.itemSelector, runtime)
-    : null;
-  const itemArr = iframeDoc
-    ? findAllElement(characterModel.itemSelector, iframeDoc)
-    : findAllElement(characterModel.itemSelector);
+  const itemSourceResult = locateSource(characterModel.itemSource, {
+    site: siteConfig.key,
+  });
+  const itemArr = Array.isArray(itemSourceResult)
+    ? itemSourceResult
+    : itemSourceResult
+      ? [itemSourceResult]
+      : [];
   if (!itemArr.length) return;
 
   if ((characterModel.controlMode ?? 'select') === 'inline') {
@@ -85,13 +59,14 @@ async function initCharacterModel(
     return;
   }
 
-  const toolbarSelector = characterModel.toolbarSelector;
-  if (!toolbarSelector) return;
-  const $toolbarEl = findElement(toolbarSelector);
+  const toolbarSource = characterModel.toolbarSource;
+  if (!toolbarSource) return;
+  const toolbarResult = locateSource(toolbarSource, { site: siteConfig.key });
+  const $toolbarEl = Array.isArray(toolbarResult) ? toolbarResult[0] : toolbarResult;
   if (!$toolbarEl) return;
 
-  const nameConfig: InfoConfig = characterModel.itemList.find(
-    (item) => item.category == 'crt_name'
+  const nameConfig = characterModel.itemList.find(
+    (item) => item.emit?.category == 'crt_name'
   );
   if (!nameConfig) return;
   const names = await Promise.all(
@@ -133,7 +108,7 @@ export async function initSourceCharacter(
   siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter
 ) {
-  const $page = findElement(siteConfig.pageSelectors);
+  const $page = locateSource(siteConfig.pageSource, { site: siteConfig.key });
   if (!$page) return;
   const characterModels = getCharacterModels(siteConfig.key);
   if (!characterModels.length) return;

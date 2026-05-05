@@ -4,7 +4,7 @@ import { getAmazonCoverInfo } from '../amazon/shared';
 
 export const amazonJpMusicTools: SubjectTools = {
   hooks: {
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const item of infos) {
         if (item.name === '艺术家') {

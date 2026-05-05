@@ -4,8 +4,8 @@ import { SubjectSourceDefinition } from '../interface/wiki';
 import { getSubjectHooks } from '../sites';
 import { insertControlBtn } from '../sites/core/controls';
 import { getWikiData } from '../sites/core/extract';
+import { locateSource } from '../sites/core/extraction';
 import { getQueryInfo } from '../sites/core/search';
-import { findElement } from '../utils/domUtils';
 import { SourceRuntimeAdapter } from './runtime';
 
 function normalizeHookResult(
@@ -28,9 +28,9 @@ export async function initSourceSubject(
   siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter
 ) {
-  const $page = findElement(siteConfig.pageSelectors);
+  const $page = locateSource(siteConfig.pageSource, { site: siteConfig.key });
   if (!$page) return;
-  const $title = findElement(siteConfig.controlSelector);
+  const $title = locateSource(siteConfig.controlSource, { site: siteConfig.key });
   if (!$title) return;
   const normalizedHookRes = normalizeHookResult(
     await getSubjectHooks(siteConfig, 'beforeCreate')()
@@ -38,7 +38,7 @@ export async function initSourceSubject(
   if (!normalizedHookRes) return;
   const { payload } = normalizedHookRes;
   console.info(siteConfig.description, ' content script init');
-  insertControlBtn($title, async (_e, shouldCheckDup) => {
+  insertControlBtn(Array.isArray($title) ? $title[0] : $title, async (_e, shouldCheckDup) => {
     const infos = await getWikiData(siteConfig);
     await runtime.hydrateSubjectCover?.(infos);
     console.info('wiki info list: ', infos);

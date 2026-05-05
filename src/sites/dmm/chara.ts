@@ -1,56 +1,40 @@
+import { CharacterSourceDefinition, SubjectTypeId } from '../../interface/wiki';
 import {
-  CharacterSourceDefinition,
-  Selector,
-  SubjectTypeId,
-} from '../../interface/wiki';
+  cleanText,
+  dom,
+  fieldKind,
+  firstOf,
+  removeParenthesis,
+  trimAllSpace,
+} from '../core/extraction';
 
-const modernCharacterSectionSelector: Selector = {
-  selector: '#detailGuide .detailGuide__content',
-  subSelector: '.detailGuide__capt',
-  keyWord: 'キャラクター',
-  sibling: true,
-};
-
-const modernCharacterToolbarSelector: Selector = {
-  selector: '#detailGuide .detailGuide__content',
-  subSelector: '.detailGuide__capt',
-  keyWord: 'キャラクター',
-};
-
-const modernCharacterItemSelector: Selector = {
-  ...modernCharacterSectionSelector,
-  nextSelector: {
-    selector: '.detailGuide__box-chr',
-  },
-};
+const characterSection = dom('#detailGuide .detailGuide__content')
+  .find('.detailGuide__capt')
+  .hasText('キャラクター')
+  .next();
 
 export const dmmChara: CharacterSourceDefinition = {
   key: 'dmm_game_chara',
   siteKey: 'dmm_game',
   description: 'dmm 游戏角色',
   type: SubjectTypeId.game,
-  itemSelector: modernCharacterItemSelector,
-  presenceSelector: modernCharacterItemSelector,
-  toolbarSelector: modernCharacterToolbarSelector,
-  itemList: [],
+  itemSource: characterSection.scope(dom('.detailGuide__box-chr').allItems()).allItems(),
+  presenceSource: characterSection,
+  toolbarSource: dom('#detailGuide .detailGuide__content')
+    .find('.detailGuide__capt')
+    .hasText('キャラクター'),
+  itemList: [
+    {
+      name: '姓名',
+      source: dom('.detailGuide__tx16.detailGuide__bold.detailGuide__lin-hgt'),
+      clean: cleanText.chain([removeParenthesis(), trimAllSpace()]),
+      emit: { category: 'crt_name' },
+    },
+    {
+      name: 'cover',
+      source: dom('img'),
+      kind: fieldKind.cover(),
+      emit: { category: 'crt_cover' },
+    },
+  ],
 };
-
-// 限定父节点
-dmmChara.itemList.push(
-  {
-    name: '姓名',
-    selector: {
-      selector: '.detailGuide__tx16.detailGuide__bold.detailGuide__lin-hgt',
-    },
-    category: 'crt_name',
-    pipes: ['p', 'ta'],
-  },
-  {
-    name: 'cover',
-    selector: {
-      selector: 'img',
-    },
-    category: 'crt_cover',
-  }
-);
-

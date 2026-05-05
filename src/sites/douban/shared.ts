@@ -1,5 +1,4 @@
 import { SingleInfo } from '../../interface/subjectInfo';
-import { findElement } from '../../utils/domUtils';
 
 type DoubanTrack = {
   title: string;
@@ -106,12 +105,9 @@ export function hasCoverUrl(value: unknown): value is DoubanCoverValue {
 }
 
 export function getDoubanPlatformLinks() {
-  const platformContainer = findElement({
-    selector: '#content .game-attr',
-    subSelector: 'dt',
-    sibling: true,
-    keyWord: '平台',
-  });
+  const platformContainer = Array.from(
+    document.querySelectorAll<HTMLElement>('#content .game-attr dt')
+  ).find((element) => element.textContent?.includes('平台'))?.nextElementSibling;
   if (!platformContainer) {
     return [];
   }

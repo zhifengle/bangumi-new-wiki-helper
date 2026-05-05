@@ -1,16 +1,10 @@
-import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
+import { SingleInfo } from '../../interface/subjectInfo';
 import { SubjectTools } from '../catalogTypes';
 import { amazonUtils, getAmazonCoverInfo } from '../amazon/shared';
 
 export { amazonUtils } from '../amazon/shared';
 
 export const amazonJpBookTools: SubjectTools = {
-  filters: [
-    {
-      category: 'subject_title',
-      dealFunc: amazonUtils.dealTitle,
-    },
-  ],
   hooks: {
     async beforeCreate() {
       const $t = document.querySelector('#title');
@@ -63,28 +57,10 @@ export const amazonJpBookTools: SubjectTools = {
       }
       return true;
     },
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async finalize(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
-        let newInfo: null | SingleInfo = { ...info };
-        const stringValue = getStringValue(info.value);
-        if (info.name === '页数') {
-          const val = stringValue.trim().replace(/ページ|页/, '');
-          if (val && val.length < 8 && val.indexOf('予約商品') === -1) {
-            newInfo.value = val;
-          } else {
-            newInfo = null;
-          }
-        } else if (info.name === '播放时长') {
-          newInfo.value = stringValue.replace('時間', '小时').replace(/ /g, '');
-        } else if (info.name === '价格') {
-          newInfo.value = stringValue.replace(/来自|より/, '').trim();
-        }
-        if (newInfo) {
-          res.push({
-            ...newInfo,
-          });
-        }
+        res.push({ ...info });
       }
       const coverInfo = await getAmazonCoverInfo(res);
       if (coverInfo) {

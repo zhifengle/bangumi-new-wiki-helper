@@ -1,100 +1,49 @@
-import {
-  InfoConfig,
-  Selector,
-  SubjectSourceDefinition,
-  SubjectTypeId,
-} from '../../interface/wiki';
+import { SubjectSourceDefinition, SubjectTypeId } from '../../interface/wiki';
+import { attr, date, dom, fieldKind, firstOf } from '../core/extraction';
 
 export const erogamescapeSubject: SubjectSourceDefinition = {
   key: 'erogamescape',
   description: 'erogamescape',
   host: ['erogamescape.org', 'erogamescape.dyndns.org'],
   type: SubjectTypeId.game,
-  pageSelectors: [
+  pageSource: dom('#soft-title'),
+  controlSource: dom('#soft-title'),
+  itemList: [
     {
-      selector: '#soft-title',
+      name: '游戏名',
+      source: dom('#soft-title > span'),
+      kind: fieldKind.preservedText(),
+      emit: { category: 'subject_title' },
     },
+    { name: '开发', source: dom('#brand a') },
+    {
+      name: '发行日期',
+      source: dom('#sellday a'),
+      parse: date(),
+      emit: { category: 'date' },
+    },
+    {
+      name: 'cover',
+      source: dom('#image_and_basic_infomation img'),
+      kind: fieldKind.cover(),
+      emit: { category: 'cover' },
+    },
+    {
+      name: 'website',
+      source: firstOf([
+        dom('#links').find('a').hasText('game_OHP'),
+        dom('#bottom_inter_links_main').find('a').hasText('game_OHP'),
+      ]),
+      read: attr('href'),
+      clean: false,
+      emit: { category: 'website' },
+    },
+    { name: '原画', source: dom('#genga > td:last-child') },
+    { name: '剧本', source: dom('#shinario > td:last-child') },
+    { name: '歌手', source: dom('#kasyu > td:last-child') },
   ],
-  controlSelector: {
-    selector: '#soft-title',
-  },
-  itemList: [],
+  defaults: [
+    { name: '平台', value: 'PC', category: 'platform' },
+    { name: 'subject_nsfw', value: '1', category: 'checkbox' },
+  ],
 };
-
-erogamescapeSubject.itemList.push(
-  {
-    name: '游戏名',
-    selector: {
-      selector: '#soft-title > span',
-    },
-    category: 'subject_title',
-  },
-  {
-    name: '开发',
-    selector: {
-      selector: '#brand a',
-    },
-  },
-  {
-    name: '发行日期',
-    selector: {
-      selector: '#sellday a',
-    },
-    category: 'date',
-  },
-  {
-    name: 'cover',
-    selector: {
-      selector: '#image_and_basic_infomation img',
-    },
-    category: 'cover',
-  },
-  {
-    name: 'website',
-    selector: [
-      {
-        selector: '#links',
-        subSelector: 'a',
-        keyWord: 'game_OHP',
-      },
-      {
-        selector: '#bottom_inter_links_main',
-        subSelector: 'a',
-        keyWord: 'game_OHP',
-      },
-    ],
-    category: 'website',
-  },
-  {
-    name: '原画',
-    selector: {
-      selector: '#genga > td:last-child',
-    },
-  },
-  {
-    name: '剧本',
-    selector: {
-      selector: '#shinario > td:last-child',
-    },
-  },
-  {
-    name: '歌手',
-    selector: {
-      selector: '#kasyu > td:last-child',
-    },
-  }
-);
-
-erogamescapeSubject.defaultInfos = [
-  {
-    name: '平台',
-    value: 'PC',
-    category: 'platform',
-  },
-  {
-    name: 'subject_nsfw',
-    value: '1',
-    category: 'checkbox',
-  },
-];
-

@@ -24,13 +24,13 @@ describe('douban music tools', () => {
       </div>
     `;
 
-    const result = ((await doubanMusicTools.hooks?.afterGetWikiData?.([
+    const result = ((await doubanMusicTools.hooks?.finalize?.([
       {
         name: '音乐简介',
         value: '已有简介',
         category: 'subject_summary',
       },
-    ])) ?? []) as SingleInfo[];
+    ], { kind: 'subject', site: 'douban_music' })) ?? []) as SingleInfo[];
 
     expect(result).toEqual(
       expect.arrayContaining([
