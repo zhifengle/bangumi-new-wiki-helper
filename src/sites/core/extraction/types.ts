@@ -68,19 +68,32 @@ export type FieldTransform = (
   context: FieldContext
 ) => MaybePromise<WikiValue>;
 
+/** Controls how a field behaves when the extracted value is empty. */
 export type EmptyPolicy =
   | 'skip'
   | 'keep-empty-string'
   | 'keep-null'
   | 'use-default';
 
+/**
+ * Describes how the final field value is emitted as a wiki item.
+ *
+ * Field stages before this point produce a value. EmitSpec decides the output
+ * item name/category and whether empty values should be skipped, kept, or
+ * replaced by a default value.
+ */
 export interface EmitSpec {
+  /** Overrides the output item name. Defaults to FieldSpec.name. */
   name?: string;
+  /** Output wiki category, for example subject_title, date, cover, or alias. */
   category?: string;
+  /** Empty value behavior. Defaults to skip. */
   empty?: EmptyPolicy;
+  /** Used only when empty is use-default and the value is undefined. */
   defaultValue?: WikiValue | (() => WikiValue);
 }
 
+/** Reusable field defaults. Explicit FieldSpec properties override kind values. */
 export interface FieldKind {
   read?: ReaderSpec;
   clean?: CleanSpec | false;
@@ -89,6 +102,7 @@ export interface FieldKind {
   emit?: EmitSpec;
 }
 
+/** One extraction field: locate source, read value, normalize it, then emit it. */
 export interface FieldSpec {
   name: string;
   source: SourceSpec;
@@ -106,6 +120,7 @@ export type FieldContext = SourceContext & {
 
 export type ResolvedEmitSpec = Required<Pick<EmitSpec, 'empty'>> & EmitSpec;
 
+/** Compiled field with all defaults resolved before execution. */
 export interface FieldPlan {
   field: FieldSpec;
   name: string;
