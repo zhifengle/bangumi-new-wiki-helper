@@ -11,3 +11,5 @@ node_modules
 web-ext-artifacts
 test-results/
 graphify-out/
+.agents/
+docs/

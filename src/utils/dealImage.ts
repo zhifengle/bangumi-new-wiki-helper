@@ -77,6 +77,9 @@ export function getImageDataByURL(
   return new Promise<string>(async (resolve, reject) => {
     try {
       const blob = await fetchBinary(url, opts);
+      if (blob.type && !blob.type.toLowerCase().startsWith('image/')) {
+        throw new Error(`unexpected image response type: ${blob.type}`);
+      }
       const reader = new FileReader();
       reader.onloadend = function () {
         if (typeof reader.result === 'string') {

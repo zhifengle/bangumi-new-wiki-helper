@@ -1,4 +1,8 @@
-import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
+import {
+  getCoverValue,
+  getStringValue,
+  SingleInfo,
+} from '../../interface/subjectInfo';
 import { IAuxPrefs } from '../../interface/types';
 
 // ═══════════════════════════════════════════════════════
@@ -75,6 +79,27 @@ const subjectTitleStrategy: MergeStrategy = ({ current, other }) => {
 /** 保留原始值（游戏简介/开发/发行等不宜被覆盖的字段） */
 const keepOriginStrategy: MergeStrategy = ({ current }) => [{ ...current }];
 
+function isCoverField(info: SingleInfo): boolean {
+  return info.category === 'cover' || info.category === 'crt_cover';
+}
+
+function hasCoverValue(info: SingleInfo): boolean {
+  const cover = getCoverValue(info.value);
+  if (cover) {
+    return Boolean(cover.dataUrl || cover.url);
+  }
+  return Boolean(getStringValue(info.value).trim());
+}
+
+/** cover 可能是结构化对象，不能按字符串长度比较。 */
+const coverValueStrategy: MergeStrategy = ({ current, other }) => {
+  const currentHasValue = hasCoverValue(current);
+  const otherHasValue = hasCoverValue(other);
+  if (!currentHasValue && otherHasValue) return [{ ...other }];
+  if (currentHasValue) return [{ ...current }];
+  return [{ ...current }];
+};
+
 /** 默认策略：取较长值 */
 const longerValueStrategy: MergeStrategy = ({ current, other }) => {
   const cv = getStringValue(current.value);
@@ -107,6 +132,7 @@ function selectStrategy(ctx: MergeContext): MergeStrategy {
   }
 
   // 按字段特征选策略
+  if (isCoverField(current) || isCoverField(other)) return coverValueStrategy;
   if (current.category === 'subject_title') return subjectTitleStrategy;
   if (KEEP_ORIGIN_NAMES.has(current.name)) return keepOriginStrategy;
 

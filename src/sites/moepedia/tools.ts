@@ -41,6 +41,10 @@ export const moepediaTools: SubjectTools = {
     async afterGetWikiData(infos: SingleInfo[]) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
+        if (info.category === 'cover') {
+          res.push({ ...info });
+          continue;
+        }
         let val = getStringValue(info.value);
         if (info.name === '游戏名') {
           val = dealTitle(val);

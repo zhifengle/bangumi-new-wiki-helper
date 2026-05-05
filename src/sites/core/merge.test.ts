@@ -352,6 +352,33 @@ describe('dedup behavior', () => {
     );
     expect(result.filter((v) => v.name === '平台' && v.value === 'PS5')).toHaveLength(1);
   });
+
+  test('empty cover does not override a structured cover from the other side', () => {
+    const result = combineInfoList(
+      [{ name: 'cover', value: '', category: 'cover' }],
+      [
+        {
+          name: 'cover',
+          value: {
+            url: 'https://example.com/cover.jpg',
+            dataUrl: 'data:image/jpeg;base64,cover',
+          },
+          category: 'cover',
+        },
+      ]
+    );
+
+    expect(result).toEqual([
+      {
+        name: 'cover',
+        value: {
+          url: 'https://example.com/cover.jpg',
+          dataUrl: 'data:image/jpeg;base64,cover',
+        },
+        category: 'cover',
+      },
+    ]);
+  });
 });
 
 // ─── 集成场景 ─────────────────────────────────────────────────────────────────
