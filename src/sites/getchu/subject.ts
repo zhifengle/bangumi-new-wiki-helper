@@ -8,7 +8,7 @@ import {
   strip,
 } from '../core/extraction';
 import { createStartsWithPattern } from '../../utils/textPattern';
-import { getchuTools } from './tools';
+import { getchuCoverReferer, getchuTools } from './tools';
 
 const infoTable = dom('#soft_table table').find('td');
 const labeledInfo = (key: string | string[]) =>
@@ -49,7 +49,7 @@ export const getchuSubject: SubjectSourceDefinition = {
         dom('#soft_table .highslide'),
         dom('#soft_table .highslide img'),
       ]),
-      kind: fieldKind.cover({ referer: 'sourceUrl' }),
+      kind: fieldKind.cover({ referer: getchuCoverReferer }),
       emit: { category: 'cover' },
     },
     ...dict.map(([key, name]) => ({

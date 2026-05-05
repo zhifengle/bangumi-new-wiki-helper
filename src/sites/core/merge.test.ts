@@ -428,6 +428,38 @@ describe('integration scenarios', () => {
     expect(result.find((v) => v.name === '发售日')?.value).toBe('2020-01-01');
   });
 
+  test('aux cover replaces an empty origin cover even when targetNames prefers cover', () => {
+    const result = combineInfoList(
+      [
+        { name: '游戏名', value: '気になる彼女のママは現役魔法少女', category: 'subject_title' },
+        { name: 'cover', value: '', category: 'cover' },
+      ],
+      [
+        {
+          name: 'cover',
+          value: {
+            url: 'https://www.getchu.com/brandnew/1360701/c1360701package.jpg',
+            dataUrl: 'data:image/jpeg;base64,cover',
+          },
+          category: 'cover',
+        },
+      ],
+      { targetNames: ['cover'] }
+    );
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'cover',
+          value: expect.objectContaining({
+            dataUrl: 'data:image/jpeg;base64,cover',
+          }),
+          category: 'cover',
+        }),
+      ])
+    );
+  });
+
   test('null / undefined list inputs are handled gracefully', () => {
     expect(combineInfoList(null as any, [{ name: 'x', value: '1' }])).toEqual([
       { name: 'x', value: '1' },

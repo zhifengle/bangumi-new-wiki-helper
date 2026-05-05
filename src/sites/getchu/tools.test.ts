@@ -1,7 +1,28 @@
 // @vitest-environment jsdom
-import { getchuTools } from './tools';
+import { getchuCoverReferer, getchuTools } from './tools';
 
 describe('getchu tools', () => {
+  test('build cover referer from image url or source url', () => {
+    expect(
+      getchuCoverReferer(
+        {
+          site: 'getchu_game',
+          sourceUrl: 'https://www.getchu.com/soft.phtml?id=1090677',
+        },
+        'https://www.getchu.com/brandnew/1090677/c1090677package.jpg'
+      )
+    ).toBe('https://www.getchu.com/soft.phtml?id=1090677');
+    expect(
+      getchuCoverReferer(
+        {
+          site: 'getchu_game',
+          sourceUrl: 'https://www.getchu.com/soft.phtml?id=1090677',
+        },
+        'https://www.getchu.com/cover.jpg'
+      )
+    ).toBe('https://www.getchu.com/soft.phtml?id=1090677');
+  });
+
   test('deal title text', () => {
     const dealTitle = getchuTools.dealTitle;
 

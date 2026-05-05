@@ -2,6 +2,7 @@ import { SingleInfo } from '../../interface/subjectInfo';
 import { getText } from '../../utils/domUtils';
 import { convertImgToBase64 } from '../../utils/dealImage';
 import { CharacterTools, SubjectTools } from '../catalogTypes';
+import type { SourceContext } from '../core/extraction';
 
 const GETCHU_CHARA_NAME_SELECTOR = '.chara-name';
 const getchuCharacterInfoNameDict: Record<string, string> = {
@@ -21,6 +22,15 @@ function getCharacterNameElement($t: Element): HTMLElement | null {
 
 function normalizeCharacterName(rawName: string): string {
   return rawName.split(/（|\(|\sCV|新建角色/)[0];
+}
+
+export function getchuCoverReferer(
+  context: SourceContext,
+  imageUrl: string
+): string | undefined {
+  const id = imageUrl.match(/brandnew\/(\d+)/)?.[1]
+    || context.sourceUrl?.match(/[?&]id=(\d+)/)?.[1];
+  return id ? `https://www.getchu.com/soft.phtml?id=${id}` : context.sourceUrl;
 }
 
 export const getchuTools = {

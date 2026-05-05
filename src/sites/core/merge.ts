@@ -1,4 +1,9 @@
-import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
+import {
+  getCoverValue,
+  getStringValue,
+  SingleInfo,
+  SingleInfoValue,
+} from '../../interface/subjectInfo';
 import { IAuxPrefs } from '../../interface/types';
 
 // ═══════════════════════════════════════════════════════
@@ -75,6 +80,52 @@ const subjectTitleStrategy: MergeStrategy = ({ current, other }) => {
 /** 保留原始值（游戏简介/开发/发行等不宜被覆盖的字段） */
 const keepOriginStrategy: MergeStrategy = ({ current }) => [{ ...current }];
 
+function isEmptySingleInfoValue(value: SingleInfoValue): boolean {
+  return (
+    value === undefined ||
+    value === null ||
+    value === '' ||
+    (Array.isArray(value) && value.length === 0)
+  );
+}
+
+const nonEmptyValueStrategy: MergeStrategy = ({ current, other }) => {
+  const currentEmpty = isEmptySingleInfoValue(current.value);
+  const otherEmpty = isEmptySingleInfoValue(other.value);
+  if (currentEmpty && !otherEmpty) return [{ ...other }];
+  if (!currentEmpty && otherEmpty) return [{ ...current }];
+  return [];
+};
+
+function isCoverInfo(item: SingleInfo): boolean {
+  return item.name === 'cover' || item.category === 'cover' || item.category === 'crt_cover';
+}
+
+function coverQuality(item: SingleInfo): number {
+  const value = item.value;
+  if (isEmptySingleInfoValue(value)) return 0;
+
+  const cover = getCoverValue(value);
+  if (cover) {
+    if (cover.dataUrl?.startsWith('data:image/')) return 3;
+    if (cover.url?.startsWith('http') || cover.dataUrl?.startsWith('http')) return 2;
+    return 1;
+  }
+
+  const textValue = getStringValue(value);
+  if (textValue.startsWith('data:image/')) return 3;
+  if (textValue.startsWith('http')) return 2;
+  return 1;
+}
+
+const coverStrategy: MergeStrategy = ({ current, other }) => {
+  const currentQuality = coverQuality(current);
+  const otherQuality = coverQuality(other);
+  if (currentQuality > otherQuality) return [{ ...current }];
+  if (otherQuality > currentQuality) return [{ ...other }];
+  return [];
+};
+
 /** 默认策略：取较长值 */
 const longerValueStrategy: MergeStrategy = ({ current, other }) => {
   const cv = getStringValue(current.value);
@@ -91,6 +142,17 @@ const KEEP_ORIGIN_NAMES = new Set(['游戏简介', '开发', '发行']);
 function selectStrategy(ctx: MergeContext): MergeStrategy {
   const { current, other, auxPrefs } = ctx;
   const { originNames, targetNames } = auxPrefs;
+
+  if (
+    isEmptySingleInfoValue(current.value) !== isEmptySingleInfoValue(other.value)
+  ) {
+    return nonEmptyValueStrategy;
+  }
+
+  if (isCoverInfo(current) && isCoverInfo(other)) {
+    const selected = coverStrategy(ctx);
+    if (selected.length) return () => selected;
+  }
 
   // 偏好优先级最高
   if (
@@ -156,14 +218,13 @@ function groupFields(
       continue;
     }
 
-    // targetNames 优先：此字段交给 other 侧
-    if (targetNamesSet.has(item.name)) continue;
-
     const otherItem = otherIndex.get(item.name);
     if (otherItem) {
       groups.push({ kind: 'both', current: item, other: otherItem });
       matchedOtherNames.add(item.name);
     } else {
+      // targetNames 优先：没有 other 值时，此字段不从 origin 侧输出。
+      if (targetNamesSet.has(item.name)) continue;
       groups.push({ kind: 'origin-only', item });
     }
   }

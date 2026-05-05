@@ -4,9 +4,14 @@ import type { ReaderSpec, SourceContext, SourceResult, WikiValue } from './types
 
 export type CoverRefererPolicy = 'sourceUrl';
 
+export type CoverRefererResolver = (
+  context: SourceContext,
+  imageUrl: string
+) => string | undefined;
+
 export type CoverReaderOptions = {
   attr?: string;
-  referer?: CoverRefererPolicy;
+  referer?: CoverRefererPolicy | CoverRefererResolver;
 };
 
 function firstElement(source: SourceResult): Element | undefined {
@@ -46,9 +51,13 @@ export function attr(name: string): ReaderSpec {
 }
 
 function resolveCoverReferer(
-  policy: CoverRefererPolicy | undefined,
-  context: SourceContext
+  policy: CoverReaderOptions['referer'],
+  context: SourceContext,
+  imageUrl: string
 ): string | undefined {
+  if (typeof policy === 'function') {
+    return policy(context, imageUrl);
+  }
   if (policy === 'sourceUrl') {
     return context.sourceUrl;
   }
@@ -75,7 +84,7 @@ export function cover(options: CoverReaderOptions = {}): ReaderSpec {
 
       url = resolveUrl(url, context);
       let dataUrl = url;
-      const referer = resolveCoverReferer(options.referer, context);
+      const referer = resolveCoverReferer(options.referer, context, url);
       try {
         dataUrl = await getImageDataByURL(url, {
           headers: referer ? { Referer: referer } : undefined,

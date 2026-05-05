@@ -1,4 +1,4 @@
-import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
+import { SingleInfo } from '../../interface/subjectInfo';
 import { SubjectTools } from '../catalogTypes';
 
 export function dealTitle(str: string): string {
@@ -35,24 +35,31 @@ export const moepediaTools: SubjectTools = {
       return true;
     },
     async finalize(infos: SingleInfo[]) {
-      const res: SingleInfo[] = [];
-      for (const info of infos) {
-        let val = getStringValue(info.value);
+      const normalizedLineNames = new Set([
+        '原画',
+        '剧本',
+        '音乐',
+        '主题歌演唱',
+        '游戏类型',
+      ]);
+
+      return infos.map((info) => {
+        if (typeof info.value !== 'string') return info;
+
+        let value = info.value;
         if (info.name === '游戏名') {
-          val = dealTitle(val);
-        } else if (
-          ['原画', '剧本', '音乐', '主题歌演唱', '游戏类型'].includes(info.name)
-        ) {
-          val = val.replace(/\n\s*/g, ', ');
+          value = dealTitle(value);
+        } else if (normalizedLineNames.has(info.name)) {
+          value = value.replace(/\n\s*/g, ', ');
         } else if (info.name === '售价') {
-          val = val.replace(/.*¥/, '¥');
+          value = value.replace(/.*¥/, '¥');
         }
-        res.push({
+
+        return {
           ...info,
-          value: val,
-        });
-      }
-      return res;
+          value,
+        };
+      });
     },
   },
 };
