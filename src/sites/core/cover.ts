@@ -32,7 +32,7 @@ export async function getCover(
     // 跨域的图片不能用这种方式
     let opts: IFetchOpts = {};
     if (site.includes('getchu')) {
-      const referer = context.imageReferer || currentPageUrl;
+      const referer = context.sourceUrl || currentPageUrl;
       opts.headers = referer
         ? {
             Referer: referer,

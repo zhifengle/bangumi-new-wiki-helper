@@ -1,10 +1,17 @@
 // @vitest-environment jsdom
 import { vi } from 'vitest';
 import { dmmSubject } from '../sites/dmm/subject';
+import { getchuSubject } from '../sites/getchu/subject';
 import { createWikiExtractContext } from '../sites/core/context';
 import { getWikiData } from '../sites/core/extract';
+import { getImageDataByURL } from '../utils/dealImage';
 import { initSourceSubject } from './subject';
 import { SourceRuntimeAdapter } from './runtime';
+
+vi.mock('../utils/dealImage', () => ({
+  convertImgToBase64: vi.fn(() => 'data:image/png;base64,cover'),
+  getImageDataByURL: vi.fn((url: string) => Promise.resolve(`data:${url}`)),
+}));
 
 async function flushAsyncEvents() {
   await Promise.resolve();
@@ -219,5 +226,53 @@ describe('DMM subject page', () => {
         }),
       })
     );
+  });
+
+  test('passes current page url to getchu cover referer without changing extension hydrate', async () => {
+    const originalLocation = globalThis.location;
+    Object.defineProperty(globalThis, 'location', {
+      configurable: true,
+      value: {
+        href: 'https://www.getchu.com/soft.phtml?id=1090677',
+      },
+    });
+    document.body.innerHTML = `
+      <div class="genretab current"><a>ゲーム</a></div>
+      <h1 id="soft-title">Demo Game</h1>
+      <div id="soft_table">
+        <a class="highslide" href="./brandnew/1090677/c1090677package.jpg">
+          <img src="./thumb.jpg">
+        </a>
+      </div>
+    `;
+    const runtime: SourceRuntimeAdapter = {
+      fetchHtml: vi.fn().mockResolvedValue(''),
+      hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
+      hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
+      submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
+      submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
+    };
+
+    try {
+      await initSourceSubject(getchuSubject, runtime);
+
+      document.querySelector<HTMLElement>('.e-wiki-new-subject')?.click();
+      await flushAsyncEvents();
+
+      expect(getImageDataByURL).toHaveBeenCalledWith(
+        'https://www.getchu.com/brandnew/1090677/c1090677package.jpg',
+        {
+          headers: {
+            Referer: 'https://www.getchu.com/soft.phtml?id=1090677',
+          },
+        }
+      );
+      expect(runtime.hydrateSubjectCover).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(globalThis, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    }
   });
 });

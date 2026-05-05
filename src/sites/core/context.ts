@@ -1,6 +1,5 @@
 export type WikiPageContext = {
   sourceUrl?: string;
-  imageReferer?: string;
 };
 
 // extract 阶段显式传入的查询根节点。
@@ -26,6 +25,5 @@ export function createWikiExtractContext(
 export function createRemoteWikiPageContext(url: string): WikiPageContext {
   return {
     sourceUrl: url,
-    imageReferer: url,
   };
 }

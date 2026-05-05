@@ -2,6 +2,7 @@ import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { IMsgPayload } from '../interface/types';
 import { SubjectSourceDefinition } from '../interface/wiki';
 import { getSubjectHooks } from '../sites';
+import { createWikiExtractContext } from '../sites/core/context';
 import { insertControlBtn } from '../sites/core/controls';
 import { getWikiData } from '../sites/core/extract';
 import { locateSource } from '../sites/core/extraction';
@@ -39,7 +40,10 @@ export async function initSourceSubject(
   const { payload } = normalizedHookRes;
   console.info(siteConfig.description, ' content script init');
   insertControlBtn(Array.isArray($title) ? $title[0] : $title, async (_e, shouldCheckDup) => {
-    const infos = await getWikiData(siteConfig);
+    const infos = await getWikiData(
+      siteConfig,
+      createWikiExtractContext(document, { sourceUrl: location.href })
+    );
     await runtime.hydrateSubjectCover?.(infos);
     console.info('wiki info list: ', infos);
     const wikiData: SubjectWikiInfo = {

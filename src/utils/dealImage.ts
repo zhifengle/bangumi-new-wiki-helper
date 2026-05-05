@@ -77,6 +77,10 @@ export function getImageDataByURL(
   return new Promise<string>(async (resolve, reject) => {
     try {
       const blob = await fetchBinary(url, opts);
+      if (!blob.type.startsWith('image/')) {
+        reject(new Error(`invalid image response type: ${blob.type || 'unknown'}`));
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = function () {
         if (typeof reader.result === 'string') {

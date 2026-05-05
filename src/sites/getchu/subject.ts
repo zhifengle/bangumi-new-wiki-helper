@@ -49,7 +49,7 @@ export const getchuSubject: SubjectSourceDefinition = {
         dom('#soft_table .highslide'),
         dom('#soft_table .highslide img'),
       ]),
-      kind: fieldKind.cover(),
+      kind: fieldKind.cover({ referer: 'sourceUrl' }),
       emit: { category: 'cover' },
     },
     ...dict.map(([key, name]) => ({

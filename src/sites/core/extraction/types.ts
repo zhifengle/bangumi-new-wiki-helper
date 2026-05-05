@@ -11,7 +11,6 @@ export type SourceContext = {
   root?: WikiExtractRoot;
   site: SubjectModelKey;
   sourceUrl?: string;
-  imageReferer?: string;
 };
 
 export type DomTraversalStep =

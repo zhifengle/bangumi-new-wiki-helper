@@ -44,6 +44,18 @@ describe('dealImage helpers', () => {
     );
   });
 
+  test('getImageDataByURL rejects html error pages', async () => {
+    mockFetchBinary.mockResolvedValue(
+      new Blob(['<html>403</html>'], {
+        type: 'text/html',
+      })
+    );
+
+    await expect(
+      getImageDataByURL('https://example.com/cover.jpg')
+    ).rejects.toThrow('invalid image response type: text/html');
+  });
+
   test('getImageBase64 normalizes mime type using the image suffix', async () => {
     mockFetchBinary.mockResolvedValue(
       new Blob(['cover'], {

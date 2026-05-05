@@ -2,6 +2,13 @@ import { getImageDataByURL } from '../../../utils/dealImage';
 import { getInnerText, getText } from '../../../utils/domUtils';
 import type { ReaderSpec, SourceContext, SourceResult, WikiValue } from './types';
 
+export type CoverRefererPolicy = 'sourceUrl';
+
+export type CoverReaderOptions = {
+  attr?: string;
+  referer?: CoverRefererPolicy;
+};
+
 function firstElement(source: SourceResult): Element | undefined {
   return Array.isArray(source) ? source[0] : source;
 }
@@ -38,7 +45,17 @@ export function attr(name: string): ReaderSpec {
   };
 }
 
-export function cover(options: { attr?: string; referer?: string } = {}): ReaderSpec {
+function resolveCoverReferer(
+  policy: CoverRefererPolicy | undefined,
+  context: SourceContext
+): string | undefined {
+  if (policy === 'sourceUrl') {
+    return context.sourceUrl;
+  }
+  return undefined;
+}
+
+export function cover(options: CoverReaderOptions = {}): ReaderSpec {
   return {
     async read(source: SourceResult, context: SourceContext): Promise<WikiValue> {
       const element = firstElement(source);
@@ -58,11 +75,10 @@ export function cover(options: { attr?: string; referer?: string } = {}): Reader
 
       url = resolveUrl(url, context);
       let dataUrl = url;
+      const referer = resolveCoverReferer(options.referer, context);
       try {
         dataUrl = await getImageDataByURL(url, {
-          headers: options.referer || context.imageReferer
-            ? { Referer: options.referer || context.imageReferer }
-            : undefined,
+          headers: referer ? { Referer: referer } : undefined,
         });
       } catch (error) {}
       return {
