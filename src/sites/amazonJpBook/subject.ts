@@ -10,18 +10,29 @@ export const amazonJpBookSubject: SubjectSourceDefinition = {
     {
       selector: '#nav-subnav .nav-a:first-child',
       subSelector: '.nav-a-content',
-      keyWord: ['本', '书', '漫画', 'マンガ', 'Audible'],
+      keyWord: ['本', '书', '漫画', 'マンガ', 'Kindle', 'Audible'],
     },
     {
       selector:
         '#wayfinding-breadcrumbs_container .a-unordered-list .a-list-item:first-child',
       subSelector: '.a-link-normal',
-      keyWord: ['本', '书', '漫画', 'マンガ', 'Audible'],
+      keyWord: ['本', '书', '漫画', 'マンガ', 'Kindle', 'Audible'],
+    },
+    {
+      selector:
+        '#wayfinding-breadcrumbs_feature_div .a-unordered-list .a-list-item:first-child',
+      subSelector: '.a-link-normal',
+      keyWord: ['本', '书', '漫画', 'マンガ', 'Kindle', 'Audible'],
     },
   ],
-  controlSelector: {
-    selector: '#title',
-  },
+  controlSelector: [
+    {
+      selector: '#title',
+    },
+    {
+      selector: '#productTitle',
+    },
+  ],
   itemList: [],
 };
 

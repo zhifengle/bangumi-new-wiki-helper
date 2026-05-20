@@ -4,6 +4,61 @@ import { amazonUtils, getAmazonCoverInfo } from '../amazon/shared';
 
 export { amazonUtils } from '../amazon/shared';
 
+const usedOfferReg = /非全新品|中古品|中古商品|コレクター商品|收藏品/i;
+const currentUsedBuyboxReg =
+  /中古品\s*[:：]|中古商品\s*[:：]|コンディション\s*[:：]?\s*(?:中古|非全新品)|コレクター商品\s*[:：]|非全新品\s*[:：]/i;
+const newOfferReg = /新品/i;
+const kindleFormatReg = /Kindle|電子書籍|电子书/i;
+
+function getText(selector: string) {
+  return document.querySelector(selector)?.textContent ?? '';
+}
+
+function isCurrentAmazonJpBookOfferUsed() {
+  const selectedFormatText = getText('#tmmSwatches .a-button-selected');
+  if (kindleFormatReg.test(selectedFormatText)) {
+    return false;
+  }
+
+  const currentBuyboxText = getText(
+    '#usedOnlyBuybox, #used_buybox_desktop, #usedBuySection, #desktop_buybox'
+  );
+  if (
+    document.querySelector(
+      '#usedOnlyBuybox, #used_buybox_desktop, #usedBuySection, #usedOfferListingID'
+    ) ||
+    currentUsedBuyboxReg.test(currentBuyboxText)
+  ) {
+    return true;
+  }
+
+  const otherOfferText = getText('.aod-popover-caret-link');
+  return usedOfferReg.test(otherOfferText) && !newOfferReg.test(otherOfferText);
+}
+
+function getBookFormatSwatches() {
+  const $swatches = document.querySelector('#tmmSwatches');
+  if (!$swatches) {
+    return [];
+  }
+
+  const formatSwatches = $swatches.querySelectorAll('[id^="tmm-grid-swatch-"]');
+  if (formatSwatches.length) {
+    return Array.from(formatSwatches);
+  }
+
+  return Array.from($swatches.querySelectorAll('.swatchElement'));
+}
+
+function getTitleAnchor() {
+  const $title = document.querySelector('#title');
+  if ($title) {
+    return $title;
+  }
+  const $productTitle = document.querySelector('#productTitle');
+  return $productTitle?.closest('h1') ?? $productTitle;
+}
+
 export const amazonJpBookTools: SubjectTools = {
   filters: [
     {
@@ -13,17 +68,15 @@ export const amazonJpBookTools: SubjectTools = {
   ],
   hooks: {
     async beforeCreate() {
-      const $t = document.querySelector('#title');
-      const bookTypeList = document.querySelectorAll(
-        '#tmmSwatches ul > li.swatchElement'
-      );
-      const books = document.querySelectorAll('#tmmSwatches > .a-row div');
+      const $t = getTitleAnchor();
+      const formatSwatches = getBookFormatSwatches();
       if (
         $t &&
-        ((bookTypeList && bookTypeList.length > 1) ||
-          (books && books.length > 1))
+        !document.querySelector('.e-wiki-amazon-book-format-warning') &&
+        formatSwatches.length > 1
       ) {
         const $div = document.createElement('div');
+        $div.className = 'e-wiki-amazon-book-format-warning';
         const $s = document.createElement('span');
         $s.style.color = 'red';
         $s.style.fontWeight = '600';
@@ -35,31 +88,6 @@ export const amazonJpBookTools: SubjectTools = {
         $div.appendChild($txt);
         $div.style.padding = '6px 0';
         $t.insertAdjacentElement('afterend', $div);
-        const $desc = document.querySelector(
-          '#bookDescription_feature_div .a-expander-content'
-        );
-        if (!$desc) {
-          const btns: NodeListOf<HTMLAnchorElement> = document.querySelectorAll(
-            '#tmmSwatches ul > li.swatchElement .a-button-text'
-          );
-          if (btns && btns.length) {
-            const url = Array.from(btns)
-              .map((a) => a.href)
-              .filter((h) => h.match(/^http/))[0];
-            if (url) {
-              return {
-                payload: {
-                  auxSite: {
-                    url,
-                    prefs: {
-                      originNames: ['ISBN', '名称'],
-                    },
-                  },
-                },
-              };
-            }
-          }
-        }
       }
       return true;
     },
@@ -79,10 +107,8 @@ export const amazonJpBookTools: SubjectTools = {
           newInfo.value = stringValue.replace('時間', '小时').replace(/ /g, '');
         } else if (info.name === '价格') {
           newInfo.value = stringValue.replace(/来自|より/, '').trim();
-          // 去掉非全新品价格。
-          const $caret = document.querySelector('.aod-popover-caret-link')
-          if ($caret && /非全新品|中古品/.test($caret.textContent)) {
-            newInfo = null
+          if (isCurrentAmazonJpBookOfferUsed()) {
+            newInfo = null;
           }
         }
         if (newInfo) {
@@ -99,5 +125,3 @@ export const amazonJpBookTools: SubjectTools = {
     },
   },
 };
-
-
