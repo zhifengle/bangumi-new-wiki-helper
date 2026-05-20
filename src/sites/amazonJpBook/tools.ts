@@ -79,6 +79,11 @@ export const amazonJpBookTools: SubjectTools = {
           newInfo.value = stringValue.replace('時間', '小时').replace(/ /g, '');
         } else if (info.name === '价格') {
           newInfo.value = stringValue.replace(/来自|より/, '').trim();
+          // 去掉非全新品价格。
+          const $caret = document.querySelector('.aod-popover-caret-link')
+          if ($caret && /非全新品|中古品/.test($caret.textContent)) {
+            newInfo = null
+          }
         }
         if (newInfo) {
           res.push({

@@ -6,7 +6,7 @@ import type {
 } from '../interface/wiki';
 import type { WikiExtractRoot } from './core/context';
 
-export type SiteDealFunc = (value?: string | null) => string;
+export type SiteDealFunc = (value?: any) => string;
 
 export type CategoryFilter = {
   category: string;
