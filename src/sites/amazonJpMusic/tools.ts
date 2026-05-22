@@ -1,6 +1,9 @@
 import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import { SubjectTools } from '../catalogTypes';
-import { getAmazonCoverInfo } from '../amazon/shared';
+import {
+  getAmazonCoverInfo,
+  toAmazonAcSl1500ImageUrl,
+} from '../amazon/shared';
 
 export const amazonJpMusicTools: SubjectTools = {
   hooks: {
@@ -22,7 +25,9 @@ export const amazonJpMusicTools: SubjectTools = {
           });
         }
       }
-      const coverInfo = await getAmazonCoverInfo(res);
+      const coverInfo = await getAmazonCoverInfo(res, {
+        imageUrlTransform: toAmazonAcSl1500ImageUrl,
+      });
       if (coverInfo) {
         res.push(coverInfo);
       }
