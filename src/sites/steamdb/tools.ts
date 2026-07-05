@@ -51,10 +51,10 @@ export const steamdbTools: SubjectTools = {
         }
       }
       const $appInstall = document.querySelector('#js-app-install') as HTMLAnchorElement;
-      const appId = $appInstall?.href.match(/steam:\/\/launch\/(\d+)/)?.[1];
+      const appId = $appInstall?.href.match(/steam:\/\/(?:install|launch)\/(\d+)/)?.[1];
       if (appId) {
         res.push({
-          name: 'website',
+          name: '链接',
           value: `Steam|https://store.steampowered.com/app/${appId}`,
           category: 'listItem',
         });

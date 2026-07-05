@@ -26,9 +26,9 @@ export const steamTools: SubjectTools = {
       }
       if (location.hostname === 'store.steampowered.com') {
         res.push({
-          name: 'website',
+          name: '链接',
           value: `Steam|${location.origin + location.pathname}`,
-          category: 'website,listItem',
+          category: 'listItem',
         });
       }
       return res;
