@@ -27,17 +27,28 @@ export function toAmazonAcSl1500ImageUrl(url: string) {
   return url.replace(/(?:\._[^/.]+_)?\.(jpe?g)(\?.*)?$/i, '._AC_SL1500_.$1$2');
 }
 
+function toHalfWidthDigits(str: string) {
+  return str.replace(/[０-９]/g, (char) =>
+    String.fromCharCode(char.charCodeAt(0) - 0xfee0)
+  );
+}
+
+function normalizeVolumeParenthesis(str: string) {
+  return str.replace(
+    /([\s　]*)[（(]\s*([0-9０-９]+)\s*[）)]/g,
+    (_, spacing, volume) => {
+      return `${spacing}(${toHalfWidthDigits(volume)})`;
+    }
+  );
+}
+
 export const amazonUtils = {
   dealTitle(str: string = ''): string {
-    str = str.trim().split('\n')[0].trim();
-    const textList = [
-      '\\([^0-9]+?\\)$',
-      '（[^0-9]+?）$',
-      '\\(.+?\\d+.+?\\)$',
-      '（.+?\\d+.+?）$',
-    ];
-    str = str.replace(new RegExp(textList.join('|'), 'g'), '').trim();
-    return str;
+    str = normalizeVolumeParenthesis(str.trim().split('\n')[0].trim());
+    return str
+      .replace(/[\s　]*\((?!\s*[0-9]+\s*\))[^()]*\)$/, '')
+      .replace(/[\s　]*（(?!\s*[0-9０-９]+\s*）)[^（）]*）$/, '')
+      .trim();
   },
   getUrlDp(str: string): string {
     const m = str.match(/\/dp\/(.*?)\//);

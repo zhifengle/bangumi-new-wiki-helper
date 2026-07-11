@@ -20,7 +20,15 @@ describe('amazon shared utils', () => {
       dealTitle(
         '動物のおしゃべり　（１） (バンブーコミックス 4コマセレクション)'
       )
-    ).toEqual('動物のおしゃべり　（１）');
+    ).toEqual('動物のおしゃべり　(1)');
+    expect(dealTitle('ハヤテのごとく！ 完全版（２３）')).toEqual(
+      'ハヤテのごとく！ 完全版(23)'
+    );
+    expect(
+      dealTitle(
+        'ハヤテのごとく! 完全版 (26) (少年サンデーコミックススペシャル)'
+      )
+    ).toEqual('ハヤテのごとく! 完全版 (26)');
   });
 
   test('converts amazon image urls to AC SL1500 variant', () => {
