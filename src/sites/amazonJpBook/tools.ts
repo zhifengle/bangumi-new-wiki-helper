@@ -11,7 +11,6 @@ export { amazonUtils } from '../amazon/shared';
 const usedOfferReg = /非全新品|中古品|中古商品|コレクター商品|收藏品/i;
 const currentUsedBuyboxReg =
   /中古品\s*[:：]|中古商品\s*[:：]|コンディション\s*[:：]?\s*(?:中古|非全新品)|コレクター商品\s*[:：]|非全新品\s*[:：]/i;
-const newOfferReg = /新品/i;
 const kindleFormatReg = /Kindle|電子書籍|电子书/i;
 
 function getText(selector: string) {
@@ -24,20 +23,29 @@ function isCurrentAmazonJpBookOfferUsed() {
     return false;
   }
 
-  const currentBuyboxText = getText(
-    '#usedOnlyBuybox, #used_buybox_desktop, #usedBuySection, #desktop_buybox'
-  );
+  const currentBuyboxText = getText('#Northstar-Buybox .a-accordion-active');
+  if (currentUsedBuyboxReg.test(currentBuyboxText)) {
+    return true;
+  }
+
+  // Do not use broad positive labels such as 新品 here: they are locale-sensitive,
+  // and #desktop_buybox may include unrelated "other offers" text. Also,
+  // #usedOfferListingID can exist even when the selected buybox is not used.
+  // Only used-only buybox containers are structural evidence for filtering.
   if (
     document.querySelector(
-      '#usedOnlyBuybox, #used_buybox_desktop, #usedBuySection, #usedOfferListingID'
-    ) ||
-    currentUsedBuyboxReg.test(currentBuyboxText)
+      '#usedOnlyBuybox, #used_buybox_desktop, #usedBuySection'
+    )
   ) {
     return true;
   }
 
+  if (currentBuyboxText.trim()) {
+    return false;
+  }
+
   const otherOfferText = getText('.aod-popover-caret-link');
-  return usedOfferReg.test(otherOfferText) && !newOfferReg.test(otherOfferText);
+  return usedOfferReg.test(otherOfferText);
 }
 
 function getBookFormatSwatches() {

@@ -21,17 +21,32 @@ export const dlsiteTools: SubjectTools = {
             val = v.map((s: string) => s.trim()).join(', ');
           }
         }
+        if (info.name === 'website' && stringValue) {
+          const url = stringValue.startsWith('/')
+            ? location.origin + stringValue
+            : stringValue;
+          res.push({
+            ...info,
+            name: '链接',
+            value: `DLsite|${url}`,
+            category: 'listItem',
+          });
+          continue;
+        }
         res.push({
           ...info,
           value: val,
         });
       }
-      if (location.hostname.includes('dlsite.com')) {
+      if (
+        location.hostname.includes('dlsite.com') &&
+        !res.some((info) => info.name === '链接')
+      ) {
         res.push({
-          name: 'website',
+          name: '链接',
           value: `DLsite|${location.origin + location.pathname}`,
           category: 'listItem',
-        })
+        });
       }
       const cover = infos.find((obj) => obj.name === 'cover');
       if (!cover) {

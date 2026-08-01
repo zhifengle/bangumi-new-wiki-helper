@@ -209,13 +209,10 @@ amazonJpBookSubject.itemList.push(
         selector: '#tmmSwatches .a-button-selected .slot-price',
       },
       {
-        selector: '#tmm-grid-swatch-OTHER .slot-price',
+        selector: '#Northstar-Buybox .a-button-selected .slot-price',
       },
       {
         selector: '#tmm-grid-swatch-PAPERBACK .slot-price',
-      },
-      {
-        selector: '#tmmSwatches > div > div:last-child .slot-price',
       },
     ],
     pipes: ['ta'],
