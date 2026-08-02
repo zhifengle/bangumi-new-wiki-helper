@@ -4,7 +4,7 @@ const originalFetch = globalThis.fetch;
 
 type MockResponseShape = Pick<
   Response,
-  'ok' | 'text' | 'json' | 'blob' | 'arrayBuffer'
+  'ok' | 'status' | 'text' | 'json' | 'blob' | 'arrayBuffer'
 >;
 
 function createResponse(
@@ -12,6 +12,7 @@ function createResponse(
 ): Response {
   return {
     ok: true,
+    status: 200,
     text: vi.fn().mockResolvedValue(''),
     json: vi.fn().mockResolvedValue({}),
     blob: vi.fn().mockResolvedValue(new Blob()),
@@ -102,5 +103,19 @@ describe('fetchData helpers', () => {
     await vi.advanceTimersByTimeAsync(10);
 
     await rejection;
+  });
+
+  test('fetchText rejects non-2xx responses', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      createResponse({
+        ok: false,
+        status: 403,
+        text: vi.fn().mockResolvedValue('<html>Forbidden</html>'),
+      })
+    ) as MockedFunction<typeof fetch>;
+
+    await expect(fetchText('https://bgm.tv/game/browser/airtime/2024-1')).rejects.toThrow(
+      'Request failed with status 403'
+    );
   });
 });

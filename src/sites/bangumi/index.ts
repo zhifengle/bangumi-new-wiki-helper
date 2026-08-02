@@ -20,21 +20,27 @@ export enum Protocol {
  * 处理搜索页面的 html
  * @param info 字符串 html
  */
-function dealSearchResults(info: string): [SearchResult[], number] | [] {
+export function dealSearchResults(info: string): [SearchResult[], number] {
   const results: SearchResult[] = [];
   let $doc = new DOMParser().parseFromString(info, 'text/html');
-  let items = $doc.querySelectorAll('#browserItemList>li>div.inner');
+  const $resultList = $doc.querySelector('#browserItemList');
+  if (!$resultList) {
+    throw new Error('Invalid Bangumi search response: result list not found');
+  }
+  let items = $resultList.querySelectorAll('li>div.inner');
   // get number of page
   let numOfPage = 1;
   let pList = $doc.querySelectorAll('.page_inner>.p');
-  if (pList && pList.length) {
-    let tempNum = parseInt(
-      pList[pList.length - 2].getAttribute('href').match(/page=(\d*)/)[1]
-    );
-    numOfPage = parseInt(
-      pList[pList.length - 1].getAttribute('href').match(/page=(\d*)/)[1]
-    );
-    numOfPage = numOfPage > tempNum ? numOfPage : tempNum;
+  if (pList.length >= 2) {
+    const secondLastPage = pList[pList.length - 2]
+      .getAttribute('href')
+      ?.match(/page=(\d+)/)?.[1];
+    const lastPage = pList[pList.length - 1]
+      .getAttribute('href')
+      ?.match(/page=(\d+)/)?.[1];
+    const tempNum = Number.parseInt(secondLastPage ?? '1', 10);
+    numOfPage = Number.parseInt(lastPage ?? '1', 10);
+    numOfPage = Math.max(numOfPage, tempNum);
   }
   if (items && items.length) {
     for (const item of Array.prototype.slice.call(items)) {
@@ -70,8 +76,6 @@ function dealSearchResults(info: string): [SearchResult[], number] | [] {
       }
       results.push(itemSubject);
     }
-  } else {
-    return [];
   }
   return [results, numOfPage];
 }
@@ -110,7 +114,7 @@ export async function searchSubject(
   )}?cat=${type}`;
   console.info('search bangumi subject URL: ', url);
   const rawText = await fetchText(url);
-  const rawInfoList = dealSearchResults(rawText)[0] || [];
+  const rawInfoList = dealSearchResults(rawText)[0];
   // 使用指定搜索字符串如 ISBN 搜索时, 并且结果只有一条时，不再使用名称过滤
   if (uniqueQueryStr && rawInfoList && rawInfoList.length === 1) {
     return rawInfoList[0];
@@ -294,4 +298,3 @@ export function changeDomain(
     .replace(new RegExp(domainArr.join('|').replace('.', '\\.')), domain)
     .replace(/https?/, protocol);
 }
-

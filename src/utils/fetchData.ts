@@ -41,6 +41,14 @@ function getGMRequest() {
   }).GM_xmlhttpRequest;
 }
 
+function isSuccessfulHttpStatus(status: number) {
+  return status >= 200 && status < 300;
+}
+
+function createHttpStatusError(status: number, url: string) {
+  return new Error(`Request failed with status ${status}: ${url}`);
+}
+
 function resolveRequestBody(
   method: string,
   body?: BodyInit | null,
@@ -97,8 +105,8 @@ export function fetchInfo(
         responseType,
         ...(requestBody ? { data: requestBody } : {}),
         onload(res) {
-          if (res.status === 404) {
-            reject(404);
+          if (!isSuccessfulHttpStatus(res.status)) {
+            reject(createHttpStatusError(res.status, url));
             return;
           }
           if (decode && responseType === 'arraybuffer') {
@@ -126,8 +134,8 @@ export function fetchInfo(
     TIMEOUT
   )
     .then(async (response) => {
-      if (!response.ok) {
-        throw new Error('Not 2xx response');
+      if (!isSuccessfulHttpStatus(response.status)) {
+        throw createHttpStatusError(response.status, url);
       }
       if (decode) {
         const buffer = await response.arrayBuffer();
@@ -144,7 +152,7 @@ export function fetchInfo(
         case 'arraybuffer':
           return response.arrayBuffer();
       }
-      throw new Error('Not 2xx response');
+      throw new Error(`Unsupported response type: ${type}`);
     })
     .catch((err) => {
       console.log('fetch err: ', err);
