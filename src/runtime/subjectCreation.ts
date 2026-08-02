@@ -58,9 +58,19 @@ async function searchExistingSubject(
     return result;
   } catch (error) {
     console.error('search request failed:', error);
+    const isUnauthenticatedSearch =
+      error instanceof Error &&
+      error.name === 'UnauthenticatedBangumiSearchError';
+    const isInvalidSearchPage =
+      error instanceof Error &&
+      error.name === 'InvalidBangumiSearchResponseError';
     await runtime.notify({
       type: 'error',
-      message: `Bangumi 搜索请求失败: <br/><b>${payload.subjectInfo?.name ?? ''}</b>`,
+      message: isUnauthenticatedSearch
+        ? `Bangumi 搜索请求丢失了登录状态。<br/>请打开 <a href="${runtime.bgmHost}/" target="_blank" rel="noopener noreferrer">${runtime.bgmHost} 主页</a>恢复登录状态，然后返回当前页面重试。`
+        : isInvalidSearchPage
+          ? `Bangumi 返回了异常的搜索页面，可能是登录状态或搜索频率限制。<br/>请打开 <a href="${runtime.bgmHost}/" target="_blank" rel="noopener noreferrer">${runtime.bgmHost} 主页</a>确认登录，并等待至少 60 秒后再试。`
+          : `Bangumi 搜索请求失败: <br/><b>${payload.subjectInfo?.name ?? ''}</b>`,
       cmd: 'dismissNotError',
     });
     throw error;

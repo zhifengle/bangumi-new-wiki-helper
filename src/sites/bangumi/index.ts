@@ -1,6 +1,6 @@
 import {SearchResult, SubjectQueryInfo} from '../../interface/subjectInfo';
 import {sleep} from '../../utils/async/sleep';
-import {fetchText} from '../../utils/fetchData';
+import {fetchJson, fetchText} from '../../utils/fetchData';
 import {SubjectTypeId} from '../../interface/wiki';
 import {dealDate} from '../../utils/utils';
 import { filterResults } from '../core/search';
@@ -16,6 +16,80 @@ export enum Protocol {
   https = 'https',
 }
 
+/** Bangumi HTML 搜索页使用约 60 秒的搜索冷却 Cookie。 */
+export const HTML_SEARCH_INTERVAL_MS = 60 * 1000;
+
+type JsonSearchType = 'book' | 'music' | 'game';
+
+type BangumiJsonSearchItem = {
+  id: string | number;
+  type_id: string | number;
+  name: string;
+  name_cn?: string;
+  url_mod?: string;
+};
+
+const JSON_SEARCH_TYPES: Partial<Record<SubjectTypeId, JsonSearchType>> = {
+  [SubjectTypeId.book]: 'book',
+  [SubjectTypeId.music]: 'music',
+  [SubjectTypeId.game]: 'game',
+};
+
+let lastHtmlSearchAt = 0;
+
+export class InvalidBangumiSearchResponseError extends Error {
+  constructor() {
+    super('Invalid Bangumi search response: result list not found');
+    this.name = 'InvalidBangumiSearchResponseError';
+  }
+}
+
+export class UnauthenticatedBangumiSearchError extends Error {
+  constructor() {
+    super('Bangumi search response is unauthenticated');
+    this.name = 'UnauthenticatedBangumiSearchError';
+  }
+}
+
+function isBangumiJsonSearchItem(value: unknown): value is BangumiJsonSearchItem {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Partial<BangumiJsonSearchItem>;
+  return (
+    (typeof item.id === 'string' || typeof item.id === 'number') &&
+    (typeof item.type_id === 'string' || typeof item.type_id === 'number') &&
+    typeof item.name === 'string'
+  );
+}
+
+function dealJsonSearchResults(
+  info: unknown,
+  expectedType: SubjectTypeId
+): SearchResult[] {
+  if (!Array.isArray(info) || !info.every(isBangumiJsonSearchItem)) {
+    throw new Error('Invalid Bangumi JSON search response');
+  }
+  return info
+    .filter(
+      (item) =>
+        Number(item.type_id) === Number(expectedType) &&
+        (!item.url_mod || item.url_mod === 'subject')
+    )
+    .map((item) => ({
+      name: item.name,
+      greyName: item.name_cn?.trim() ?? '',
+      url: `/subject/${item.id}`,
+    }));
+}
+
+async function fetchHtmlSearchResults(url: string) {
+  const waitTime = HTML_SEARCH_INTERVAL_MS - (Date.now() - lastHtmlSearchAt);
+  if (lastHtmlSearchAt && waitTime > 0) {
+    await sleep(waitTime);
+  }
+  lastHtmlSearchAt = Date.now();
+  return dealSearchResults(await fetchText(url));
+}
+
 /**
  * 处理搜索页面的 html
  * @param info 字符串 html
@@ -23,9 +97,15 @@ export enum Protocol {
 export function dealSearchResults(info: string): [SearchResult[], number] {
   const results: SearchResult[] = [];
   let $doc = new DOMParser().parseFromString(info, 'text/html');
+  const isUnauthenticated =
+    /\bCHOBITS_UID\s*=\s*['"]?0\b/.test(info) ||
+    !!$doc.querySelector('.guest.login[href*="/login"]');
+  if (isUnauthenticated) {
+    throw new UnauthenticatedBangumiSearchError();
+  }
   const $resultList = $doc.querySelector('#browserItemList');
   if (!$resultList) {
-    throw new Error('Invalid Bangumi search response: result list not found');
+    throw new InvalidBangumiSearchResponseError();
   }
   let items = $resultList.querySelectorAll('li>div.inner');
   // get number of page
@@ -98,23 +178,39 @@ export async function searchSubject(
   }
   let query = (subjectInfo.name || '').trim();
   if (type === SubjectTypeId.book) {
-    // 去掉末尾的括号并加上引号
+    // 去掉末尾的括号
     query = query.replace(/（[^0-9]+?）|\([^0-9]+?\)$/, '');
-    query = `"${query}"`;
   }
   if (uniqueQueryStr) {
-    query = `"${uniqueQueryStr || ''}"`;
+    query = uniqueQueryStr.trim();
   }
-  if (!query || query === '""') {
+  if (!query) {
     console.info('Query string is empty');
     return;
   }
+  const htmlQuery =
+    type === SubjectTypeId.book || uniqueQueryStr ? `"${query}"` : query;
   const url = `${bgmHost}/subject_search/${encodeURIComponent(
-    query
+    htmlQuery
   )}?cat=${type}`;
-  console.info('search bangumi subject URL: ', url);
-  const rawText = await fetchText(url);
-  const rawInfoList = dealSearchResults(rawText)[0];
+  let rawInfoList: SearchResult[] | undefined;
+  const jsonSearchType = JSON_SEARCH_TYPES[type];
+  if (jsonSearchType) {
+    const jsonUrl = `${bgmHost}/json/search-${jsonSearchType}/${encodeURIComponent(query)}`;
+    console.info('search bangumi subject JSON URL: ', jsonUrl);
+    try {
+      rawInfoList = dealJsonSearchResults(
+        await fetchJson<unknown>(jsonUrl),
+        type
+      );
+    } catch (error) {
+      console.warn('Bangumi JSON search failed, falling back to HTML:', error);
+    }
+  }
+  if (!rawInfoList) {
+    console.info('search bangumi subject HTML URL: ', url);
+    rawInfoList = (await fetchHtmlSearchResults(url))[0];
+  }
   // 使用指定搜索字符串如 ISBN 搜索时, 并且结果只有一条时，不再使用名称过滤
   if (uniqueQueryStr && rawInfoList && rawInfoList.length === 1) {
     return rawInfoList[0];
@@ -158,8 +254,7 @@ export async function findSubjectByDate(
     releaseDate.getMonth() + 1
   }${query}`;
   console.info('find subject by date: ', url);
-  const rawText = await fetchText(url);
-  let [rawInfoList, numOfPage] = dealSearchResults(rawText);
+  let [rawInfoList, numOfPage] = await fetchHtmlSearchResults(url);
   const options = {
     threshold: 0.3,
     keys: ['name', 'greyName'],
@@ -167,7 +262,6 @@ export async function findSubjectByDate(
   let result = filterResults(rawInfoList, subjectInfo, options, false);
   if (!result) {
     if (pageNumber < numOfPage) {
-      await sleep(300);
       return await findSubjectByDate(
         subjectInfo,
         bgmHost,
@@ -188,7 +282,7 @@ export async function checkBookSubjectExist(
 ) {
   if (subjectInfo.isbn) {
     const numISBN = subjectInfo.isbn.replace(/-/g, '');
-    let searchResult = await searchSubject(
+    const searchResult = await searchSubject(
       subjectInfo,
       bgmHost,
       type,
@@ -198,23 +292,10 @@ export async function checkBookSubjectExist(
     if (searchResult && searchResult.url) {
       return searchResult;
     }
-    // 判断一下是否重复
-    if (numISBN !== subjectInfo.isbn) {
-      searchResult = await searchSubject(
-        subjectInfo,
-        bgmHost,
-        type,
-        subjectInfo.isbn
-      );
-      console.info(`Second: search book by ${subjectInfo.isbn}: `, searchResult);
-      if (searchResult && searchResult.url) {
-        return searchResult;
-      }
-    }
   }
   // 默认使用名称搜索
   const searchResult = await searchSubject(subjectInfo, bgmHost, type);
-  console.info('Third: search book of bangumi: ', searchResult);
+  console.info('Second: search book of bangumi by name: ', searchResult);
   return searchResult;
 }
 
