@@ -28,24 +28,15 @@ function isCurrentAmazonJpBookOfferUsed() {
     return true;
   }
 
-  // Do not use broad positive labels such as 新品 here: they are locale-sensitive,
-  // and #desktop_buybox may include unrelated "other offers" text. Also,
-  // #usedOfferListingID can exist even when the selected buybox is not used.
-  // Only used-only buybox containers are structural evidence for filtering.
-  if (
-    document.querySelector(
-      '#usedOnlyBuybox, #used_buybox_desktop, #usedBuySection'
-    )
-  ) {
-    return true;
-  }
+  // if (
+  //   document.querySelector(
+  //     '#usedOnlyBuybox, #used_buybox_desktop, #usedBuySection'
+  //   )
+  // ) {
+  //   return true;
+  // }
 
-  if (currentBuyboxText.trim()) {
-    return false;
-  }
-
-  const otherOfferText = getText('.aod-popover-caret-link');
-  return usedOfferReg.test(otherOfferText);
+  return false
 }
 
 function getBookFormatSwatches() {
