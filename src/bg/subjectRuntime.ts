@@ -23,7 +23,7 @@ export function buildSubjectCreationRuntime(
   const { getConfig, createCapabilities, sendMsgToCurrentTab, notify, openTab } = deps;
   const updateAuxDataDraft = deps.updateAuxDataDraft ?? updateSubjectDraftFromAuxSite;
   const userConfig = getConfig();
-  const bgmHost = buildBangumiHost(userConfig);
+  const host = buildBangumiHost(userConfig);
 
   const capabilities = createCapabilities({
     active: userConfig.activeOpen,
@@ -45,17 +45,20 @@ export function buildSubjectCreationRuntime(
   }
 
   return {
-    bgmHost,
+    bangumi: {
+      host,
+      fallbackToWebSearch: userConfig.fallbackToWebSearch,
+    },
     notify,
     updateAuxData,
     saveSubjectId(subjectId) {
       return capabilities.storage.saveSubjectId(subjectId);
     },
     async openExistingSubject(url: string) {
-      await openTab(bgmHost + url);
+      await openTab(host + url);
     },
     async openNewSubject(type: SubjectTypeId) {
-      await openTab(`${bgmHost}/new_subject/${type}`);
+      await openTab(`${host}/new_subject/${type}`);
     },
   };
 }

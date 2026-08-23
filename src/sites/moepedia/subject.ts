@@ -49,6 +49,7 @@ moepediaSubject.itemList.push(
       },
     ],
     pipes: ['date'],
+    category: 'date',
   },
   {
     name: '售价',

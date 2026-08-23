@@ -21,6 +21,20 @@ export const HTML_SEARCH_INTERVAL_MS = 60 * 1000;
 
 type JsonSearchType = 'book' | 'music' | 'game';
 
+export type BangumiSearchOptions = {
+  host?: string;
+  type?: SubjectTypeId;
+  uniqueQueryStr?: string;
+  fallbackToWebSearch?: boolean;
+};
+
+export type BangumiExistSearchOptions = Omit<
+  BangumiSearchOptions,
+  'type' | 'uniqueQueryStr'
+> & {
+  type: SubjectTypeId;
+};
+
 type BangumiJsonSearchItem = {
   id: string | number;
   type_id: string | number;
@@ -65,6 +79,10 @@ function dealJsonSearchResults(
   info: unknown,
   expectedType: SubjectTypeId
 ): SearchResult[] {
+  // Bangumi JSON 搜索在没有结果时返回 null。
+  if (info === null) {
+    return [];
+  }
   if (!Array.isArray(info) || !info.every(isBangumiJsonSearchItem)) {
     throw new Error('Invalid Bangumi JSON search response');
   }
@@ -168,14 +186,14 @@ export function dealSearchResults(info: string): [SearchResult[], number] {
  */
 export async function searchSubject(
   subjectInfo: SubjectQueryInfo,
-  bgmHost: string = 'https://bgm.tv',
-  type: SubjectTypeId = SubjectTypeId.all,
-  uniqueQueryStr: string = ''
+  options: BangumiSearchOptions = {}
 ) {
-  let releaseDate: string;
-  if (subjectInfo && subjectInfo.releaseDate) {
-    releaseDate = subjectInfo.releaseDate;
-  }
+  const {
+    host = 'https://bgm.tv',
+    type = SubjectTypeId.all,
+    uniqueQueryStr = '',
+    fallbackToWebSearch = false,
+  } = options;
   let query = (subjectInfo.name || '').trim();
   if (type === SubjectTypeId.book) {
     // 去掉末尾的括号
@@ -190,19 +208,21 @@ export async function searchSubject(
   }
   const htmlQuery =
     type === SubjectTypeId.book || uniqueQueryStr ? `"${query}"` : query;
-  const url = `${bgmHost}/subject_search/${encodeURIComponent(
+  const url = `${host}/subject_search/${encodeURIComponent(
     htmlQuery
   )}?cat=${type}`;
   let rawInfoList: SearchResult[] | undefined;
   const jsonSearchType = JSON_SEARCH_TYPES[type];
   if (jsonSearchType) {
-    const jsonUrl = `${bgmHost}/json/search-${jsonSearchType}/${encodeURIComponent(query)}`;
+    const jsonUrl = `${host}/json/search-${jsonSearchType}/${encodeURIComponent(query)}`;
     console.info('search bangumi subject JSON URL: ', jsonUrl);
     try {
-      rawInfoList = dealJsonSearchResults(
-        await fetchJson<unknown>(jsonUrl),
-        type
-      );
+      const jsonResponse = await fetchJson<unknown>(jsonUrl);
+      if (jsonResponse === null && fallbackToWebSearch) {
+        console.info('Bangumi JSON search returned null, falling back to HTML');
+      } else {
+        rawInfoList = dealJsonSearchResults(jsonResponse, type);
+      }
     } catch (error) {
       console.warn('Bangumi JSON search failed, falling back to HTML:', error);
     }
@@ -215,151 +235,56 @@ export async function searchSubject(
   if (uniqueQueryStr && rawInfoList && rawInfoList.length === 1) {
     return rawInfoList[0];
   }
-  const options = {
+  const filterOptions = {
     keys: ['name', 'greyName'],
   };
-  return filterResults(rawInfoList, subjectInfo, options);
-}
-
-/**
- * 通过时间查找条目
- * @param subjectInfo 条目信息
- * @param pageNumber 页码
- * @param type 条目类型
- */
-export async function findSubjectByDate(
-  subjectInfo: SubjectQueryInfo,
-  bgmHost: string = 'https://bgm.tv',
-  pageNumber: number = 1,
-  type: string
-): Promise<SearchResult | undefined> {
-  if (!subjectInfo || !subjectInfo.releaseDate || !subjectInfo.name) {
-    throw new Error('invalid subject info');
-  }
-  const releaseDate = new Date(subjectInfo.releaseDate);
-  if (isNaN(releaseDate.getTime())) {
-    throw new Error(`invalid releasedate: ${subjectInfo.releaseDate}`);
-  }
-  const sort = releaseDate.getDate() > 15 ? 'sort=date' : '';
-  const page = pageNumber ? `page=${pageNumber}` : '';
-  let query = '';
-  if (sort && page) {
-    query = '?' + sort + '&' + page;
-  } else if (sort) {
-    query = '?' + sort;
-  } else if (page) {
-    query = '?' + page;
-  }
-  const url = `${bgmHost}/${type}/browser/airtime/${releaseDate.getFullYear()}-${
-    releaseDate.getMonth() + 1
-  }${query}`;
-  console.info('find subject by date: ', url);
-  let [rawInfoList, numOfPage] = await fetchHtmlSearchResults(url);
-  const options = {
-    threshold: 0.3,
-    keys: ['name', 'greyName'],
-  };
-  let result = filterResults(rawInfoList, subjectInfo, options, false);
-  if (!result) {
-    if (pageNumber < numOfPage) {
-      return await findSubjectByDate(
-        subjectInfo,
-        bgmHost,
-        pageNumber + 1,
-        type
-      );
-    } else {
-      return undefined;
-    }
-  }
-  return result;
+  return filterResults(rawInfoList, subjectInfo, filterOptions);
 }
 
 export async function checkBookSubjectExist(
   subjectInfo: SubjectQueryInfo,
-  bgmHost: string = 'https://bgm.tv',
-  type: SubjectTypeId
+  options: BangumiExistSearchOptions
 ) {
   if (subjectInfo.isbn) {
     const numISBN = subjectInfo.isbn.replace(/-/g, '');
-    const searchResult = await searchSubject(
-      subjectInfo,
-      bgmHost,
-      type,
-      numISBN
-    );
+    const searchResult = await searchSubject(subjectInfo, {
+      ...options,
+      uniqueQueryStr: numISBN,
+    });
     console.info(`First: search book of bangumi: `, searchResult);
     if (searchResult && searchResult.url) {
       return searchResult;
     }
   }
   // 默认使用名称搜索
-  const searchResult = await searchSubject(subjectInfo, bgmHost, type);
+  const searchResult = await searchSubject(subjectInfo, options);
   console.info('Second: search book of bangumi by name: ', searchResult);
   return searchResult;
 }
 
 /**
- * 查找条目是否存在： 通过名称搜索或者日期加上名称的过滤查询
+ * 查找条目是否存在
  * @param subjectInfo 条目基本信息
- * @param bgmHost bangumi 域名
- * @param type 条目类型
+ * @param options 搜索配置
  */
-async function checkExist(
-  subjectInfo: SubjectQueryInfo,
-  bgmHost: string = 'https://bgm.tv',
-  type: SubjectTypeId,
-  disabelDate?: boolean
-) {
-  const subjectTypeDict = {
-    [SubjectTypeId.game]: 'game',
-    [SubjectTypeId.anime]: 'anime',
-    [SubjectTypeId.music]: 'music',
-    [SubjectTypeId.book]: 'book',
-    [SubjectTypeId.real]: 'real',
-    [SubjectTypeId.all]: 'all',
-  };
-  let searchResult = await searchSubject(subjectInfo, bgmHost, type);
-  console.info(`First: search result of bangumi: `, searchResult);
-  if (searchResult && searchResult.url) {
-    return searchResult;
-  }
-  if (disabelDate) {
-    return;
-  }
-  searchResult = await findSubjectByDate(
-    subjectInfo,
-    bgmHost,
-    1,
-    subjectTypeDict[type]
-  );
-  console.info(`Second: search result by date: `, searchResult);
-  return searchResult;
-}
-
 export async function checkSubjectExit(
   subjectInfo: SubjectQueryInfo,
-  bgmHost: string = 'https://bgm.tv',
-  type: SubjectTypeId,
-  disableDate?: boolean
+  options: BangumiExistSearchOptions
 ) {
-  let result;
-  switch (type) {
+  switch (options.type) {
     case SubjectTypeId.book:
-      result = await checkBookSubjectExist(subjectInfo, bgmHost, type);
-      break;
+      return checkBookSubjectExist(subjectInfo, options);
     case SubjectTypeId.game:
-      result = await checkExist(subjectInfo, bgmHost, type, disableDate);
-      break;
-    case SubjectTypeId.music:
-      result = await checkExist(subjectInfo, bgmHost, type, true);
-      break;
+    case SubjectTypeId.music: {
+      const result = await searchSubject(subjectInfo, options);
+      console.info('Search result of bangumi: ', result);
+      return result;
+    }
     case SubjectTypeId.anime:
     case SubjectTypeId.real:
     default:
-      console.info('not support type: ', type);
+      console.info('not support type: ', options.type);
   }
-  return result;
 }
 
 export function changeDomain(

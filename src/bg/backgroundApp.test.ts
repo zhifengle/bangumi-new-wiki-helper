@@ -157,7 +157,10 @@ describe('backgroundApp', () => {
         },
       },
       expect.objectContaining({
-        bgmHost: 'http://chii.in',
+        bangumi: {
+          host: 'http://chii.in',
+          fallbackToWebSearch: false,
+        },
       })
     );
     expect(createSubjectEntry).toHaveBeenCalledWith(
@@ -165,7 +168,10 @@ describe('backgroundApp', () => {
         type: SubjectTypeId.music,
       },
       expect.objectContaining({
-        bgmHost: 'http://chii.in',
+        bangumi: {
+          host: 'http://chii.in',
+          fallbackToWebSearch: false,
+        },
       })
     );
     expect(transport.fetchImage).toHaveBeenCalledWith(

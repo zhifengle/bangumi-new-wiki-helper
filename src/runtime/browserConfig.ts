@@ -6,6 +6,7 @@ export type BrowserConfig = {
   activeOpen: boolean;
   useHttps: boolean;
   autoFill: boolean;
+  fallbackToWebSearch: boolean;
   subjectId: string | number;
 };
 
@@ -27,6 +28,7 @@ export const DEFAULT_BROWSER_CONFIG: BrowserConfig = {
   activeOpen: false,
   useHttps: true,
   autoFill: false,
+  fallbackToWebSearch: false,
   subjectId: 0,
 };
 

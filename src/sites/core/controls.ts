@@ -36,12 +36,15 @@ export function insertControlBtn($t: Element, cb: SubjectControlHandler) {
     $search.innerHTML = '查重中...';
     try {
       await cb(e, true);
-      $search.innerHTML = '新建并查重';
     } catch (e) {
       if (e === 'notmatched') {
         $search.innerHTML = '未查到条目';
       }
       console.error(e);
+    } finally {
+      if ($search.innerHTML === '查重中...') {
+        $search.innerHTML = '新建并查重';
+      }
     }
   });
 }

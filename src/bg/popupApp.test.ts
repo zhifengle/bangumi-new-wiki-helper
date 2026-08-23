@@ -116,6 +116,7 @@ describe('popupApp', () => {
         activeOpen: true,
         useHttps: true,
         autoFill: false,
+        fallbackToWebSearch: false,
         subjectId: 0,
       },
     });
@@ -125,6 +126,7 @@ describe('popupApp', () => {
         activeOpen: false,
         useHttps: true,
         autoFill: false,
+        fallbackToWebSearch: false,
         subjectId: 0,
       },
     });

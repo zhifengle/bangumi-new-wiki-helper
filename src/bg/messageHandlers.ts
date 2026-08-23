@@ -49,7 +49,7 @@ export async function handleSubjectCreationMessage(
       return createSubjectEntry(request.payload, runtime);
     case 'create_new_character':
       await browserApi.tabs.create({
-        url: `${runtime.bgmHost}/character/new`,
+        url: `${runtime.bangumi.host}/character/new`,
         active: activeOpen,
       });
       return;

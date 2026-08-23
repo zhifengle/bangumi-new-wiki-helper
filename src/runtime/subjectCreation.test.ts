@@ -21,7 +21,10 @@ const mockedGetSubjectId = getSubjectId as MockedFunction<typeof getSubjectId>;
 
 function createRuntime(): Mocked<SubjectCreationRuntime> {
   return {
-    bgmHost: 'https://bgm.tv',
+    bangumi: {
+      host: 'https://bgm.tv',
+      fallbackToWebSearch: false,
+    },
     notify: vi.fn(),
     updateAuxData: vi.fn(),
     saveSubjectId: vi.fn(),
@@ -63,7 +66,6 @@ describe('checkSubjectAndOpenEntry', () => {
   test('opens an existing subject when bangumi search finds a match', async () => {
     const runtime = createRuntime();
     mockedCheckSubjectExit.mockResolvedValue({
-      kind: 'subject',
       name: '测试条目',
       url: '/subject/42',
     });
@@ -76,9 +78,11 @@ describe('checkSubjectAndOpenEntry', () => {
 
     expect(mockedCheckSubjectExit).toHaveBeenCalledWith(
       { name: '测试条目' },
-      'https://bgm.tv',
-      SubjectTypeId.game,
-      undefined
+      {
+        host: 'https://bgm.tv',
+        type: SubjectTypeId.game,
+        fallbackToWebSearch: false,
+      }
     );
     expect(runtime.saveSubjectId).toHaveBeenCalledWith('42');
     expect(runtime.openExistingSubject).toHaveBeenCalledWith('/subject/42');
@@ -88,7 +92,6 @@ describe('checkSubjectAndOpenEntry', () => {
   test('shows searching notification then dismisses it on success', async () => {
     const runtime = createRuntime();
     mockedCheckSubjectExit.mockResolvedValue({
-      kind: 'subject',
       name: '测试条目',
       url: '/subject/42',
     });

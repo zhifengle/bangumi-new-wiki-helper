@@ -11,7 +11,11 @@ type PopupSelectConfig = {
   };
 };
 
-type BooleanConfigKey = 'activeOpen' | 'useHttps' | 'autoFill';
+type BooleanConfigKey =
+  | 'activeOpen'
+  | 'useHttps'
+  | 'autoFill'
+  | 'fallbackToWebSearch';
 
 const popupSelectConfig: PopupSelectConfig = {
   domain: {
@@ -20,7 +24,12 @@ const popupSelectConfig: PopupSelectConfig = {
 };
 
 function isBooleanConfigKey(key: string): key is BooleanConfigKey {
-  return ['activeOpen', 'useHttps', 'autoFill'].includes(key);
+  return [
+    'activeOpen',
+    'useHttps',
+    'autoFill',
+    'fallbackToWebSearch',
+  ].includes(key);
 }
 
 function getSettingsList(documentObj: Document) {

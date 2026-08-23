@@ -18,6 +18,7 @@ import {
   AUTO_FILL_FORM,
   BGM_DOMAIN,
   PROTOCOL,
+  FALLBACK_TO_WEB_SEARCH,
 } from './constants';
 
 function getBangumiHost() {
@@ -57,8 +58,8 @@ async function submitSubjectCreation({
   payload,
   shouldCheckDup,
 }: SubjectCreateInput) {
-  const bgmHost = getBangumiHost();
-  const subjectCreationRuntime = createUserScriptSubjectCreationRuntime(bgmHost);
+  const host = getBangumiHost();
+  const subjectCreationRuntime = createUserScriptSubjectCreationRuntime(host);
   await userScriptRuntimeCapabilities.storage.saveSubjectDraft(wikiData);
   if (shouldCheckDup) {
     await checkSubjectAndOpenEntry(
@@ -91,13 +92,17 @@ async function submitCharacterCreation({
 }
 
 function createUserScriptSubjectCreationRuntime(
-  bgmHost: string
+  host: string
 ): SubjectCreationRuntime {
   const notify =
     userScriptRuntimeCapabilities.notifier?.notify ?? logMessage;
   const openTab = getOpenTab();
   return {
-    bgmHost,
+    bangumi: {
+      host,
+      fallbackToWebSearch:
+        GM_getValue<boolean>(FALLBACK_TO_WEB_SEARCH) || false,
+    },
     notify,
     updateAuxData,
     saveSubjectId(subjectId) {
@@ -105,7 +110,7 @@ function createUserScriptSubjectCreationRuntime(
     },
     async openExistingSubject(url: string) {
       await sleep(100);
-      await openTab(bgmHost + url);
+      await openTab(host + url);
     },
     openNewSubject(type: SubjectTypeId) {
       return openNewSubject(type);
