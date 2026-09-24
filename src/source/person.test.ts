@@ -156,6 +156,21 @@ describe('initSourcePerson', () => {
     ]);
   });
 
+  test('still opens person/new when the portrait cannot be hydrated', async () => {
+    const runtime = createRuntime();
+    (runtime.hydratePersonCover as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error('image fetch failed')
+    );
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    await initSourcePerson(createModel(), runtime);
+    buttons()[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncEvents();
+
+    expect(runtime.submitPersonCreation).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalled();
+  });
+
   test('does nothing when the page or control anchor is missing', async () => {
     document.body.innerHTML = '<div id="page"></div>';
     const runtime = createRuntime();

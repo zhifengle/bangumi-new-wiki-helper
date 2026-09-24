@@ -64,7 +64,12 @@ export async function initSourcePerson(
         await getPersonData(model, createWikiExtractContext(document)),
         model
       );
-      await runtime.hydratePersonCover?.(infos);
+      // 人物允许没有肖像；补抓失败只降级为不带图，不中断新建
+      try {
+        await runtime.hydratePersonCover?.(infos);
+      } catch (error) {
+        console.warn('person portrait hydration failed, continuing without it:', error);
+      }
       console.info('person info list: ', infos);
       const personData: PersonWikiInfo = { infos };
       await runtime.submitPersonCreation({

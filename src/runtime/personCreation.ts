@@ -30,23 +30,23 @@ export async function checkPersonAndOpenEntry(
     message: `搜索中...<br/>${name}`,
     duration: 0,
   });
-  let candidates: SearchResult[];
+  let result: SearchResult | undefined;
   try {
-    candidates = await searchPersonCandidates(name);
+    const candidates = await searchPersonCandidates(name);
+    // 与条目一致：filterResults 用姓名直接建正则，特殊字符会抛错，也算搜索失败
+    result = filterResults(candidates, { name }, {
+      keys: ['name', 'greyName'],
+    });
     await runtime.notify({ type: 'info', message: '', cmd: 'dismissNotError' });
   } catch (error) {
-    console.error('person search request failed:', error);
+    console.error('person search failed:', error);
     await runtime.notify({
       type: 'error',
-      message: `Bangumi 人物搜索请求失败: <br/><b>${name}</b>`,
+      message: `Bangumi 人物搜索失败: <br/><b>${name}</b>`,
       cmd: 'dismissNotError',
     });
     throw error;
   }
-
-  const result = filterResults(candidates, { name }, {
-    keys: ['name', 'greyName'],
-  });
   console.info('person search result: ', result);
   if (result?.url) {
     await runtime.openExistingPerson(result.url);

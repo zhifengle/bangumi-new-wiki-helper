@@ -7,8 +7,30 @@ import {
   createWikiExtractContext,
 } from '../core/context';
 import { getPersonData } from '../core/extract';
+import { convertInfoValue } from '../bangumi/newSubject/mapper';
 import { vgmdbArtist } from './artist';
 import { vgmdbOrg } from './org';
+
+// person/new 页面预填的 Infobox Crt 模板（2026-09 实测）
+const PERSON_INFOBOX_TEMPLATE = `{{Infobox Crt
+|简体中文名=
+|别名={
+[第二中文名|]
+[英文名|]
+[日文名|]
+[纯假名|]
+[罗马字|]
+[昵称|]
+}
+|性别=
+|生日=
+|血型=
+|身高=
+|体重=
+|BWH=
+|引用来源={
+}
+}}`;
 
 vi.mock('../../utils/dealImage', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../utils/dealImage')>();
@@ -80,6 +102,28 @@ describe('vgmdb artist person source', () => {
     expect(byName(infos, '血型')).toEqual([]);
     expect(byName(infos, '毕业院校')).toEqual([]);
     expect(infos.some((info) => info.category === 'select')).toBe(false);
+  });
+
+  test('keeps the Bangumi birthday form all the way through the infobox mapper', async () => {
+    const doc = loadFixture('vgmdb-artist.html');
+    const infos = await getPersonData(
+      vgmdbArtist,
+      createWikiExtractContext(
+        doc,
+        createRemoteWikiPageContext('https://vgmdb.net/artist/2')
+      )
+    );
+
+    const infobox = convertInfoValue(
+      PERSON_INFOBOX_TEMPLATE,
+      infos.filter((info) => !['crt_name', 'crt_cover'].includes(info.category ?? ''))
+    );
+
+    expect(infobox).toContain('|生日=1973年7月30日');
+    expect(infobox).not.toMatch(/\|生日=.*1973-07-30/);
+    expect(infobox).toContain('[日文名|折戸伸治]');
+    expect(infobox).toContain('[罗马字|Orito Shinji]');
+    expect(infobox).toContain('|所属公司={');
   });
 
   test('extracts a page without a Japanese name and with full link groups', async () => {

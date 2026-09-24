@@ -295,10 +295,21 @@ function resolveRoot(root?: WikiExtractRoot): ParentNode {
   return root ?? document;
 }
 
+// 生日在抽取时已按 年月日 整理完，去掉 date 类目，
+// 否则填表时 convertInfoValue 会再用 dealDate 把它改回 ISO 格式
+function dropDateCategory(infos: SingleInfo[]): SingleInfo[] {
+  return infos.map((info) =>
+    info.category === 'date' ? { name: info.name, value: info.value } : info
+  );
+}
+
 export const vgmdbArtistTools: PersonTools = {
   hooks: {
     async afterGetWikiData(infos: SingleInfo[], _model, root) {
-      return [...collectArtistInfos(resolveRoot(root)), ...infos];
+      return [
+        ...collectArtistInfos(resolveRoot(root)),
+        ...dropDateCategory(infos),
+      ];
     },
   },
   filters: [{ category: 'date', dealFunc: formatBangumiBirthday }],
@@ -307,7 +318,10 @@ export const vgmdbArtistTools: PersonTools = {
 export const vgmdbOrgTools: PersonTools = {
   hooks: {
     async afterGetWikiData(infos: SingleInfo[], _model, root) {
-      return [...collectOrgInfos(resolveRoot(root)), ...infos];
+      return [
+        ...collectOrgInfos(resolveRoot(root)),
+        ...dropDateCategory(infos),
+      ];
     },
   },
   filters: [{ category: 'date', dealFunc: formatBangumiBirthday }],

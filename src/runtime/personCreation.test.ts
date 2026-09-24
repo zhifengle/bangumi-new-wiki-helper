@@ -10,6 +10,25 @@ const mockedSearch = searchPersonCandidates as MockedFunction<
   typeof searchPersonCandidates
 >;
 
+// filterResults 在多候选时依赖页面里的 Fuse 全局；这里给一个保持原顺序的替身
+class FakeFuse<T> {
+  constructor(private readonly items: readonly T[]) {}
+  search() {
+    return this.items.map((item) => ({ item }));
+  }
+}
+
+const globalWithFuse = globalThis as typeof globalThis & { Fuse?: unknown };
+const originalFuse = globalWithFuse.Fuse;
+
+beforeAll(() => {
+  globalWithFuse.Fuse = FakeFuse;
+});
+
+afterAll(() => {
+  globalWithFuse.Fuse = originalFuse;
+});
+
 function createRuntime(): Mocked<PersonCreationRuntime> {
   return {
     bangumi: {
@@ -56,6 +75,24 @@ describe('checkPersonAndOpenEntry', () => {
 
     expect(mockedSearch).not.toHaveBeenCalled();
     expect(runtime.openNewPerson).toHaveBeenCalledTimes(1);
+  });
+
+  test('reports a search failure when the name breaks the result filter', async () => {
+    const runtime = createRuntime();
+    mockedSearch.mockResolvedValue([
+      { name: '*Luna', greyName: '', url: '/person/1' },
+      { name: 'Luna', greyName: '', url: '/person/2' },
+    ]);
+
+    await expect(
+      checkPersonAndOpenEntry({ name: '*Luna' }, runtime)
+    ).rejects.toThrow();
+
+    expect(runtime.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'error' })
+    );
+    expect(runtime.openNewPerson).not.toHaveBeenCalled();
+    expect(runtime.openExistingPerson).not.toHaveBeenCalled();
   });
 
   test('notifies and rethrows when the search request fails', async () => {
