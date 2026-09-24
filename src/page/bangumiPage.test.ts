@@ -5,6 +5,7 @@ import { initBangumiPage } from './bangumiPage';
 import { BangumiPageRuntimeAdapter } from './bangumiRuntime';
 import {
   initNewCharacter,
+  initNewPerson,
   initNewSubject,
   initUploadImg,
 } from '../sites/bangumi/newSubject';
@@ -12,11 +13,15 @@ import {
 vi.mock('../sites/bangumi/newSubject', () => ({
   initNewSubject: vi.fn(),
   initNewCharacter: vi.fn(),
+  initNewPerson: vi.fn(),
   initUploadImg: vi.fn(),
 }));
 
 const mockedInitNewSubject = initNewSubject as MockedFunction<
   typeof initNewSubject
+>;
+const mockedInitNewPerson = initNewPerson as MockedFunction<
+  typeof initNewPerson
 >;
 const mockedInitNewCharacter = initNewCharacter as MockedFunction<
   typeof initNewCharacter
@@ -131,5 +136,34 @@ describe('initBangumiPage', () => {
       })
     );
     expect(mockedInitUploadImg).toHaveBeenCalledWith(wikiData);
+  });
+
+  test('initializes person page and consumes autofill state', async () => {
+    vi.useFakeTimers();
+    setPath('/person/new');
+    document.body.innerHTML = '<button class="e-wiki-fill-form">fill</button>';
+    const clickSpy = vi.fn();
+    document
+      .querySelector('.e-wiki-fill-form')
+      ?.addEventListener('click', clickSpy);
+    const personData = {
+      infos: [{ name: '姓名', value: 'ZUN', category: 'crt_name' }],
+    };
+    const runtime = createRuntime({
+      state: {
+        personData,
+        shouldAutoFill: true,
+        autoFillDelay: 10,
+      },
+    });
+
+    await initBangumiPage(runtime);
+    vi.advanceTimersByTime(10);
+    await Promise.resolve();
+
+    expect(mockedInitNewPerson).toHaveBeenCalledWith(personData);
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(runtime.markAutoFillConsumed).toHaveBeenCalled();
+    vi.useRealTimers();
   });
 });

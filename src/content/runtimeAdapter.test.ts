@@ -13,6 +13,8 @@ const { mockContentRuntimeCapabilities } = vi.hoisted(() => ({
       loadSubjectDraft: vi.fn(),
       saveCharacterDraft: vi.fn(),
       loadCharacterDraft: vi.fn(),
+      savePersonDraft: vi.fn(),
+      loadPersonDraft: vi.fn(),
       saveSubjectId: vi.fn(),
       loadSubjectId: vi.fn(),
       loadBangumiPageState: vi.fn(),

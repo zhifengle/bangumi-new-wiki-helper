@@ -1,4 +1,4 @@
-import { SubjectWikiInfo } from '../interface/subjectInfo';
+import { PersonWikiInfo, SubjectWikiInfo } from '../interface/subjectInfo';
 import { BangumiDomain } from '../sites/bangumi';
 
 export type BrowserConfig = {
@@ -15,6 +15,7 @@ export type BrowserStorageState = {
   config?: Partial<BrowserConfig> | null;
   wikiData?: SubjectWikiInfo | null;
   charaData?: SubjectWikiInfo | null;
+  personData?: PersonWikiInfo | null;
 };
 
 export const BANGUMI_DOMAIN_OPTIONS = [

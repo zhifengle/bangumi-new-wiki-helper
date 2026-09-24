@@ -1,5 +1,6 @@
 import {
   initNewCharacter,
+  initNewPerson,
   initNewSubject,
   initUploadImg,
 } from '../sites/bangumi/newSubject';
@@ -13,7 +14,13 @@ type ScriptMessageDetail = {
 
 function getPageType() {
   const re = new RegExp(
-    ['new_subject', 'add_related', 'character/new', 'upload_img'].join('|')
+    [
+      'new_subject',
+      'add_related',
+      'character/new',
+      'person/new',
+      'upload_img',
+    ].join('|')
   );
   return document.location.href.match(re)?.[0] || '';
 }
@@ -65,6 +72,14 @@ export async function initBangumiPage(runtime: BangumiPageRuntimeAdapter) {
     case 'character/new':
       if (state.charaData) {
         initNewCharacter(state.charaData, state.subjectId);
+        if (state.shouldAutoFill) {
+          triggerAutoFill(runtime, state.autoFillDelay);
+        }
+      }
+      break;
+    case 'person/new':
+      if (state.personData) {
+        initNewPerson(state.personData);
         if (state.shouldAutoFill) {
           triggerAutoFill(runtime, state.autoFillDelay);
         }

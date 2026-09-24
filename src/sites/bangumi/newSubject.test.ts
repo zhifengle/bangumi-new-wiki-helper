@@ -6,6 +6,7 @@ const {
   mockInitImageWidget,
   mockInitSubjectSubmit,
   mockInitCharacterSubmit,
+  mockInitPersonSubmit,
   mockConvertInfoValue,
   mockSleep,
 } = vi.hoisted(() => ({
@@ -13,6 +14,7 @@ const {
   mockInitImageWidget: vi.fn(),
   mockInitSubjectSubmit: vi.fn(),
   mockInitCharacterSubmit: vi.fn(),
+  mockInitPersonSubmit: vi.fn(),
   mockConvertInfoValue: vi.fn(),
   mockSleep: vi.fn().mockResolvedValue(undefined),
 }));
@@ -28,6 +30,7 @@ vi.mock('./imageWidget', () => ({
 vi.mock('./newSubject/submit', () => ({
   initSubjectSubmit: mockInitSubjectSubmit,
   initCharacterSubmit: mockInitCharacterSubmit,
+  initPersonSubmit: mockInitPersonSubmit,
 }));
 
 vi.mock('./newSubject/mapper', () => ({
@@ -39,7 +42,12 @@ vi.mock('../../utils/async/sleep', () => ({
 }));
 
 import { SubjectTypeId } from '../../interface/wiki';
-import { fillInfoBox, initNewCharacter, initNewSubject } from './newSubject';
+import {
+  fillInfoBox,
+  initNewCharacter,
+  initNewPerson,
+  initNewSubject,
+} from './newSubject';
 
 function renderSubjectDom() {
   document.body.innerHTML = `
@@ -80,6 +88,11 @@ function renderSubjectDom() {
     <input id="editSummary" value="" />
     <input name="subject_nsfw" type="checkbox" />
     <input name="platform" type="checkbox" checked />
+    <input name="prsn_pro[artist]" type="checkbox" />
+    <select name="crt_role">
+      <option value="1">个人</option>
+      <option value="2">公司</option>
+    </select>
     <div class="e-wiki-cover-container">
       <input class="clear-btn" type="button" value="clear" />
       <input name="submit" type="button" value="old" />
@@ -146,6 +159,39 @@ function createCharacterInfo() {
         name: '肖像',
         value: {
           dataUrl: 'data:image/png;base64,chara',
+        },
+        category: 'crt_cover',
+      },
+    ],
+  };
+}
+
+function createPersonInfo() {
+  return {
+    infos: [
+      {
+        name: '姓名',
+        value: '折戸伸治',
+        category: 'crt_name',
+      },
+      {
+        name: 'crt_role',
+        value: '2',
+        category: 'select',
+      },
+      {
+        name: 'prsn_pro[artist]',
+        value: true,
+        category: 'checkbox',
+      },
+      {
+        name: '血型',
+        value: 'A',
+      },
+      {
+        name: '肖像',
+        value: {
+          dataUrl: 'data:image/png;base64,person',
         },
         category: 'crt_cover',
       },
@@ -288,6 +334,69 @@ describe('newSubject Batch C', () => {
     expect(mockInitCharacterSubmit).toHaveBeenCalledWith(
       characterInfo,
       'data:image/png;base64,chara'
+    );
+  });
+
+  test('fillInfoBox checks checkboxes whose names contain brackets', async () => {
+    await fillInfoBox({
+      infos: [{ name: 'prsn_pro[artist]', value: true, category: 'checkbox' }],
+    });
+
+    expect(
+      document.querySelector<HTMLInputElement>('input[name="prsn_pro[artist]"]')
+        ?.checked
+    ).toBe(true);
+  });
+
+  test('fillInfoBox sets select values without leaking them into the infobox', async () => {
+    await fillInfoBox({
+      infos: [
+        { name: 'crt_role', value: '2', category: 'select' },
+        { name: '血型', value: 'A' },
+      ],
+    });
+
+    expect(
+      document.querySelector<HTMLSelectElement>('select[name="crt_role"]')?.value
+    ).toBe('2');
+    expect(mockConvertInfoValue).toHaveBeenCalledWith('{{Infobox}}', [
+      { name: '血型', value: 'A' },
+    ]);
+  });
+
+  test('fillInfoBox leaves subject type inputs alone for drafts without a type', async () => {
+    const typeInputs = Array.from(
+      document.querySelectorAll<HTMLInputElement>(
+        'table tr:nth-of-type(2) > td:nth-of-type(2) input'
+      )
+    );
+    const firstClickSpy = vi.spyOn(typeInputs[0], 'click');
+
+    await fillInfoBox({ infos: [{ name: '血型', value: 'A' }] });
+
+    expect(firstClickSpy).not.toHaveBeenCalled();
+  });
+
+  test('initNewPerson wires fill, image widget and person submit', async () => {
+    const personInfo = createPersonInfo();
+
+    initNewPerson(personInfo);
+    const { fillHandler } = getCapturedHandlers(0);
+    await fillHandler(new MouseEvent('click'));
+
+    expect(mockInsertFillFormBtn.mock.calls[0][0]).toBe(
+      document.querySelector('form[name=new_character] .character-parent')
+    );
+    expect(document.querySelector<HTMLInputElement>('#crt_name')?.value).toBe(
+      '折戸伸治'
+    );
+    expect(mockInitImageWidget).toHaveBeenCalledWith(
+      document.querySelector('form[name=new_character]'),
+      'data:image/png;base64,person'
+    );
+    expect(mockInitPersonSubmit).toHaveBeenCalledWith(
+      personInfo,
+      'data:image/png;base64,person'
     );
   });
 });

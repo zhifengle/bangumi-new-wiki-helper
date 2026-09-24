@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill';
-import { SubjectWikiInfo } from '../interface/subjectInfo';
+import { PersonWikiInfo, SubjectWikiInfo } from '../interface/subjectInfo';
 import { BangumiPageState } from '../interface/pageState';
 import { BrowserStorageState } from '../runtime/browserConfig';
 import { DraftStore } from '../runtime/draftStore';
@@ -27,6 +27,17 @@ export const browserDraftStore: DraftStore = {
     ])) as BrowserStorageState;
     return state.charaData || null;
   },
+  async savePersonDraft(personData: PersonWikiInfo) {
+    await browser.storage.local.set({
+      personData,
+    });
+  },
+  async loadPersonDraft() {
+    const state = (await browser.storage.local.get([
+      'personData',
+    ])) as BrowserStorageState;
+    return state.personData || null;
+  },
   async saveSubjectId(subjectId: string | number) {
     const state = (await browser.storage.local.get([
       'config',
@@ -49,17 +60,19 @@ export const browserDraftStore: DraftStore = {
       'config',
       'wikiData',
       'charaData',
+      'personData',
     ])) as BrowserStorageState;
     return {
       wikiData: state.wikiData,
       charaData: state.charaData,
+      personData: state.personData,
       subjectId: state.config?.subjectId,
       shouldAutoFill: !!state.config?.autoFill,
       autoFillDelay: 200,
     };
   },
   async clearBangumiPageState() {
-    await browser.storage.local.remove(['wikiData', 'charaData']);
+    await browser.storage.local.remove(['wikiData', 'charaData', 'personData']);
   },
 };
 
