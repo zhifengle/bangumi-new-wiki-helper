@@ -38,6 +38,9 @@ export const browserDraftStore: DraftStore = {
     ])) as BrowserStorageState;
     return state.personData || null;
   },
+  async clearPersonDraft() {
+    await browser.storage.local.remove(['personData']);
+  },
   async saveSubjectId(subjectId: string | number) {
     const state = (await browser.storage.local.get([
       'config',

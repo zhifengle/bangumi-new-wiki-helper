@@ -55,7 +55,7 @@ function renderPersonForm(canvasWidth: number) {
 
 function armSubmit(dataUrl: string, navigate: (url: string) => void) {
   vi.useFakeTimers();
-  initPersonSubmit({ infos: [] }, dataUrl, { navigate });
+  initPersonSubmit(dataUrl, { navigate });
   vi.advanceTimersByTime(300);
   vi.useRealTimers();
   return document.querySelector<HTMLInputElement>(

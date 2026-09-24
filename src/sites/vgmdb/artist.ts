@@ -32,7 +32,8 @@ export const vgmdbArtist: PersonSourceDefinition = {
   },
   role: 1,
   professions: ['artist'],
-  // 多值行（Aliases、Variations、Organizations）与姓名、简介、外链在 personTools 的 hook 里处理
+  // 多值行（Aliases、Variations、Organizations）与姓名、简介、外链在 personTools 的 hook 里处理。
+  // 自由文本行只剥掉行首标签（k）和空白（t），默认管道会误删括号与冒号前的内容。
   itemList: [
     {
       name: '生日',
@@ -42,14 +43,17 @@ export const vgmdbArtist: PersonSourceDefinition = {
     {
       name: '血型',
       selector: rowSelector('Bloodtype'),
+      pipes: ['k', 't'],
     },
     {
       name: '出生地',
       selector: rowSelector('Birthplace'),
+      pipes: ['k', 't'],
     },
     {
       name: '毕业院校',
       selector: rowSelector('Education'),
+      pipes: ['k', 't'],
     },
     {
       name: '肖像',

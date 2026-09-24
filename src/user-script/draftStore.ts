@@ -28,6 +28,9 @@ export const userScriptDraftStore: DraftStore = {
   async loadPersonDraft() {
     return JSON.parse(GM_getValue<string>(PERSON_DATA) || 'null');
   },
+  async clearPersonDraft() {
+    GM_deleteValue(PERSON_DATA);
+  },
   async saveSubjectId(subjectId: string | number) {
     GM_setValue(SUBJECT_ID, subjectId);
   },

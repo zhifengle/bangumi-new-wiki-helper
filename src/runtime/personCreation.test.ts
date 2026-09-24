@@ -35,6 +35,7 @@ function createRuntime(): Mocked<PersonCreationRuntime> {
       host: 'https://bgm.tv',
     },
     notify: vi.fn(),
+    discardPersonDraft: vi.fn(),
     openExistingPerson: vi.fn(),
     openNewPerson: vi.fn(),
   };
@@ -54,6 +55,7 @@ describe('checkPersonAndOpenEntry', () => {
     await checkPersonAndOpenEntry({ name: '折戸伸治' }, runtime);
 
     expect(mockedSearch).toHaveBeenCalledWith('折戸伸治');
+    expect(runtime.discardPersonDraft).toHaveBeenCalledTimes(1);
     expect(runtime.openExistingPerson).toHaveBeenCalledWith('/person/1915');
     expect(runtime.openNewPerson).not.toHaveBeenCalled();
   });
@@ -65,6 +67,7 @@ describe('checkPersonAndOpenEntry', () => {
     await checkPersonAndOpenEntry({ name: '未登録の人' }, runtime);
 
     expect(runtime.openNewPerson).toHaveBeenCalledTimes(1);
+    expect(runtime.discardPersonDraft).not.toHaveBeenCalled();
     expect(runtime.openExistingPerson).not.toHaveBeenCalled();
   });
 

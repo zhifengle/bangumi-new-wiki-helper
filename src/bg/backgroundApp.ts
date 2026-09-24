@@ -104,7 +104,12 @@ export function createBackgroundController(
     if (!notify || !openTab) {
       throw new Error('background capabilities are missing notifier or navigator');
     }
-    return buildPersonCreationRuntime({ getConfig, notify, openTab });
+    return buildPersonCreationRuntime({
+      getConfig,
+      notify,
+      openTab,
+      clearPersonDraft: () => capabilities.storage.clearPersonDraft(),
+    });
   }
 
   async function handleMessage(request: BackgroundMessage) {

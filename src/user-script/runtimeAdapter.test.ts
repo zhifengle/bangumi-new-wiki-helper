@@ -8,6 +8,7 @@ const { storageMock, mockCheckPersonAndOpenEntry } = vi.hoisted(() => ({
     loadCharacterDraft: vi.fn(),
     savePersonDraft: vi.fn(),
     loadPersonDraft: vi.fn(),
+    clearPersonDraft: vi.fn(),
     saveSubjectId: vi.fn(),
     loadSubjectId: vi.fn(),
     loadBangumiPageState: vi.fn(),
@@ -97,6 +98,7 @@ describe('userScriptRuntimeAdapter person creation', () => {
     const mocked = mockCheckPersonAndOpenEntry as MockedFunction<
       (payload: { name: string }, runtime: {
         bangumi: { host: string };
+        discardPersonDraft(): Promise<void>;
         openExistingPerson(url: string): Promise<void>;
         openNewPerson(): Promise<void>;
       }) => Promise<void>
@@ -114,5 +116,8 @@ describe('userScriptRuntimeAdapter person creation', () => {
     await runtime.openNewPerson();
     expect(globalAny.GM_openInTab).toHaveBeenCalledWith('https://bgm.tv/person/new');
     expect(values.get(AUTO_FILL_FORM)).toBe(1);
+
+    await runtime.discardPersonDraft();
+    expect(storageMock.clearPersonDraft).toHaveBeenCalledTimes(1);
   });
 });

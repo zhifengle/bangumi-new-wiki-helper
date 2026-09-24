@@ -395,7 +395,6 @@ describe('newSubject Batch C', () => {
       'data:image/png;base64,person'
     );
     expect(mockInitPersonSubmit).toHaveBeenCalledWith(
-      personInfo,
       'data:image/png;base64,person'
     );
   });

@@ -185,6 +185,60 @@ describe('vgmdb artist person source', () => {
   });
 });
 
+function loadSyntheticArtist(leftfloatRows: string, nativeName = '&nbsp;') {
+  const html = `<!DOCTYPE html><html><body><div id="innermain">
+    <span style="font-family: Arial, sans-serif; font-size: 1.5em; font-weight: bold;">John Smith</span>
+    <div><div class="smallfont" id="leftfloat">
+      <span style="font-size: 9pt;">${nativeName}</span>
+      ${leftfloatRows}
+    </div></div>
+  </div></body></html>`;
+  return new DOMParser().parseFromString(html, 'text/html');
+}
+
+describe('vgmdb artist person source on pages unlike the fixtures', () => {
+  const context = createWikiExtractContext(
+    undefined,
+    createRemoteWikiPageContext('https://vgmdb.net/artist/999')
+  );
+
+  test('keeps parentheses and colons in free-text rows', async () => {
+    const doc = loadSyntheticArtist(`
+      <div><b>Education</b><br>Tokyo Denki University (Mathematics)</div>
+      <div><b>Birthplace</b><br>Prefecture: Osaka, Japan</div>
+      <div><b>Bloodtype</b><br>A (Rh+)</div>
+    `);
+
+    const infos = await getPersonData(vgmdbArtist, { ...context, root: doc });
+
+    expect(valuesOf(infos, '毕业院校')).toEqual(['Tokyo Denki University (Mathematics)']);
+    expect(valuesOf(infos, '出生地')).toEqual(['Prefecture: Osaka, Japan']);
+    expect(valuesOf(infos, '血型')).toEqual(['A (Rh+)']);
+  });
+
+  test('treats a Latin native name as no Japanese name', async () => {
+    const doc = loadSyntheticArtist('', 'John Smith');
+
+    const infos = await getPersonData(vgmdbArtist, { ...context, root: doc });
+
+    expect(byName(infos, '姓名')).toEqual([
+      { name: '姓名', value: 'John Smith', category: 'crt_name' },
+    ]);
+    expect(byName(infos, '日文名')).toEqual([]);
+    expect(byName(infos, '罗马字')).toEqual([]);
+  });
+
+  test('reads only visible text from links without a lang=en span', async () => {
+    const doc = loadSyntheticArtist(`
+      <div><b>Organizations</b><br><a class="smallfont" href="/org/1"><span style="display:none"><em> / </em></span>Foo Records<span style="display:none">フーレコード</span></a></div>
+    `);
+
+    const infos = await getPersonData(vgmdbArtist, { ...context, root: doc });
+
+    expect(valuesOf(infos, '所属公司')).toEqual(['Foo Records']);
+  });
+});
+
 describe('vgmdb org person source', () => {
   test('extracts a label page into a company person draft', async () => {
     const doc = loadFixture('vgmdb-org.html');

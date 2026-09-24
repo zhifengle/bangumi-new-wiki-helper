@@ -53,4 +53,10 @@ describe('browserDraftStore person draft', () => {
       'personData',
     ]);
   });
+
+  test('clears only the person draft on request', async () => {
+    await browserDraftStore.clearPersonDraft();
+
+    expect(storageMock.remove).toHaveBeenCalledWith(['personData']);
+  });
 });

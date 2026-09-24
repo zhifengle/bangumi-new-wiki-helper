@@ -35,7 +35,12 @@ function withDefaults(
     }
   }
   if (!res.some((info) => info.name === '引用来源')) {
-    res.push({ name: '引用来源', value: location.href, category: 'listItem' });
+    // 只记页面本身的地址，去掉查询串与锚点
+    res.push({
+      name: '引用来源',
+      value: location.origin + location.pathname,
+      category: 'listItem',
+    });
   }
   return res;
 }

@@ -103,12 +103,34 @@ describe('initSourcePerson', () => {
           }),
           { name: 'crt_role', value: '2', category: 'select' },
           { name: 'prsn_pro[producer]', value: true, category: 'checkbox' },
-          { name: '引用来源', value: location.href, category: 'listItem' },
+          {
+            name: '引用来源',
+            value: location.origin + location.pathname,
+            category: 'listItem',
+          },
         ],
       },
       queryInfo: { name: 'ZUN' },
       shouldCheckDup: false,
     });
+  });
+
+  test('records the page url without query string or fragment as the source', async () => {
+    window.history.replaceState({}, '', '/artist/2?ref=tracking#top');
+    const runtime = createRuntime();
+
+    await initSourcePerson(createModel(), runtime);
+    buttons()[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncEvents();
+
+    const submitted = (runtime.submitPersonCreation as ReturnType<typeof vi.fn>)
+      .mock.calls[0][0];
+    expect(submitted.personData.infos).toContainEqual({
+      name: '引用来源',
+      value: `${location.origin}/artist/2`,
+      category: 'listItem',
+    });
+    window.history.replaceState({}, '', '/');
   });
 
   test('passes the duplicate-check flag from the second button', async () => {

@@ -9,6 +9,8 @@ export interface PersonCreationRuntime {
     host: string;
   };
   notify(message: RuntimeNotifyPayload): void | Promise<void>;
+  // 查重命中已有人物后草稿就没用了，清掉以免下次打开 person/new 时误填
+  discardPersonDraft(): Promise<void>;
   openExistingPerson(url: string): Promise<void>;
   openNewPerson(): Promise<void>;
 }
@@ -49,6 +51,7 @@ export async function checkPersonAndOpenEntry(
   }
   console.info('person search result: ', result);
   if (result?.url) {
+    await runtime.discardPersonDraft();
     await runtime.openExistingPerson(result.url);
     return;
   }

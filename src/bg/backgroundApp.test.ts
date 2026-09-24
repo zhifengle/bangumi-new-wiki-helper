@@ -101,6 +101,7 @@ describe('backgroundApp', () => {
       transport,
       storage: {
         saveSubjectId: vi.fn().mockResolvedValue(undefined),
+        clearPersonDraft: vi.fn().mockResolvedValue(undefined),
       },
       notifier: {
         notify: vi.fn().mockResolvedValue(undefined),

@@ -8,6 +8,7 @@ export interface DraftStore {
   loadCharacterDraft(): Promise<SubjectWikiInfo | null>;
   savePersonDraft(personData: PersonWikiInfo): Promise<void>;
   loadPersonDraft(): Promise<PersonWikiInfo | null>;
+  clearPersonDraft(): Promise<void>;
   saveSubjectId(subjectId: string | number): Promise<void>;
   loadSubjectId(): Promise<string | number | null>;
   loadBangumiPageState(): Promise<BangumiPageState>;

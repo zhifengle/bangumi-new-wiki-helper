@@ -313,7 +313,7 @@ export function initNewPerson(wikiInfo: PersonWikiInfo) {
   if (personForm) {
     initImageWidget(personForm, dataUrl);
   }
-  initPersonSubmit(wikiInfo, dataUrl);
+  initPersonSubmit(dataUrl);
 }
 
 export function initUploadImg(wikiInfo: SubjectWikiInfo) {

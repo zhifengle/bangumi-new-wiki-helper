@@ -23,7 +23,13 @@ describe('vgmdb person tools', () => {
       kana: 'おりと しんじ',
     });
     expect(parseJapaneseName('太田順也')).toEqual({ name: '太田順也', kana: '' });
+    expect(parseJapaneseName('ほしのあき')).toEqual({ name: 'ほしのあき', kana: '' });
     expect(parseJapaneseName(' ')).toEqual({ name: '', kana: '' });
+  });
+
+  test('parseJapaneseName ignores names without any Japanese characters', () => {
+    expect(parseJapaneseName('John Smith')).toEqual({ name: '', kana: '' });
+    expect(parseJapaneseName('John Smith (Johnny)')).toEqual({ name: '', kana: '' });
   });
 
   test('toBangumiRomaji swaps two-word display names into family-name-first order', () => {

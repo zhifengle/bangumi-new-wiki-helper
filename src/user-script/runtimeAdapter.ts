@@ -134,6 +134,9 @@ function createUserScriptPersonCreationRuntime(
       host,
     },
     notify,
+    discardPersonDraft() {
+      return userScriptRuntimeCapabilities.storage.clearPersonDraft();
+    },
     async openExistingPerson(url: string) {
       await sleep(100);
       await openTab(host + url);

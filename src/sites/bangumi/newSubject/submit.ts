@@ -1,9 +1,4 @@
-import {
-  getStringValue,
-  PersonWikiInfo,
-  SingleInfo,
-  SubjectWikiInfo,
-} from '../../../interface/subjectInfo';
+import { getStringValue, SingleInfo, SubjectWikiInfo } from '../../../interface/subjectInfo';
 import { sendFormImg, sendForm } from '../../../utils/ajax';
 import { $q, htmlToElement } from '../../../utils/domUtils';
 import { sleep } from '../../../utils/async/sleep';
@@ -155,6 +150,7 @@ export function initCharacterSubmit(wikiInfo: SubjectWikiInfo, dataUrl: string) 
 }
 
 export type PersonSubmitDeps = {
+  // 页面跳转可注入，jsdom 里没有真正的导航能力，测试靠它断言目标地址
   navigate?: (url: string) => void;
 };
 
@@ -163,11 +159,7 @@ function hasPortrait($canvas: HTMLCanvasElement | null) {
 }
 
 // 人物页没有关联条目与 CV 的步骤；没有肖像时也允许直接提交表单
-export function initPersonSubmit(
-  _wikiInfo: PersonWikiInfo,
-  dataUrl: string,
-  deps: PersonSubmitDeps = {}
-) {
+export function initPersonSubmit(dataUrl: string, deps: PersonSubmitDeps = {}) {
   const navigate = deps.navigate ?? ((url: string) => location.assign(url));
   setTimeout(() => {
     const $form = $q('form[name=new_character]') as HTMLFormElement | null;

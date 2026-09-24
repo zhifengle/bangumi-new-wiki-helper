@@ -44,10 +44,12 @@ export function formatBangumiBirthday(raw: string): string {
   return text;
 }
 
-// "折戸 伸治 (おりと しんじ)" → 姓名去空格，假名原样
+const JAPANESE_CHARS = /[぀-ヿ㐀-䶿一-鿿]/;
+
+// "折戸 伸治 (おりと しんじ)" → 姓名去空格，假名原样；不含日文字符的一律当作没有日文名
 export function parseJapaneseName(raw: string): { name: string; kana: string } {
   const text = raw.replace(/ /g, ' ').trim();
-  if (!text) {
+  if (!text || !JAPANESE_CHARS.test(text)) {
     return { name: '', kana: '' };
   }
   const m = text.match(/^(.+?)\s*[（(]\s*(.+?)\s*[)）]\s*$/);
@@ -95,10 +97,10 @@ function isHidden(el: Element): boolean {
   return /display\s*:\s*none/i.test(style);
 }
 
-// 链接文字优先取可见的英文名 span，避免把隐藏的日文变体一起带出来
+// 链接文字优先取可见的英文名 span；没有的话只收可见文本，避免把隐藏的日文变体一起带出来
 function readLabel(el: Element): string {
   const visible = el.querySelector('span[lang="en"]');
-  return cleanText((visible ?? el).textContent);
+  return cleanText(visible ? visible.textContent : textWithLineBreaks(el));
 }
 
 // 读取 <b>标签</b><br>值 这类信息行里的所有值：按 <br> 切分文本，链接与子块各算一条

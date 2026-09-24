@@ -45,4 +45,14 @@ describe('userScriptDraftStore person draft', () => {
     expect(store.has(PERSON_DATA)).toBe(false);
     expect(await userScriptDraftStore.loadPersonDraft()).toBeNull();
   });
+
+  test('clears only the person draft on request', async () => {
+    store.set(PERSON_DATA, JSON.stringify({ infos: [] }));
+    store.set(AUTO_FILL_FORM, 1);
+
+    await userScriptDraftStore.clearPersonDraft();
+
+    expect(store.has(PERSON_DATA)).toBe(false);
+    expect(store.get(AUTO_FILL_FORM)).toBe(1);
+  });
 });

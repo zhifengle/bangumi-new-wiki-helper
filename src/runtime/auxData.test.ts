@@ -27,6 +27,7 @@ type MockedAuxDataRuntime = AuxDataRuntime & {
     >;
     savePersonDraft: MockedFunction<AuxDataRuntime['storage']['savePersonDraft']>;
     loadPersonDraft: MockedFunction<AuxDataRuntime['storage']['loadPersonDraft']>;
+    clearPersonDraft: MockedFunction<AuxDataRuntime['storage']['clearPersonDraft']>;
     saveSubjectId: MockedFunction<AuxDataRuntime['storage']['saveSubjectId']>;
     loadSubjectId: MockedFunction<AuxDataRuntime['storage']['loadSubjectId']>;
     loadBangumiPageState: MockedFunction<
@@ -50,6 +51,7 @@ function createRuntime(): MockedAuxDataRuntime {
       loadCharacterDraft: vi.fn(),
       savePersonDraft: vi.fn(),
       loadPersonDraft: vi.fn(),
+      clearPersonDraft: vi.fn(),
       saveSubjectId: vi.fn(),
       loadSubjectId: vi.fn(),
       loadBangumiPageState: vi.fn(),

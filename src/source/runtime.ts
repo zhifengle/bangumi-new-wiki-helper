@@ -1,3 +1,4 @@
+import { CheckPersonAndOpenPayload } from '../interface/personCreation';
 import {
   PersonWikiInfo,
   SingleInfo,
@@ -23,14 +24,10 @@ export type CharacterCreateInput = {
   charaData: SubjectWikiInfo;
 };
 
-export type PersonQueryInfo = {
-  name: string;
-};
-
 export type PersonCreateInput = {
   siteConfig: PersonSourceDefinition;
   personData: PersonWikiInfo;
-  queryInfo: PersonQueryInfo;
+  queryInfo: CheckPersonAndOpenPayload;
   shouldCheckDup: boolean;
 };
 
