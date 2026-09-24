@@ -1,6 +1,7 @@
 import { getCoverValue, SingleInfo } from '../interface/subjectInfo';
 import {
   CharacterCreateInput,
+  PersonCreateInput,
   SourceRuntimeAdapter,
   SubjectCreateInput,
 } from '../source/runtime';
@@ -79,6 +80,23 @@ async function submitCharacterCreation({
   await subjectCreation.createNewCharacter();
 }
 
+async function submitPersonCreation({
+  personData,
+  queryInfo,
+  shouldCheckDup,
+}: PersonCreateInput) {
+  const subjectCreation = contentRuntimeCapabilities.subjectCreation;
+  if (!subjectCreation) {
+    throw new Error('content subjectCreation capability is missing');
+  }
+  await contentRuntimeCapabilities.storage.savePersonDraft(personData);
+  if (shouldCheckDup) {
+    await subjectCreation.checkPersonExist({ name: queryInfo.name });
+    return;
+  }
+  await subjectCreation.createNewPerson();
+}
+
 export const contentRuntimeAdapter: SourceRuntimeAdapter = {
   fetchHtml(url: string) {
     return contentRuntimeCapabilities.transport.fetchHtml(url);
@@ -89,7 +107,11 @@ export const contentRuntimeAdapter: SourceRuntimeAdapter = {
   hydrateCharacterCover(infoList: SingleInfo[]) {
     return hydrateCoverFromBackground(infoList, 'crt_cover');
   },
+  hydratePersonCover(infoList: SingleInfo[]) {
+    return hydrateCoverFromBackground(infoList, 'crt_cover');
+  },
   submitSubjectCreation,
   submitCharacterCreation,
+  submitPersonCreation,
 };
 

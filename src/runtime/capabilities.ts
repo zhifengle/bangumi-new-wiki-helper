@@ -1,5 +1,6 @@
 import { LogMsg } from '../interface/types';
 import {
+  CheckPersonExistPayload,
   CheckSubjectExistPayload,
   CreateNewSubjectPayload,
 } from '../interface/messages';
@@ -31,5 +32,7 @@ export interface RuntimeCapabilities {
     checkSubjectExist(payload: CheckSubjectExistPayload): Promise<void>;
     createNewSubject(payload: CreateNewSubjectPayload): Promise<void>;
     createNewCharacter(): Promise<void>;
+    checkPersonExist(payload: CheckPersonExistPayload): Promise<void>;
+    createNewPerson(): Promise<void>;
   };
 }

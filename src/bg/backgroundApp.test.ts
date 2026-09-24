@@ -92,6 +92,7 @@ describe('backgroundApp', () => {
     const { browserMock } = createBrowserMock();
     const checkSubjectEntry = vi.fn().mockResolvedValue(undefined);
     const createSubjectEntry = vi.fn().mockResolvedValue(undefined);
+    const checkPersonEntry = vi.fn().mockResolvedValue(undefined);
     const transport = {
       fetchHtml: vi.fn().mockResolvedValue('<html />'),
       fetchImage: vi.fn().mockResolvedValue('data:image/png;base64,1'),
@@ -113,6 +114,7 @@ describe('backgroundApp', () => {
       createCapabilities,
       checkSubjectEntry,
       createSubjectEntry,
+      checkPersonEntry,
       userAgent: 'Firefox/123.0',
       supportsExtraHeaders: false,
     });
@@ -148,7 +150,24 @@ describe('backgroundApp', () => {
     await controller.handleMessage({
       action: 'create_new_character',
     });
+    await controller.handleMessage({
+      action: 'check_person_exist',
+      payload: { name: '折戸伸治' },
+    });
+    await controller.handleMessage({
+      action: 'create_new_person',
+    });
 
+    expect(checkPersonEntry).toHaveBeenCalledWith(
+      { name: '折戸伸治' },
+      expect.objectContaining({
+        bangumi: { host: 'http://chii.in' },
+      })
+    );
+    expect(browserMock.tabs.create).toHaveBeenCalledWith({
+      url: 'http://chii.in/person/new',
+      active: true,
+    });
     expect(checkSubjectEntry).toHaveBeenCalledWith(
       {
         type: SubjectTypeId.game,

@@ -2,10 +2,15 @@ import { AuxSitePayload } from '../interface/types';
 import { SubjectTypeId } from '../interface/wiki';
 import {
   CharacterCreateInput,
+  PersonCreateInput,
   SourceRuntimeAdapter,
   SubjectCreateInput,
 } from '../source/runtime';
 import { updateSubjectDraftFromAuxSite } from '../runtime/auxData';
+import {
+  checkPersonAndOpenEntry,
+  PersonCreationRuntime,
+} from '../runtime/personCreation';
 import {
   checkSubjectAndOpenEntry,
   createNewSubjectEntry,
@@ -118,10 +123,52 @@ function createUserScriptSubjectCreationRuntime(
   };
 }
 
+function createUserScriptPersonCreationRuntime(
+  host: string
+): PersonCreationRuntime {
+  const notify =
+    userScriptRuntimeCapabilities.notifier?.notify ?? logMessage;
+  const openTab = getOpenTab();
+  return {
+    bangumi: {
+      host,
+    },
+    notify,
+    async openExistingPerson(url: string) {
+      await sleep(100);
+      await openTab(host + url);
+    },
+    async openNewPerson() {
+      GM_setValue(AUTO_FILL_FORM, 1);
+      await sleep(200);
+      await openTab(`${host}/person/new`);
+    },
+  };
+}
+
+async function submitPersonCreation({
+  personData,
+  queryInfo,
+  shouldCheckDup,
+}: PersonCreateInput) {
+  const host = getBangumiHost();
+  const personCreationRuntime = createUserScriptPersonCreationRuntime(host);
+  await userScriptRuntimeCapabilities.storage.savePersonDraft(personData);
+  if (shouldCheckDup) {
+    await checkPersonAndOpenEntry(
+      { name: queryInfo.name },
+      personCreationRuntime
+    );
+    return;
+  }
+  await personCreationRuntime.openNewPerson();
+}
+
 export const userScriptRuntimeAdapter: SourceRuntimeAdapter = {
   fetchHtml(url: string) {
     return userScriptRuntimeCapabilities.transport.fetchHtml(url);
   },
   submitSubjectCreation,
   submitCharacterCreation,
+  submitPersonCreation,
 };

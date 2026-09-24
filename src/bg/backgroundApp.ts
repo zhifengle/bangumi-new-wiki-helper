@@ -26,7 +26,13 @@ import {
 } from './headerRules';
 import { createConfigController } from './configController';
 import { buildSubjectCreationRuntime } from './subjectRuntime';
-import { handleFetchMessage, handleSubjectCreationMessage } from './messageHandlers';
+import { buildPersonCreationRuntime } from './personRuntime';
+import { checkPersonAndOpenEntry } from '../runtime/personCreation';
+import {
+  handleFetchMessage,
+  handlePersonCreationMessage,
+  handleSubjectCreationMessage,
+} from './messageHandlers';
 
 type BackgroundControllerOptions = {
   browserApi?: typeof browser;
@@ -35,6 +41,7 @@ type BackgroundControllerOptions = {
   updateAuxDataDraft?: typeof updateSubjectDraftFromAuxSite;
   checkSubjectEntry?: typeof checkSubjectAndOpenEntry;
   createSubjectEntry?: typeof createNewSubjectEntry;
+  checkPersonEntry?: typeof checkPersonAndOpenEntry;
   userAgent?: string;
   supportsExtraHeaders?: boolean;
 };
@@ -87,6 +94,19 @@ export function createBackgroundController(
     });
   }
 
+  function createPersonCreationRuntime() {
+    const capabilities = createCapabilities({
+      active: getConfig().activeOpen,
+      notify: sendMsgToCurrentTab,
+    });
+    const notify = capabilities.notifier?.notify;
+    const openTab = capabilities.navigator?.openTab;
+    if (!notify || !openTab) {
+      throw new Error('background capabilities are missing notifier or navigator');
+    }
+    return buildPersonCreationRuntime({ getConfig, notify, openTab });
+  }
+
   async function handleMessage(request: BackgroundMessage) {
     const capabilities = createCapabilities({
       active: getConfig().activeOpen,
@@ -106,6 +126,17 @@ export function createBackgroundController(
           {
             checkSubjectEntry: options.checkSubjectEntry,
             createSubjectEntry: options.createSubjectEntry,
+          }
+        );
+      case 'check_person_exist':
+      case 'create_new_person':
+        return handlePersonCreationMessage(
+          request,
+          createPersonCreationRuntime(),
+          browserApi,
+          getConfig().activeOpen,
+          {
+            checkPersonEntry: options.checkPersonEntry,
           }
         );
       default:

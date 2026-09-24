@@ -1,6 +1,14 @@
-import { SingleInfo, SubjectQueryInfo, SubjectWikiInfo } from '../interface/subjectInfo';
+import {
+  PersonWikiInfo,
+  SingleInfo,
+  SubjectQueryInfo,
+  SubjectWikiInfo,
+} from '../interface/subjectInfo';
 import { IMsgPayload } from '../interface/types';
-import { SubjectSourceDefinition } from '../interface/wiki';
+import {
+  PersonSourceDefinition,
+  SubjectSourceDefinition,
+} from '../interface/wiki';
 
 export type SubjectCreateInput = {
   siteConfig: SubjectSourceDefinition;
@@ -15,12 +23,25 @@ export type CharacterCreateInput = {
   charaData: SubjectWikiInfo;
 };
 
+export type PersonQueryInfo = {
+  name: string;
+};
+
+export type PersonCreateInput = {
+  siteConfig: PersonSourceDefinition;
+  personData: PersonWikiInfo;
+  queryInfo: PersonQueryInfo;
+  shouldCheckDup: boolean;
+};
+
 export interface SourceRuntimeAdapter {
   fetchHtml(url: string): Promise<string>;
   hydrateSubjectCover?(infoList: SingleInfo[]): Promise<void>;
   hydrateCharacterCover?(infoList: SingleInfo[]): Promise<void>;
+  hydratePersonCover?(infoList: SingleInfo[]): Promise<void>;
   submitSubjectCreation(input: SubjectCreateInput): Promise<void>;
   submitCharacterCreation(input: CharacterCreateInput): Promise<void>;
+  submitPersonCreation(input: PersonCreateInput): Promise<void>;
 }
 
 
