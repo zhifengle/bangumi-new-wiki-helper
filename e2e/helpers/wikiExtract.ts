@@ -7,12 +7,13 @@ export type E2EWikiInfo = {
   category?: string;
 };
 
-type RuntimeKind = 'subject' | 'character';
+type RuntimeKind = 'subject' | 'character' | 'person';
 
 type RuntimeWindow = Window & {
   __BNWH_E2E__?: {
     extractSubject: () => Promise<E2EWikiInfo[]>;
     extractCharacter: () => Promise<E2EWikiInfo[]>;
+    extractPerson: () => Promise<E2EWikiInfo[]>;
     registeredKinds: () => RuntimeKind[];
     reset: () => void;
     setPageContext: (pageContext: WikiPageContext) => void;
@@ -128,5 +129,24 @@ export async function extractCharacter(
       throw new Error('BNWH E2E character runtime is not registered');
     }
     return runtime.extractCharacter();
+  });
+}
+
+export async function extractPerson(
+  page: Page,
+  runtimeModulePath: string,
+  options: WikiRuntimeInjectOptions = {}
+) {
+  await injectWikiRuntime(page, runtimeModulePath, 'person', options);
+  await ensureRegisteredKind(page, 'person');
+  return page.evaluate(async () => {
+    const runtime = (window as RuntimeWindow).__BNWH_E2E__;
+    if (!runtime) {
+      throw new Error('BNWH E2E runtime is not available on window');
+    }
+    if (!runtime.registeredKinds().includes('person')) {
+      throw new Error('BNWH E2E person runtime is not registered');
+    }
+    return runtime.extractPerson();
   });
 }

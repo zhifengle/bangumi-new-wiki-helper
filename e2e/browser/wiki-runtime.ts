@@ -3,13 +3,14 @@ import type { SingleInfo } from '../../src/interface/subjectInfo';
 
 type Extractor = () => Promise<SingleInfo[]>;
 
-type RuntimeKind = 'subject' | 'character';
+type RuntimeKind = 'subject' | 'character' | 'person';
 
 type RuntimeState = {
   pageContext: WikiPageContext;
   registeredKinds: Set<RuntimeKind>;
   extractSubject?: Extractor;
   extractCharacter?: Extractor;
+  extractPerson?: Extractor;
 };
 
 declare global {
@@ -17,6 +18,7 @@ declare global {
     __BNWH_E2E__?: {
       extractSubject: () => Promise<SingleInfo[]>;
       extractCharacter: () => Promise<SingleInfo[]>;
+      extractPerson: () => Promise<SingleInfo[]>;
       registeredKinds: () => RuntimeKind[];
       reset: () => void;
       setPageContext: (pageContext: WikiPageContext) => void;
@@ -31,8 +33,12 @@ const state: RuntimeState = {
 };
 
 function getExtractor(kind: RuntimeKind): Extractor {
-  const extractor =
-    kind === 'subject' ? state.extractSubject : state.extractCharacter;
+  const extractors: Record<RuntimeKind, Extractor | undefined> = {
+    subject: state.extractSubject,
+    character: state.extractCharacter,
+    person: state.extractPerson,
+  };
+  const extractor = extractors[kind];
   if (!extractor) {
     throw new Error(`BNWH E2E ${kind} runtime is not registered`);
   }
@@ -46,6 +52,9 @@ window.__BNWH_E2E__ = {
   extractCharacter() {
     return getExtractor('character')();
   },
+  extractPerson() {
+    return getExtractor('person')();
+  },
   registeredKinds() {
     return Array.from(state.registeredKinds);
   },
@@ -53,6 +62,7 @@ window.__BNWH_E2E__ = {
     state.registeredKinds.clear();
     state.extractSubject = undefined;
     state.extractCharacter = undefined;
+    state.extractPerson = undefined;
   },
   setPageContext(pageContext) {
     state.pageContext = pageContext;
@@ -70,4 +80,9 @@ export function registerSubjectRuntime(extractor: Extractor) {
 export function registerCharacterRuntime(extractor: Extractor) {
   state.extractCharacter = extractor;
   state.registeredKinds.add('character');
+}
+
+export function registerPersonRuntime(extractor: Extractor) {
+  state.extractPerson = extractor;
+  state.registeredKinds.add('person');
 }
