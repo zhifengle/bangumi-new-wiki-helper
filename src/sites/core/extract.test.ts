@@ -5,12 +5,18 @@ import { SingleInfo } from '../../interface/subjectInfo';
 import {
   CharacterSourceDefinition,
   InfoConfig,
+  PersonSourceDefinition,
   SubjectSourceDefinition,
   SubjectTypeId,
 } from '../../interface/wiki';
 import * as catalog from '../catalog';
 import { createWikiExtractContext } from './context';
-import { dealItemText, getCharaData, getWikiData } from './extract';
+import {
+  dealItemText,
+  getCharaData,
+  getPersonData,
+  getWikiData,
+} from './extract';
 import { steamdbSubject } from '../steamdb/subject';
 import { amazonJpBookSubject } from '../amazonJpBook/subject';
 
@@ -37,6 +43,17 @@ function createTestChara(itemList: InfoConfig[]): CharacterSourceDefinition {
     description: 'test chara',
     itemSelector: { selector: '.item' },
     type: SubjectTypeId.game,
+    itemList,
+  };
+}
+
+function createTestPerson(itemList: InfoConfig[]): PersonSourceDefinition {
+  return {
+    key: 'vgmdb_artist',
+    description: 'test person',
+    host: ['vgmdb.net'],
+    pageSelectors: { selector: '#root' },
+    controlSelector: { selector: '#root' },
     itemList,
   };
 }
@@ -414,6 +431,63 @@ describe('core extract helpers', () => {
         value: '局部角色',
         category: 'subject_title',
       }),
+    ]);
+  });
+
+  test('getPersonData extracts labelled rows and appends default infos', async () => {
+    vi
+      .spyOn(catalog, 'getPersonHooks')
+      .mockReturnValue(async (infos: SingleInfo[]) => infos);
+    document.body.innerHTML = `
+      <div id="root">
+        <div id="leftfloat">
+          <div><b>Birthplace</b><br>Hyogo</div>
+          <div><b>Bloodtype</b><br>A</div>
+        </div>
+      </div>
+    `;
+    const model = createTestPerson([
+      {
+        name: '血型',
+        selector: {
+          selector: '#leftfloat',
+          subSelector: 'div > b',
+          keyWord: 'Bloodtype',
+          closest: 'div',
+        },
+      },
+    ]);
+    model.defaultInfos = [
+      { name: '引用来源', value: 'https://vgmdb.net/artist/2', category: 'listItem' },
+    ];
+
+    const infos = await getPersonData(model, createWikiExtractContext(document));
+
+    expect(infos).toEqual([
+      expect.objectContaining({ name: '血型', value: 'A' }),
+      { name: '引用来源', value: 'https://vgmdb.net/artist/2', category: 'listItem' },
+    ]);
+  });
+
+  test('getPersonData replaces raw infos with the hook result', async () => {
+    vi
+      .spyOn(catalog, 'getPersonHooks')
+      .mockReturnValue(async (infos: SingleInfo[]) => [
+        ...infos,
+        { name: '性别', value: '男' },
+      ]);
+    document.body.innerHTML = `<div id="root"><span id="name">ZUN</span></div>`;
+
+    const infos = await getPersonData(
+      createTestPerson([
+        { name: '姓名', selector: { selector: '#name' }, category: 'crt_name' },
+      ]),
+      createWikiExtractContext(document)
+    );
+
+    expect(infos).toEqual([
+      expect.objectContaining({ name: '姓名', value: 'ZUN', category: 'crt_name' }),
+      { name: '性别', value: '男' },
     ]);
   });
 });

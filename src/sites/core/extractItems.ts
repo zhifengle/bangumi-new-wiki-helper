@@ -1,5 +1,5 @@
 import type { SingleInfo } from '../../interface/subjectInfo';
-import type { InfoConfig, SubjectModelKey } from '../../interface/wiki';
+import type { InfoConfig, ModelKey } from '../../interface/wiki';
 import { resolveSelectorMatch, getSelectorKeyWords } from './selector';
 import { extractItemValue } from './readValue';
 import type { WikiExtractContext } from './context';
@@ -10,7 +10,7 @@ function isSingleInfo(info: SingleInfo | undefined): info is SingleInfo {
 
 export async function getWikiItem(
   infoConfig: InfoConfig,
-  site: SubjectModelKey,
+  site: ModelKey,
   context: WikiExtractContext = {}
 ): Promise<SingleInfo | undefined> {
   if (!infoConfig) return;
@@ -36,7 +36,7 @@ export async function getWikiItem(
 
 export async function getWikiItems(
   itemList: InfoConfig[],
-  site: SubjectModelKey,
+  site: ModelKey,
   context: WikiExtractContext
 ): Promise<SingleInfo[]> {
   const results = await Promise.allSettled(

@@ -1,4 +1,4 @@
-import type { InfoConfig, SubjectModelKey } from '../../interface/wiki';
+import type { InfoConfig, ModelKey } from '../../interface/wiki';
 import type { TextPattern } from '../../interface/textPattern';
 import { dealTextByPipe } from '../../utils/textPipe';
 import { dealFuncByCategory } from '../catalog';
@@ -22,7 +22,7 @@ export function isSummaryCategory(category: string): boolean {
 export function transformTextValue(
   rawText: string,
   infoConfig: InfoConfig,
-  site: SubjectModelKey,
+  site: ModelKey,
   category: string,
   keyWords: TextPattern[]
 ): string {

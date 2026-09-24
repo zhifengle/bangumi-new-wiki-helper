@@ -1,6 +1,6 @@
 import { getStringValue } from '../../interface/subjectInfo';
 import type { SingleInfo } from '../../interface/subjectInfo';
-import type { InfoConfig, SubjectModelKey } from '../../interface/wiki';
+import type { InfoConfig, ModelKey } from '../../interface/wiki';
 import { getInnerText, getText } from '../../utils/domUtils';
 import type { TextPattern } from '../../interface/textPattern';
 import { dealTextByPipe } from '../../utils/textPipe';
@@ -44,7 +44,7 @@ export function postProcessValue(
 
 export async function extractItemValue(
   infoConfig: InfoConfig,
-  site: SubjectModelKey,
+  site: ModelKey,
   context: WikiExtractContext,
   element: Element,
   keyWords: TextPattern[]

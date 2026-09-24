@@ -1,10 +1,12 @@
 import type { SingleInfo } from '../../interface/subjectInfo';
 import type {
   CharacterSourceDefinition,
+  PersonSourceDefinition,
   SubjectSourceDefinition,
 } from '../../interface/wiki';
 import {
   getCharacterHooks,
+  getPersonHooks,
   getSubjectHooks,
 } from '../catalog';
 import type { WikiExtractContext } from './context';
@@ -39,6 +41,20 @@ export async function getCharaData(
   const rawInfo = await getWikiItems(model.itemList, model.siteKey, context);
   const defaultInfos = model.defaultInfos || [];
   const hookRes = await getCharacterHooks(model, 'afterGetWikiData')(
+    rawInfo,
+    model,
+    context.root
+  );
+  return [...applyHookResult(rawInfo, hookRes), ...defaultInfos];
+}
+
+export async function getPersonData(
+  model: PersonSourceDefinition,
+  context: WikiExtractContext = {}
+) {
+  const rawInfo = await getWikiItems(model.itemList, model.key, context);
+  const defaultInfos = model.defaultInfos || [];
+  const hookRes = await getPersonHooks(model, 'afterGetWikiData')(
     rawInfo,
     model,
     context.root
