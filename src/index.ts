@@ -1,7 +1,8 @@
 import { initCommon, addStyle } from './user-script';
 import { bangumi } from './user-script/bangumi';
-import { findModelByHost } from './sites';
+import { findModelByHost, findPersonModels } from './sites';
 import { initChara } from './user-script/character';
+import { initPerson } from './user-script/person';
 import { showSettingsDialog } from './user-script/settingsDialog';
 
 if (GM_registerMenuCommand) {
@@ -10,16 +11,30 @@ if (GM_registerMenuCommand) {
 
 const init = async () => {
   const host = window.location.hostname;
+  let styled = false;
+  const ensureStyle = () => {
+    if (!styled) {
+      addStyle();
+      styled = true;
+    }
+  };
   const modelArr = findModelByHost(host);
   if (modelArr && modelArr.length) {
-    addStyle();
+    ensureStyle();
     modelArr.forEach((m) => {
       initCommon(m);
       initChara(m);
     });
   }
+  const personModels = findPersonModels(host, window.location.href);
+  if (personModels.length) {
+    ensureStyle();
+    personModels.forEach((m) => {
+      initPerson(m);
+    });
+  }
   if (['bangumi.tv', 'chii.in', 'bgm.tv'].includes(host)) {
-    addStyle();
+    ensureStyle();
     bangumi.init();
   }
 };

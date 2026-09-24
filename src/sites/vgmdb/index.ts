@@ -1,6 +1,7 @@
 import { definePersonIntegration, defineSiteIntegration } from '../catalogTypes';
 import { vgmdbArtist } from './artist';
 import { vgmdbOrg } from './org';
+import { vgmdbArtistTools, vgmdbOrgTools } from './personTools';
 import { vgmdbSubject } from './subject';
 import { vgmdbTools } from './tools';
 
@@ -11,9 +12,11 @@ export const vgmdbIntegration = defineSiteIntegration({
 
 export const vgmdbArtistIntegration = definePersonIntegration({
   model: vgmdbArtist,
+  tools: vgmdbArtistTools,
 });
 
 export const vgmdbOrgIntegration = definePersonIntegration({
   model: vgmdbOrg,
+  tools: vgmdbOrgTools,
 });
 

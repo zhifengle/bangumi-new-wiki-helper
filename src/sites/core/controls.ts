@@ -12,19 +12,34 @@ export type CharacterSelectionHandler = (
   selectedName: string
 ) => Promise<void>;
 
+export type ControlButtonLabels = {
+  create: string;
+  createWithCheck: string;
+};
+
+const DEFAULT_CONTROL_LABELS: ControlButtonLabels = {
+  create: '新建',
+  createWithCheck: '新建并查重',
+};
+
 /**
  * 插入控制的按钮
  * @param $t 父节点
  * @param cb 返回 Promise 的回调
+ * @param labels 按钮文案，人物等其他来源可以换掉默认的条目文案
  */
-export function insertControlBtn($t: Element, cb: SubjectControlHandler) {
+export function insertControlBtn(
+  $t: Element,
+  cb: SubjectControlHandler,
+  labels: ControlButtonLabels = DEFAULT_CONTROL_LABELS
+) {
   if (!$t) return;
   const $div = document.createElement('div');
   const $s = document.createElement('span');
   $s.classList.add('e-wiki-new-subject');
-  $s.innerHTML = '新建';
+  $s.innerHTML = labels.create;
   const $search = $s.cloneNode() as HTMLSpanElement;
-  $search.innerHTML = '新建并查重';
+  $search.innerHTML = labels.createWithCheck;
   $div.appendChild($s);
   $div.appendChild($search);
   $t.insertAdjacentElement('afterend', $div);
@@ -32,7 +47,7 @@ export function insertControlBtn($t: Element, cb: SubjectControlHandler) {
     await cb(e);
   });
   $search.addEventListener('click', async (e) => {
-    if ($search.innerHTML !== '新建并查重') return;
+    if ($search.innerHTML !== labels.createWithCheck) return;
     $search.innerHTML = '查重中...';
     try {
       await cb(e, true);
@@ -43,7 +58,7 @@ export function insertControlBtn($t: Element, cb: SubjectControlHandler) {
       console.error(e);
     } finally {
       if ($search.innerHTML === '查重中...') {
-        $search.innerHTML = '新建并查重';
+        $search.innerHTML = labels.createWithCheck;
       }
     }
   });
