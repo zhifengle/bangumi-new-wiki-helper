@@ -197,7 +197,7 @@ describe('DMM subject page', () => {
     await initSourceSubject(dmmSubject, runtime);
 
     const buttons = document.querySelectorAll<HTMLElement>('.e-wiki-new-subject');
-    expect(buttons).toHaveLength(2);
+    expect(buttons).toHaveLength(3);
     expect(buttons[0].parentElement?.previousElementSibling).toBe(
       document.querySelector('.productTitle')
     );
@@ -220,5 +220,48 @@ describe('DMM subject page', () => {
         }),
       })
     );
+  });
+
+  test('exports the extracted subject as JSON without opening the creation flow', async () => {
+    const runtime: SourceRuntimeAdapter = {
+      fetchHtml: vi.fn().mockResolvedValue(''),
+      hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
+      hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
+      submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
+      submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
+      submitPersonCreation: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await initSourceSubject(dmmSubject, runtime);
+    document
+      .querySelector<HTMLElement>('.e-wiki-export-json')!
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncEvents();
+
+    const exported = JSON.parse(
+      document.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-export-json')!
+        .value
+    );
+    expect(exported).toMatchObject({
+      format: 'bnwh-export/1',
+      kind: 'subject',
+      site: dmmSubject.key,
+      sourceUrl: location.href,
+      data: {
+        type: dmmSubject.type,
+        subtype: dmmSubject.subType || 0,
+      },
+    });
+    expect(exported.data.infos).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '游戏名',
+          value: 'Demo Adventure',
+          category: 'subject_title',
+        }),
+      ])
+    );
+    expect(runtime.hydrateSubjectCover).toHaveBeenCalledTimes(1);
+    expect(runtime.submitSubjectCreation).not.toHaveBeenCalled();
   });
 });

@@ -11,6 +11,77 @@ async function flushAsyncEvents() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function createRuntime(): SourceRuntimeAdapter {
+  return {
+    fetchHtml: vi.fn().mockResolvedValue(''),
+    hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
+    hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
+    submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
+    submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
+    submitPersonCreation: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
+function readExportedJson() {
+  return JSON.parse(
+    document.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-export-json')!
+      .value
+  );
+}
+
+function mountDmmCharacterPage() {
+  document.body.innerHTML = `
+    <div class="productTitle">
+      <h1 class="productTitle__item productTitle__item--headline">DMM Title</h1>
+    </div>
+    <div id="detailGuide" class="detailGuide">
+      <div class="detailGuide__content">
+        <p class="detailGuide__capt">キャラクター</p>
+        <div class="detailGuide__sect">
+          <div class="detailGuide__box-chr">
+            <img alt="Alice" />
+            <div class="detailGuide__box-date">
+              <p>
+                <span class="detailGuide__bold detailGuide__color02">
+                  明朗快活なバイト学生
+                </span>
+                <br>
+                <span class="detailGuide__tx16 detailGuide__bold detailGuide__lin-hgt">
+                  Alice（ありす）
+                </span>
+                &emsp;CV：测试声优
+              </p>
+              <p>第一段简介<br>第二段简介</p>
+              <p class="detailGuide__tx14 detailGuide__bold">「角色台词」</p>
+            </div>
+          </div>
+          <div class="detailGuide__box-chr">
+            <img alt="Bob" />
+            <div class="detailGuide__box-date">
+              <p>
+                <span class="detailGuide__bold detailGuide__color02">
+                  社会の荒波に揉まれた悲しき青年
+                </span>
+                <br>
+                <span class="detailGuide__tx16 detailGuide__bold detailGuide__lin-hgt">
+                  Bob（ぼぶ）※名前変更あり。
+                </span>
+              </p>
+              <p>第三段简介<br>第四段简介</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  for (const $p of Array.from(document.querySelectorAll<HTMLElement>('.detailGuide__box-date p'))) {
+    Object.defineProperty($p, 'innerText', {
+      configurable: true,
+      value: ($p.textContent || '').replace(/\s+/g, ' ').trim(),
+    });
+  }
+}
+
 describe('initSourceCharacter', () => {
   beforeEach(() => {
     document.body.innerHTML = `
@@ -102,64 +173,8 @@ describe('initSourceCharacter', () => {
   });
 
   test('extracts characters from the current DMM detail page without iframe', async () => {
-    document.body.innerHTML = `
-      <div class="productTitle">
-        <h1 class="productTitle__item productTitle__item--headline">DMM Title</h1>
-      </div>
-      <div id="detailGuide" class="detailGuide">
-        <div class="detailGuide__content">
-          <p class="detailGuide__capt">キャラクター</p>
-          <div class="detailGuide__sect">
-            <div class="detailGuide__box-chr">
-              <img alt="Alice" />
-              <div class="detailGuide__box-date">
-                <p>
-                  <span class="detailGuide__bold detailGuide__color02">
-                    明朗快活なバイト学生
-                  </span>
-                  <br>
-                  <span class="detailGuide__tx16 detailGuide__bold detailGuide__lin-hgt">
-                    Alice（ありす）
-                  </span>
-                  &emsp;CV：测试声优
-                </p>
-                <p>第一段简介<br>第二段简介</p>
-                <p class="detailGuide__tx14 detailGuide__bold">「角色台词」</p>
-              </div>
-            </div>
-            <div class="detailGuide__box-chr">
-              <img alt="Bob" />
-              <div class="detailGuide__box-date">
-                <p>
-                  <span class="detailGuide__bold detailGuide__color02">
-                    社会の荒波に揉まれた悲しき青年
-                  </span>
-                  <br>
-                  <span class="detailGuide__tx16 detailGuide__bold detailGuide__lin-hgt">
-                    Bob（ぼぶ）※名前変更あり。
-                  </span>
-                </p>
-                <p>第三段简介<br>第四段简介</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    for (const $p of Array.from(document.querySelectorAll<HTMLElement>('.detailGuide__box-date p'))) {
-      Object.defineProperty($p, 'innerText', {
-        configurable: true,
-        value: ($p.textContent || '').replace(/\s+/g, ' ').trim(),
-      });
-    }
-    const runtime: SourceRuntimeAdapter = {
-      fetchHtml: vi.fn().mockResolvedValue(''),
-      hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),
-      hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
-      submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
-      submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
-      submitPersonCreation: vi.fn().mockResolvedValue(undefined),
-    };
+    mountDmmCharacterPage();
+    const runtime = createRuntime();
 
     await initSourceCharacter(dmmSubject, runtime);
 
@@ -208,5 +223,65 @@ describe('initSourceCharacter', () => {
         ]),
       }),
     });
+  });
+
+  test('exports an inline getchu character as JSON without submitting it', async () => {
+    const runtime = createRuntime();
+
+    await initSourceCharacter(getchuSubject, runtime);
+    const exportButtons = document.querySelectorAll<HTMLElement>('.e-wiki-export-json');
+    expect(exportButtons).toHaveLength(2);
+
+    exportButtons[1].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncEvents();
+
+    const exported = readExportedJson();
+    expect(exported).toMatchObject({
+      format: 'bnwh-export/1',
+      kind: 'character',
+      site: getchuSubject.key,
+      sourceUrl: location.href,
+    });
+    expect(exported.data.type).toBe(getchuSubject.type);
+    expect(exported.data.infos).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '姓名',
+          value: '旧角色',
+          category: 'crt_name',
+        }),
+      ])
+    );
+    expect(runtime.hydrateCharacterCover).toHaveBeenCalledTimes(1);
+    expect(runtime.submitCharacterCreation).not.toHaveBeenCalled();
+  });
+
+  test('exports the selected DMM character as JSON', async () => {
+    mountDmmCharacterPage();
+    const runtime = createRuntime();
+
+    await initSourceCharacter(dmmSubject, runtime);
+    const wrap = document.querySelector('.e-bnwh-add-chara-wrap')!;
+    wrap.querySelector<HTMLSelectElement>('.e-bnwh-select')!.value = 'Bob';
+    wrap.querySelector<HTMLElement>('.e-wiki-export-json')!.click();
+    await vi.waitFor(() => {
+      expect(
+        document.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-export-json')
+      ).not.toBeNull();
+    });
+
+    const exported = readExportedJson();
+    expect(exported.kind).toBe('character');
+    expect(exported.site).toBe(dmmSubject.key);
+    expect(exported.data.infos).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '姓名',
+          value: 'Bob',
+          category: 'crt_name',
+        }),
+      ])
+    );
+    expect(runtime.submitCharacterCreation).not.toHaveBeenCalled();
   });
 });

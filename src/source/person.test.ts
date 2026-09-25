@@ -193,6 +193,40 @@ describe('initSourcePerson', () => {
     expect(warn).toHaveBeenCalled();
   });
 
+  test('exports the person infos as JSON instead of opening person/new', async () => {
+    const runtime = createRuntime();
+    const model = createModel();
+
+    await initSourcePerson(model, runtime);
+    document
+      .querySelector<HTMLElement>('.e-wiki-export-json')!
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncEvents();
+
+    const exported = JSON.parse(
+      document.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-export-json')!
+        .value
+    );
+    expect(exported).toMatchObject({
+      format: 'bnwh-export/1',
+      kind: 'person',
+      site: 'vgmdb_artist',
+      sourceUrl: location.href,
+    });
+    expect(exported.data.infos).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '姓名',
+          value: 'ZUN',
+          category: 'crt_name',
+        }),
+        { name: 'crt_role', value: '2', category: 'select' },
+      ])
+    );
+    expect(runtime.hydratePersonCover).toHaveBeenCalledTimes(1);
+    expect(runtime.submitPersonCreation).not.toHaveBeenCalled();
+  });
+
   test('does nothing when the page or control anchor is missing', async () => {
     document.body.innerHTML = '<div id="page"></div>';
     const runtime = createRuntime();

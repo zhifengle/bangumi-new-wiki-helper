@@ -6,9 +6,14 @@ import {
 import { PersonSourceDefinition } from '../interface/wiki';
 import { getPersonHooks } from '../sites';
 import { createWikiExtractContext } from '../sites/core/context';
-import { ControlButtonLabels, insertControlBtn } from '../sites/core/controls';
+import {
+  appendExportBtn,
+  ControlButtonLabels,
+  insertControlBtn,
+} from '../sites/core/controls';
 import { getPersonData } from '../sites/core/extract';
 import { findElement } from '../utils/domUtils';
+import { buildExportPayload, showExportDialog } from './export';
 import { SourceRuntimeAdapter } from './runtime';
 
 const PERSON_BUTTON_LABELS: ControlButtonLabels = {
@@ -51,6 +56,24 @@ function getPersonName(infos: SingleInfo[]): string {
   ).trim();
 }
 
+async function collectPersonData(
+  model: PersonSourceDefinition,
+  runtime: SourceRuntimeAdapter
+): Promise<PersonWikiInfo> {
+  const infos = withDefaults(
+    await getPersonData(model, createWikiExtractContext(document)),
+    model
+  );
+  // 人物允许没有肖像；补抓失败只降级为不带图，不中断新建
+  try {
+    await runtime.hydratePersonCover?.(infos);
+  } catch (error) {
+    console.warn('person portrait hydration failed, continuing without it:', error);
+  }
+  console.info('person info list: ', infos);
+  return { infos };
+}
+
 export async function initSourcePerson(
   model: PersonSourceDefinition,
   runtime: SourceRuntimeAdapter
@@ -62,28 +85,28 @@ export async function initSourcePerson(
   const canCreate = await getPersonHooks(model, 'beforeCreate')();
   if (!canCreate) return;
   console.info(model.description, ' person content script init');
-  insertControlBtn(
+  const $controls = insertControlBtn(
     $control,
     async (_e, shouldCheckDup) => {
-      const infos = withDefaults(
-        await getPersonData(model, createWikiExtractContext(document)),
-        model
-      );
-      // 人物允许没有肖像；补抓失败只降级为不带图，不中断新建
-      try {
-        await runtime.hydratePersonCover?.(infos);
-      } catch (error) {
-        console.warn('person portrait hydration failed, continuing without it:', error);
-      }
-      console.info('person info list: ', infos);
-      const personData: PersonWikiInfo = { infos };
+      const personData = await collectPersonData(model, runtime);
       await runtime.submitPersonCreation({
         siteConfig: model,
         personData,
-        queryInfo: { name: getPersonName(infos) },
+        queryInfo: { name: getPersonName(personData.infos) },
         shouldCheckDup: !!shouldCheckDup,
       });
     },
     PERSON_BUTTON_LABELS
   );
+  if (!$controls) return;
+  appendExportBtn($controls, async () => {
+    showExportDialog(
+      buildExportPayload({
+        kind: 'person',
+        site: model.key,
+        sourceUrl: location.href,
+        data: await collectPersonData(model, runtime),
+      })
+    );
+  });
 }
