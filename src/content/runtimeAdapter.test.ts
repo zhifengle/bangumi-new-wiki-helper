@@ -13,6 +13,9 @@ const { mockContentRuntimeCapabilities } = vi.hoisted(() => ({
       loadSubjectDraft: vi.fn(),
       saveCharacterDraft: vi.fn(),
       loadCharacterDraft: vi.fn(),
+      savePersonDraft: vi.fn(),
+      loadPersonDraft: vi.fn(),
+      clearPersonDraft: vi.fn(),
       saveSubjectId: vi.fn(),
       loadSubjectId: vi.fn(),
       loadBangumiPageState: vi.fn(),
@@ -22,6 +25,8 @@ const { mockContentRuntimeCapabilities } = vi.hoisted(() => ({
       checkSubjectExist: vi.fn(),
       createNewSubject: vi.fn(),
       createNewCharacter: vi.fn(),
+      checkPersonExist: vi.fn(),
+      createNewPerson: vi.fn(),
     },
   },
 }));
@@ -145,5 +150,78 @@ describe('contentRuntimeAdapter', () => {
     expect(
       mockContentRuntimeCapabilities.subjectCreation.createNewCharacter
     ).toHaveBeenCalled();
+  });
+
+  const personSiteConfig = {
+    key: 'vgmdb_artist' as const,
+    description: 'VGMdb 艺术家',
+    host: ['vgmdb.net'],
+    pageSelectors: { selector: '#innermain' },
+    controlSelector: { selector: '#innermain' },
+    itemList: [],
+  };
+
+  test('saves the person draft before asking background to check duplicates', async () => {
+    const personData = {
+      infos: [{ name: '姓名', value: '折戸伸治', category: 'crt_name' }],
+    };
+
+    await contentRuntimeAdapter.submitPersonCreation({
+      siteConfig: personSiteConfig,
+      personData,
+      queryInfo: { name: '折戸伸治' },
+      shouldCheckDup: true,
+    });
+
+    expect(
+      mockContentRuntimeCapabilities.storage.savePersonDraft
+    ).toHaveBeenCalledWith(personData);
+    expect(
+      mockContentRuntimeCapabilities.subjectCreation.checkPersonExist
+    ).toHaveBeenCalledWith({ name: '折戸伸治' });
+    expect(
+      mockContentRuntimeCapabilities.subjectCreation.createNewPerson
+    ).not.toHaveBeenCalled();
+  });
+
+  test('saves the person draft before opening person/new directly', async () => {
+    const personData = { infos: [] };
+
+    await contentRuntimeAdapter.submitPersonCreation({
+      siteConfig: personSiteConfig,
+      personData,
+      queryInfo: { name: '' },
+      shouldCheckDup: false,
+    });
+
+    expect(
+      mockContentRuntimeCapabilities.storage.savePersonDraft
+    ).toHaveBeenCalledWith(personData);
+    expect(
+      mockContentRuntimeCapabilities.subjectCreation.createNewPerson
+    ).toHaveBeenCalled();
+    expect(
+      mockContentRuntimeCapabilities.subjectCreation.checkPersonExist
+    ).not.toHaveBeenCalled();
+  });
+
+  test('hydrates person portraits through background transport', async () => {
+    mockContentRuntimeCapabilities.transport.fetchImage.mockResolvedValue(
+      'data:image/png;base64,portrait'
+    );
+    const infoList = [
+      {
+        name: '肖像',
+        category: 'crt_cover',
+        value: { url: 'https://media.vgm.io/artists/20/2/2.png', dataUrl: '' },
+      },
+    ];
+
+    await contentRuntimeAdapter.hydratePersonCover?.(infoList);
+
+    expect(infoList[0].value).toEqual({
+      url: 'https://media.vgm.io/artists/20/2/2.png',
+      dataUrl: 'data:image/png;base64,portrait',
+    });
   });
 });

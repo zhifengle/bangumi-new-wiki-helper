@@ -2,6 +2,7 @@ import {
   getCoverValue,
   getStringValue,
   isCoverValue,
+  PersonWikiInfo,
   SingleInfo,
   SubjectWikiInfo,
 } from '../../interface/subjectInfo';
@@ -10,7 +11,11 @@ import { sleep } from '../../utils/async/sleep';
 import { initImageWidget } from './imageWidget';
 import { convertInfoValue } from './newSubject/mapper';
 import { insertFillFormBtn } from './newSubject/controls';
-import { initCharacterSubmit, initSubjectSubmit } from './newSubject/submit';
+import {
+  initCharacterSubmit,
+  initPersonSubmit,
+  initSubjectSubmit,
+} from './newSubject/submit';
 export { convertInfoValue } from './newSubject/mapper';
 export { insertFillFormBtn } from './newSubject/controls';
 
@@ -41,8 +46,21 @@ const SUBJECT_NAME_MAP: Record<string, string> = {
   スリーサイズ: 'BWH',
 };
 
+// 条目、角色、人物三种草稿都能填表；只有条目草稿带 type / subtype。
+type FillableWikiInfo = Pick<SubjectWikiInfo, 'infos'> &
+  Partial<Pick<SubjectWikiInfo, 'type' | 'subtype'>>;
+
 function getInput(selector: string) {
   return $q<HTMLInputElement>(selector);
+}
+
+// 表单字段名可能带方括号（如 prsn_pro[artist]），必须放进带引号的属性选择器里
+function escapeAttrValue(value: string) {
+  return value.replace(/["\\]/g, '\\$&');
+}
+
+function getFieldByName<E extends Element>(tag: string, name: string) {
+  return $q<E>(`${tag}[name="${escapeAttrValue(name)}"]`);
 }
 
 function getTextArea(selector: string) {
@@ -119,11 +137,15 @@ function resetCharacterForm(defaultVal: string) {
  * TODO: 使用 MutationObserver 实现
  * @param wikiData
  */
-export async function fillInfoBox(wikiData: SubjectWikiInfo) {
+export async function fillInfoBox(wikiData: FillableWikiInfo) {
   const { infos } = wikiData;
   const subType = Number(wikiData.subtype);
   const infoArray: SingleInfo[] = [];
-  const typeInputs = Array.from($qa<HTMLInputElement>(SUBJECT_TYPE_INPUT_SELECTOR));
+  // 只有条目草稿才有类型单选；角色、人物页面的表格第二行是别的输入框
+  const typeInputs =
+    wikiData.type === undefined
+      ? []
+      : Array.from($qa<HTMLInputElement>(SUBJECT_TYPE_INPUT_SELECTOR));
   if (typeInputs.length) {
     typeInputs[0]?.click();
     if (!Number.isNaN(subType)) {
@@ -154,9 +176,16 @@ export async function fillInfoBox(wikiData: SubjectWikiInfo) {
       continue;
     }
     if (currentInfo.category === 'checkbox') {
-      const target = getInput(`input[name=${currentInfo.name}]`);
+      const target = getFieldByName<HTMLInputElement>('input', currentInfo.name);
       if (target) {
         target.checked = Boolean(currentInfo.value);
+      }
+      continue;
+    }
+    if (currentInfo.category === 'select') {
+      const target = getFieldByName<HTMLSelectElement>('select', currentInfo.name);
+      if (target) {
+        target.value = infoValue;
       }
       continue;
     }
@@ -249,6 +278,42 @@ export function initNewCharacter(
     initImageWidget(characterForm, dataUrl);
   }
   initCharacterSubmit(wikiInfo, dataUrl);
+}
+
+function getPortraitDataUrl(infos: SingleInfo[]) {
+  const coverInfo = infos.find((item) => item.category === 'crt_cover');
+  if (!coverInfo || !coverInfo.value) {
+    return '';
+  }
+  if (isCoverValue(coverInfo.value)) {
+    return getCoverValue(coverInfo.value)?.dataUrl || '';
+  }
+  return getStringValue(coverInfo.value);
+}
+
+// person/new 与 character/new 共用 form[name=new_character]，字段名也相同
+export function initNewPerson(wikiInfo: PersonWikiInfo) {
+  const titleInput = getElement<HTMLElement>(CHARACTER_TITLE_PARENT_SELECTOR);
+  const parent = titleInput?.parentElement;
+  if (!parent) {
+    return;
+  }
+  const defaultVal = getInfoBoxValue();
+  insertFillFormBtn(
+    parent,
+    async () => {
+      await fillInfoBox(wikiInfo);
+    },
+    () => {
+      resetCharacterForm(defaultVal);
+    }
+  );
+  const dataUrl = getPortraitDataUrl(wikiInfo.infos);
+  const personForm = getElement<HTMLFormElement>(CHARACTER_FORM_SELECTOR);
+  if (personForm) {
+    initImageWidget(personForm, dataUrl);
+  }
+  initPersonSubmit(dataUrl);
 }
 
 export function initUploadImg(wikiInfo: SubjectWikiInfo) {

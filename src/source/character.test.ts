@@ -56,6 +56,7 @@ describe('initSourceCharacter', () => {
       hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
       submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
       submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
+      submitPersonCreation: vi.fn().mockResolvedValue(undefined),
     };
 
     await initSourceCharacter(getchuSubject, runtime);
@@ -157,6 +158,7 @@ describe('initSourceCharacter', () => {
       hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
       submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
       submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
+      submitPersonCreation: vi.fn().mockResolvedValue(undefined),
     };
 
     await initSourceCharacter(dmmSubject, runtime);

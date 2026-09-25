@@ -1,11 +1,17 @@
 import browser from 'webextension-polyfill';
 import {
   BackgroundFetchMessage,
+  CheckPersonExistMessage,
   CheckSubjectExistMessage,
+  CreateNewPersonMessage,
   CreateNewSubjectMessage,
   CreateNewCharacterMessage,
 } from '../interface/messages';
 import { RuntimeCapabilities } from '../runtime/capabilities';
+import {
+  PersonCreationRuntime,
+  checkPersonAndOpenEntry,
+} from '../runtime/personCreation';
 import {
   SubjectCreationRuntime,
   checkSubjectAndOpenEntry,
@@ -50,6 +56,34 @@ export async function handleSubjectCreationMessage(
     case 'create_new_character':
       await browserApi.tabs.create({
         url: `${runtime.bangumi.host}/character/new`,
+        active: activeOpen,
+      });
+      return;
+  }
+}
+
+export type PersonCreationMessage =
+  | CheckPersonExistMessage
+  | CreateNewPersonMessage;
+
+export type PersonCreationHandlerDeps = {
+  checkPersonEntry?: typeof checkPersonAndOpenEntry;
+};
+
+export async function handlePersonCreationMessage(
+  request: PersonCreationMessage,
+  runtime: PersonCreationRuntime,
+  browserApi: typeof browser,
+  activeOpen: boolean,
+  deps: PersonCreationHandlerDeps = {}
+): Promise<void> {
+  const checkPersonEntry = deps.checkPersonEntry ?? checkPersonAndOpenEntry;
+  switch (request.action) {
+    case 'check_person_exist':
+      return checkPersonEntry(request.payload, runtime);
+    case 'create_new_person':
+      await browserApi.tabs.create({
+        url: `${runtime.bangumi.host}/person/new`,
         active: activeOpen,
       });
       return;

@@ -2,6 +2,7 @@ import type { SingleInfo } from '../interface/subjectInfo';
 import type { IMsgPayload } from '../interface/types';
 import type {
   CharacterSourceDefinition,
+  PersonSourceDefinition,
   SubjectSourceDefinition,
 } from '../interface/wiki';
 import type { WikiExtractRoot } from './core/context';
@@ -54,6 +55,31 @@ export type SiteIntegration = {
 };
 
 export function defineSiteIntegration(integration: SiteIntegration) {
+  return integration;
+}
+
+export type PersonBeforeCreateHook = () => Promise<boolean>;
+
+export type PersonAfterGetWikiDataHook = (
+  infos: SingleInfo[],
+  model?: PersonSourceDefinition,
+  root?: WikiExtractRoot
+) => Promise<SingleInfo[]>;
+
+export type PersonTools = {
+  hooks?: {
+    beforeCreate?: PersonBeforeCreateHook;
+    afterGetWikiData?: PersonAfterGetWikiDataHook;
+  };
+  filters?: CategoryFilter[];
+};
+
+export type PersonIntegration = {
+  model: PersonSourceDefinition;
+  tools?: PersonTools;
+};
+
+export function definePersonIntegration(integration: PersonIntegration) {
   return integration;
 }
 

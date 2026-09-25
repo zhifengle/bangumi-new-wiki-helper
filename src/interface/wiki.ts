@@ -33,11 +33,17 @@ export const characterModelKeys = [
   'dmm_game_chara',
 ] as const;
 
+export const personModelKeys = ['vgmdb_artist', 'vgmdb_org'] as const;
+
 export type MusicModelKey = (typeof musicModelKeys)[number];
 export type SubjectModelKey = (typeof subjectModelKeys)[number];
 export type CharacterModelKey = (typeof characterModelKeys)[number];
+export type PersonModelKey = (typeof personModelKeys)[number];
 export type CharaModelKey = CharacterModelKey;
-export type SourceModelKey = SubjectModelKey | CharacterModelKey;
+export type SourceModelKey =
+  | SubjectModelKey
+  | CharacterModelKey
+  | PersonModelKey;
 export type ModelKey = SourceModelKey;
 
 // 单个 Selector 表示一段定位逻辑；数组表示按顺序尝试的 fallback。
@@ -148,6 +154,35 @@ export interface CharacterSourceDefinition
   charaType?: CharaType;
   // @TODO 角色、组织机构
   subType?: number;
+}
+
+// person/new 页面的「人物类型」下拉：1 个人、2 公司、3 组合
+export type PersonRole = 1 | 2 | 3;
+
+// person/new 页面的职业勾选框，表单字段名为 prsn_pro[<key>]
+export const personProfessions = [
+  'mangaka',
+  'illustrator',
+  'writer',
+  'seiyu',
+  'artist',
+  'actor',
+  'producer',
+] as const;
+export type PersonProfession = (typeof personProfessions)[number];
+
+// 独立的人物页面来源（例如 VGMdb 的 artist / org 页），不挂在条目站点下。
+export interface PersonSourceDefinition
+  extends BaseSourceDefinition<PersonModelKey> {
+  host: string[];
+  // 与条目模型不同：人物模型的 urlRules 会参与当前页面的初始化判断，
+  // 用来区分同一 host 下的不同人物页面类型（artist / org）。
+  urlRules?: RegExp[];
+  pageSelectors: SelectorInput;
+  controlSelector: SelectorInput;
+  // 未被 hook 覆盖时填入 person/new 的默认人物类型与职业
+  role?: PersonRole;
+  professions?: PersonProfession[];
 }
 
 

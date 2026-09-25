@@ -191,6 +191,7 @@ describe('DMM subject page', () => {
       hydrateCharacterCover: vi.fn().mockResolvedValue(undefined),
       submitSubjectCreation: vi.fn().mockResolvedValue(undefined),
       submitCharacterCreation: vi.fn().mockResolvedValue(undefined),
+      submitPersonCreation: vi.fn().mockResolvedValue(undefined),
     };
 
     await initSourceSubject(dmmSubject, runtime);

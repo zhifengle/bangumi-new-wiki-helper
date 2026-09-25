@@ -3,6 +3,7 @@ import {
   BackgroundFetchHeaders,
   BackgroundMessage,
   BackgroundMessageResult,
+  CheckPersonExistPayload,
   CheckSubjectExistPayload,
   CreateNewSubjectPayload,
 } from '../interface/messages';
@@ -31,6 +32,17 @@ export const backgroundMessageClient = {
   createNewCharacter() {
     return sendBackgroundMessage({
       action: 'create_new_character',
+    });
+  },
+  checkPersonExist(payload: CheckPersonExistPayload) {
+    return sendBackgroundMessage({
+      action: 'check_person_exist',
+      payload,
+    });
+  },
+  createNewPerson() {
+    return sendBackgroundMessage({
+      action: 'create_new_person',
     });
   },
   fetchHtml(url: string) {

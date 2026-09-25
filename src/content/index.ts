@@ -1,8 +1,9 @@
 import browser from 'webextension-polyfill';
-import { findModelByHost } from '../sites';
+import { findModelByHost, findPersonModels } from '../sites';
 import { initSourceSubject } from '../source/subject';
 import { logMessage } from '../utils/log';
 import { initChara } from './character';
+import { initPerson } from './person';
 import { contentRuntimeAdapter } from './runtimeAdapter';
 
 const init = function () {
@@ -13,6 +14,11 @@ const init = function () {
       initChara(model);
     });
   }
+  findPersonModels(window.location.hostname, window.location.href).forEach(
+    (model) => {
+      initPerson(model);
+    }
+  );
 };
 init();
 

@@ -1,3 +1,4 @@
+import { CheckPersonAndOpenPayload } from './personCreation';
 import {
   CheckSubjectAndOpenPayload,
   CreateSubjectEntryPayload,
@@ -17,6 +18,15 @@ export type CreateNewSubjectMessage = {
 
 export type CreateNewCharacterMessage = {
   action: 'create_new_character';
+};
+
+export type CheckPersonExistMessage = {
+  action: 'check_person_exist';
+  payload: CheckPersonAndOpenPayload;
+};
+
+export type CreateNewPersonMessage = {
+  action: 'create_new_person';
 };
 
 export type FetchImageMessage = {
@@ -42,10 +52,13 @@ export type BackgroundMessage =
   | CheckSubjectExistMessage
   | CreateNewSubjectMessage
   | CreateNewCharacterMessage
+  | CheckPersonExistMessage
+  | CreateNewPersonMessage
   | BackgroundFetchMessage;
 
 export type CheckSubjectExistPayload = CheckSubjectExistMessage['payload'];
 export type CreateNewSubjectPayload = CreateNewSubjectMessage['payload'];
+export type CheckPersonExistPayload = CheckPersonExistMessage['payload'];
 
 export type BackgroundMessageResult<T extends BackgroundMessage> =
   T extends BackgroundFetchMessage ? string : void;

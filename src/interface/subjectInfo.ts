@@ -58,6 +58,10 @@ export interface SubjectWikiInfo {
   infos: SingleInfo[];
 }
 
+export interface PersonWikiInfo {
+  infos: SingleInfo[];
+}
+
 export type AllSubject = Subject | BookSubject;
 
 export function getStringValue(value: SingleInfoValue, fallback = ''): string {

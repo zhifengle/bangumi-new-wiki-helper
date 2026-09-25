@@ -149,3 +149,60 @@ export function initCharacterSubmit(wikiInfo: SubjectWikiInfo, dataUrl: string) 
   }, 300);
 }
 
+export type PersonSubmitDeps = {
+  // 页面跳转可注入，jsdom 里没有真正的导航能力，测试靠它断言目标地址
+  navigate?: (url: string) => void;
+};
+
+function hasPortrait($canvas: HTMLCanvasElement | null) {
+  return !!$canvas && $canvas.width > 8 && $canvas.height > 10;
+}
+
+// 人物页没有关联条目与 CV 的步骤；没有肖像时也允许直接提交表单
+export function initPersonSubmit(dataUrl: string, deps: PersonSubmitDeps = {}) {
+  const navigate = deps.navigate ?? ((url: string) => location.assign(url));
+  setTimeout(() => {
+    const $form = $q('form[name=new_character]') as HTMLFormElement | null;
+    const $input = $q(
+      '.e-wiki-cover-container [name=submit]'
+    ) as HTMLInputElement | null;
+    if (!$form || !$input) return;
+    const $clonedInput = $input.cloneNode(true) as HTMLInputElement;
+    $clonedInput.value = '添加人物并上传肖像';
+    $input.insertAdjacentElement('afterend', $clonedInput);
+    $input.remove();
+    const $canvas = $q('#e-wiki-cover-preview') as HTMLCanvasElement | null;
+    $clonedInput.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const $el = e.target as HTMLElement;
+      $el.style.display = 'none';
+      $clonedInput.style.display = 'none';
+      const $loading = insertLoading($el);
+      try {
+        const $wikiMode = $q(
+          'table small a:nth-of-type(1)[href="javascript:void(0)"]'
+        ) as HTMLElement | null;
+        $wikiMode?.click();
+        await sleep(200);
+        const url = hasPortrait($canvas)
+          ? await sendFormImg(
+              $form,
+              $canvas!.toDataURL('image/png', 1) || dataUrl
+            )
+          : await sendForm($form);
+        insertLogInfo($el, `新建人物成功: ${genLinkText(url, '人物地址')}`);
+        $loading.remove();
+        $el.style.display = '';
+        $clonedInput.style.display = '';
+        navigate(url);
+      } catch (e) {
+        console.log('send form err: ', e);
+        insertLogInfo($el, `出错了: ${e}`);
+        $loading.remove();
+        $el.style.display = '';
+        $clonedInput.style.display = '';
+      }
+    });
+  }, 300);
+}
+

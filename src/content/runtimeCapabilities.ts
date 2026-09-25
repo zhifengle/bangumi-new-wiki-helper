@@ -22,5 +22,11 @@ export const contentRuntimeCapabilities: RuntimeCapabilities = {
     createNewCharacter() {
       return backgroundMessageClient.createNewCharacter();
     },
+    checkPersonExist(payload) {
+      return backgroundMessageClient.checkPersonExist(payload);
+    },
+    createNewPerson() {
+      return backgroundMessageClient.createNewPerson();
+    },
   },
 };

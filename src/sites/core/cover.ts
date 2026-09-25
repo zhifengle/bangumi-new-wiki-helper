@@ -1,5 +1,5 @@
 import type { IFetchOpts } from '../../interface/types';
-import type { SubjectModelKey } from '../../interface/wiki';
+import type { ModelKey } from '../../interface/wiki';
 import { getImageDataByURL } from '../../utils/dealImage';
 import type { WikiPageContext } from './context';
 
@@ -9,7 +9,7 @@ function getCurrentPageUrl() {
 
 export async function getCover(
   $d: Element,
-  site: SubjectModelKey,
+  site: ModelKey,
   context: WikiPageContext = {}
 ) {
   let url;

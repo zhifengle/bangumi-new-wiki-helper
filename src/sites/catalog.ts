@@ -1,13 +1,21 @@
 import type {
   CharacterModelKey,
   CharacterSourceDefinition,
+  ModelKey,
+  PersonModelKey,
+  PersonSourceDefinition,
   SubjectModelKey,
   SubjectSourceDefinition,
 } from '../interface/wiki';
 import type {
+  CategoryFilter,
   CharacterAfterGetWikiDataHook,
   CharacterIntegration,
   CharacterTools,
+  PersonAfterGetWikiDataHook,
+  PersonBeforeCreateHook,
+  PersonIntegration,
+  PersonTools,
   SubjectAfterGetWikiDataHook,
   SubjectBeforeCreateHook,
   SubjectTools,
@@ -28,7 +36,11 @@ import { moepediaIntegration } from './moepedia';
 import { steamIntegration } from './steam';
 import { steamdbIntegration } from './steamdb';
 import type { SiteIntegration } from './catalogTypes';
-import { vgmdbIntegration } from './vgmdb';
+import {
+  vgmdbArtistIntegration,
+  vgmdbIntegration,
+  vgmdbOrgIntegration,
+} from './vgmdb';
 
 const siteIntegrations: SiteIntegration[] = [
   getchuIntegration,
@@ -53,6 +65,12 @@ const characterIntegrations = siteIntegrations.flatMap(
   (integration) => integration.characters ?? []
 );
 
+// 人物页面来源独立于条目站点注册，方便接入没有条目模型的站点。
+const personIntegrations: PersonIntegration[] = [
+  vgmdbArtistIntegration,
+  vgmdbOrgIntegration,
+];
+
 function buildSiteToolsMap(integrations: SiteIntegration[]) {
   return integrations.reduce((acc, integration) => {
     if (integration.tools) {
@@ -71,14 +89,49 @@ function buildCharacterToolsMap(integrations: CharacterIntegration[]) {
   }, {} as Partial<Record<CharacterModelKey, CharacterTools>>);
 }
 
+function buildPersonToolsMap(integrations: PersonIntegration[]) {
+  return integrations.reduce((acc, integration) => {
+    if (integration.tools) {
+      acc[integration.model.key] = integration.tools;
+    }
+    return acc;
+  }, {} as Partial<Record<PersonModelKey, PersonTools>>);
+}
+
+// 条目与人物模型的 category 过滤器合并成一张按 ModelKey 索引的表，
+// 供核心抽取层按任意模型 key 查询。
+function buildFiltersMap(
+  sites: SiteIntegration[],
+  persons: PersonIntegration[]
+) {
+  const acc: Partial<Record<ModelKey, CategoryFilter[]>> = {};
+  for (const integration of sites) {
+    if (integration.tools?.filters) {
+      acc[integration.site.key] = integration.tools.filters;
+    }
+  }
+  for (const integration of persons) {
+    if (integration.tools?.filters) {
+      acc[integration.model.key] = integration.tools.filters;
+    }
+  }
+  return acc;
+}
+
 const siteToolsMap = buildSiteToolsMap(siteIntegrations);
 const characterToolsMap = buildCharacterToolsMap(characterIntegrations);
+const personToolsMap = buildPersonToolsMap(personIntegrations);
+const filtersMap = buildFiltersMap(siteIntegrations, personIntegrations);
 
 const noOpBeforeCreate: SubjectBeforeCreateHook = async () => true;
 const noOpSubjectAfterGetWikiData: SubjectAfterGetWikiDataHook = async (
   infos
 ) => infos;
 const noOpCharacterAfterGetWikiData: CharacterAfterGetWikiDataHook = async (
+  infos
+) => infos;
+const noOpPersonBeforeCreate: PersonBeforeCreateHook = async () => true;
+const noOpPersonAfterGetWikiData: PersonAfterGetWikiDataHook = async (
   infos
 ) => infos;
 
@@ -102,6 +155,21 @@ export function getCharacterModels(
     .map((integration) => integration.model);
 }
 
+// host 命中且 urlRules（若有）命中当前页面地址的人物模型
+export function findPersonModels(
+  host: string,
+  href: string
+): PersonSourceDefinition[] {
+  return personIntegrations
+    .map((integration) => integration.model)
+    .filter((model) => model.host.includes(host))
+    .filter(
+      (model) =>
+        !model.urlRules?.length ||
+        model.urlRules.some((rule) => rule.test(href))
+    );
+}
+
 function getSiteTools(key: SubjectModelKey): SubjectTools | undefined {
   return siteToolsMap[key];
 }
@@ -110,6 +178,10 @@ function getCharacterTools(
   key: CharacterModelKey
 ): CharacterTools | undefined {
   return characterToolsMap[key];
+}
+
+function getPersonTools(key: PersonModelKey): PersonTools | undefined {
+  return personToolsMap[key];
 }
 
 export function getSubjectHooks(
@@ -148,6 +220,26 @@ export function getCharacterHooks(
   return hooks[timing] || noOpCharacterAfterGetWikiData;
 }
 
+export function getPersonHooks(
+  model: PersonSourceDefinition,
+  timing: 'beforeCreate'
+): PersonBeforeCreateHook;
+export function getPersonHooks(
+  model: PersonSourceDefinition,
+  timing: 'afterGetWikiData'
+): PersonAfterGetWikiDataHook;
+export function getPersonHooks(
+  model: PersonSourceDefinition,
+  timing: 'beforeCreate' | 'afterGetWikiData'
+) {
+  const hooks = getPersonTools(model.key)?.hooks;
+  const fallback =
+    timing === 'beforeCreate'
+      ? noOpPersonBeforeCreate
+      : noOpPersonAfterGetWikiData;
+  return hooks?.[timing] || fallback;
+}
+
 export function getCharacterIntegrations(
   key: SubjectModelKey
 ): CharacterIntegration[] {
@@ -157,13 +249,11 @@ export function getCharacterIntegrations(
 }
 
 export function dealFuncByCategory(
-  key: SubjectModelKey,
+  key: ModelKey,
   category?: string
 ): (value?: string | null) => string {
   const filter = category
-    ? getSiteTools(key)?.filters?.find(
-        (item) => item.category === category
-      )
+    ? filtersMap[key]?.find((item) => item.category === category)
     : undefined;
   if (filter?.dealFunc) {
     return filter.dealFunc;

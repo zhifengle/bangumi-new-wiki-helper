@@ -49,6 +49,26 @@ describe('core controls helpers', () => {
     expect(duplicateButton.innerHTML).toBe('未查到条目');
   });
 
+  test('insertControlBtn accepts custom labels and keeps the duplicate-check guard working', async () => {
+    const handler = vi.fn().mockResolvedValue(undefined);
+    const anchor = document.querySelector('#anchor')!;
+
+    insertControlBtn(anchor, handler, {
+      create: '新建人物',
+      createWithCheck: '新建人物并查重',
+    });
+
+    const buttons = document.querySelectorAll<HTMLElement>('.e-wiki-new-subject');
+    expect(buttons[0].innerHTML).toBe('新建人物');
+    expect(buttons[1].innerHTML).toBe('新建人物并查重');
+
+    buttons[1].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncEvents();
+
+    expect(handler).toHaveBeenCalledWith(expect.any(MouseEvent), true);
+    expect(buttons[1].innerHTML).toBe('新建人物并查重');
+  });
+
   test('insertControlBtnChara wires the character button click handler', async () => {
     const handler = vi.fn().mockResolvedValue(undefined);
     const anchor = document.querySelector('#anchor')!;

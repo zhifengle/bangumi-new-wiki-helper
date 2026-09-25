@@ -1,9 +1,13 @@
 import {
   dealFuncByCategory,
   getCharacterModels,
+  getPersonHooks,
   getSubjectHooks,
   findModelByHost,
+  findPersonModels,
 } from './catalog';
+import { vgmdbArtist } from './vgmdb/artist';
+import { vgmdbOrg } from './vgmdb/org';
 import { getchuIntegration } from './getchu';
 import { getchuChara } from './getchu/chara';
 import { getchuSubject } from './getchu/subject';
@@ -56,6 +60,26 @@ describe('sites catalog registry', () => {
         'subject_title'
       )('幾日 (WANIMAGAZINE COMICS SPECIAL) (1)')
     ).toEqual('幾日 (WANIMAGAZINE COMICS SPECIAL) (1)');
+  });
+
+  test('finds person definitions by host and current page url', () => {
+    expect(
+      findPersonModels('vgmdb.net', 'https://vgmdb.net/artist/2')
+    ).toEqual([vgmdbArtist]);
+    expect(findPersonModels('vgmdb.net', 'https://vgmdb.net/org/1')).toEqual([
+      vgmdbOrg,
+    ]);
+    expect(
+      findPersonModels('vgmdb.net', 'https://vgmdb.net/album/9683')
+    ).toEqual([]);
+    expect(
+      findPersonModels('example.com', 'https://example.com/artist/1')
+    ).toEqual([]);
+  });
+
+  test('resolves person hooks and filters to passthroughs when unset', async () => {
+    expect(await getPersonHooks(vgmdbOrg, 'beforeCreate')()).toBe(true);
+    expect(dealFuncByCategory('vgmdb_org', 'crt_name')('  Key  ')).toBe('Key');
   });
 });
 
