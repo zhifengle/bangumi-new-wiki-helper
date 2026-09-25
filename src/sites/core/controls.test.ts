@@ -2,6 +2,7 @@
 import { vi } from 'vitest';
 import {
   addCharaUI,
+  appendExportBtn,
   insertControlBtn,
   insertControlBtnChara,
 } from './controls';
@@ -96,5 +97,86 @@ describe('core controls helpers', () => {
     await flushAsyncEvents();
 
     expect(handler).toHaveBeenCalledWith(expect.any(MouseEvent), 'Bob');
+  });
+
+  test('insertControlBtn returns the container so more controls can be appended', () => {
+    const anchor = document.querySelector('#anchor')!;
+
+    const container = insertControlBtn(
+      anchor,
+      vi.fn().mockResolvedValue(undefined)
+    );
+
+    expect(container).toBe(anchor.nextElementSibling);
+  });
+
+  test('insertControlBtnChara and addCharaUI return their containers', () => {
+    const anchor = document.querySelector('#anchor')!;
+
+    const charaContainer = insertControlBtnChara(
+      anchor,
+      vi.fn().mockResolvedValue(undefined)
+    );
+    expect(charaContainer).toBe(anchor.nextElementSibling);
+    expect(charaContainer?.querySelector('.e-wiki-new-character')).not.toBeNull();
+
+    const uiContainer = addCharaUI(
+      anchor,
+      ['Alice'],
+      vi.fn().mockResolvedValue(undefined)
+    );
+    expect(uiContainer).toBe(anchor.nextElementSibling);
+    expect(uiContainer?.classList.contains('e-bnwh-add-chara-wrap')).toBe(true);
+  });
+
+  test('appendExportBtn adds an export control that runs its handler', async () => {
+    let finish: () => void = () => undefined;
+    const handler = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        })
+    );
+    const anchor = document.querySelector('#anchor')!;
+    const container = insertControlBtn(
+      anchor,
+      vi.fn().mockResolvedValue(undefined)
+    )!;
+
+    appendExportBtn(container, handler);
+
+    const exportButton = container.querySelector<HTMLElement>('.e-wiki-export-json')!;
+    expect(exportButton.textContent).toBe('导出 JSON');
+    expect(exportButton.classList.contains('e-wiki-new-subject')).toBe(true);
+
+    exportButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncEvents();
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(exportButton.textContent).toBe('导出中...');
+
+    finish();
+    await flushAsyncEvents();
+    expect(exportButton.textContent).toBe('导出 JSON');
+  });
+
+  test('appendExportBtn restores its label when the handler fails', async () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    const handler = vi.fn().mockRejectedValue(new Error('boom'));
+    const anchor = document.querySelector('#anchor')!;
+    const container = insertControlBtn(
+      anchor,
+      vi.fn().mockResolvedValue(undefined)
+    )!;
+
+    appendExportBtn(container, handler);
+    const exportButton = container.querySelector<HTMLElement>('.e-wiki-export-json')!;
+    exportButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncEvents();
+
+    expect(exportButton.textContent).toBe('导出 JSON');
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 });

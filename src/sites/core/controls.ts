@@ -12,6 +12,8 @@ export type CharacterSelectionHandler = (
   selectedName: string
 ) => Promise<void>;
 
+export type ExportControlHandler = (event: MouseEvent) => Promise<void>;
+
 export type ControlButtonLabels = {
   create: string;
   createWithCheck: string;
@@ -21,6 +23,9 @@ const DEFAULT_CONTROL_LABELS: ControlButtonLabels = {
   create: '新建',
   createWithCheck: '新建并查重',
 };
+
+const EXPORT_LABEL = '导出 JSON';
+const EXPORTING_LABEL = '导出中...';
 
 /**
  * 插入控制的按钮
@@ -62,6 +67,32 @@ export function insertControlBtn(
       }
     }
   });
+  return $div;
+}
+
+/**
+ * 在控制按钮容器里追加「导出 JSON」按钮
+ * @param $container insertControlBtn 等返回的容器
+ * @param cb 返回 Promise 的回调
+ */
+export function appendExportBtn($container: Element, cb: ExportControlHandler) {
+  if (!$container) return;
+  const $s = document.createElement('span');
+  $s.classList.add('e-wiki-new-subject', 'e-wiki-export-json');
+  $s.textContent = EXPORT_LABEL;
+  $container.appendChild($s);
+  $s.addEventListener('click', async (e) => {
+    if ($s.textContent !== EXPORT_LABEL) return;
+    $s.textContent = EXPORTING_LABEL;
+    try {
+      await cb(e);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      $s.textContent = EXPORT_LABEL;
+    }
+  });
+  return $s;
 }
 
 /**
@@ -81,6 +112,7 @@ export function insertControlBtnChara($t: Element, cb: CharacterControlHandler) 
   $s.addEventListener('click', async (e) => {
     await cb(e);
   });
+  return $div;
 }
 
 export function addCharaUI(
@@ -108,9 +140,10 @@ ${names.map((n) => `<option value="${n}">${n}</option>`)}
   const $button = $div.querySelector<HTMLAnchorElement>('.e-wiki-new-character');
   const $sel = $div.querySelector<HTMLSelectElement>('.e-bnwh-select');
   if (!$button || !$sel) {
-    return;
+    return $div;
   }
   $button.addEventListener('click', async (e) => {
     await cb(e, $sel.value);
   });
+  return $div;
 }

@@ -2,10 +2,11 @@ import { SubjectWikiInfo } from '../interface/subjectInfo';
 import { IMsgPayload } from '../interface/types';
 import { SubjectSourceDefinition } from '../interface/wiki';
 import { getSubjectHooks } from '../sites';
-import { insertControlBtn } from '../sites/core/controls';
+import { appendExportBtn, insertControlBtn } from '../sites/core/controls';
 import { getWikiData } from '../sites/core/extract';
 import { getQueryInfo } from '../sites/core/search';
 import { findElement } from '../utils/domUtils';
+import { buildExportPayload, showExportDialog } from './export';
 import { SourceRuntimeAdapter } from './runtime';
 
 function normalizeHookResult(
@@ -24,6 +25,21 @@ function normalizeHookResult(
   };
 }
 
+// 新建与导出共用同一份抽取结果，保证导出的就是会填进表单的数据
+async function collectSubjectData(
+  siteConfig: SubjectSourceDefinition,
+  runtime: SourceRuntimeAdapter
+): Promise<SubjectWikiInfo> {
+  const infos = await getWikiData(siteConfig);
+  await runtime.hydrateSubjectCover?.(infos);
+  console.info('wiki info list: ', infos);
+  return {
+    type: siteConfig.type,
+    subtype: siteConfig.subType || 0,
+    infos,
+  };
+}
+
 export async function initSourceSubject(
   siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter
@@ -38,22 +54,26 @@ export async function initSourceSubject(
   if (!normalizedHookRes) return;
   const { payload } = normalizedHookRes;
   console.info(siteConfig.description, ' content script init');
-  insertControlBtn($title, async (_e, shouldCheckDup) => {
-    const infos = await getWikiData(siteConfig);
-    await runtime.hydrateSubjectCover?.(infos);
-    console.info('wiki info list: ', infos);
-    const wikiData: SubjectWikiInfo = {
-      type: siteConfig.type,
-      subtype: siteConfig.subType || 0,
-      infos,
-    };
+  const $controls = insertControlBtn($title, async (_e, shouldCheckDup) => {
+    const wikiData = await collectSubjectData(siteConfig, runtime);
     await runtime.submitSubjectCreation({
       siteConfig,
       wikiData,
-      queryInfo: getQueryInfo(infos),
+      queryInfo: getQueryInfo(wikiData.infos),
       payload,
       shouldCheckDup: !!shouldCheckDup,
     });
+  });
+  if (!$controls) return;
+  appendExportBtn($controls, async () => {
+    showExportDialog(
+      buildExportPayload({
+        kind: 'subject',
+        site: siteConfig.key,
+        sourceUrl: location.href,
+        data: await collectSubjectData(siteConfig, runtime),
+      })
+    );
   });
 }
 

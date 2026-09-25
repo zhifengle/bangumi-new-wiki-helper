@@ -6,10 +6,15 @@ import type {
   SubjectSourceDefinition,
 } from '../interface/wiki';
 import { getCharacterModels } from '../sites';
-import { addCharaUI, insertControlBtnChara } from '../sites/core/controls';
+import {
+  addCharaUI,
+  appendExportBtn,
+  insertControlBtnChara,
+} from '../sites/core/controls';
 import { createWikiExtractContext } from '../sites/core/context';
 import { getCharaData } from '../sites/core/extract';
 import { findAllElement, findElement } from '../utils/domUtils';
+import { buildExportPayload, showExportDialog } from './export';
 import { SourceRuntimeAdapter } from './runtime';
 
 function getIframeSelector(itemSelector: SelectorInput): string {
@@ -38,22 +43,48 @@ async function getIframeDoc(
   return new DOMParser().parseFromString(rawHtml, 'text/html');
 }
 
+async function collectCharacterData(
+  siteConfig: SubjectSourceDefinition,
+  runtime: SourceRuntimeAdapter,
+  charaInfo: SubjectWikiInfo['infos']
+): Promise<SubjectWikiInfo | null> {
+  if (!charaInfo.length) return null;
+  await runtime.hydrateCharacterCover?.(charaInfo);
+  console.info('character info list: ', charaInfo);
+  return {
+    type: siteConfig.type,
+    infos: charaInfo,
+  };
+}
+
 async function submitCharacter(
   siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter,
   charaInfo: SubjectWikiInfo['infos']
 ) {
-  if (!charaInfo.length) return;
-  await runtime.hydrateCharacterCover?.(charaInfo);
-  console.info('character info list: ', charaInfo);
-  const charaData: SubjectWikiInfo = {
-    type: siteConfig.type,
-    infos: charaInfo,
-  };
+  const charaData = await collectCharacterData(siteConfig, runtime, charaInfo);
+  if (!charaData) return;
   await runtime.submitCharacterCreation({
     siteConfig,
     charaData,
   });
+}
+
+async function exportCharacter(
+  siteConfig: SubjectSourceDefinition,
+  runtime: SourceRuntimeAdapter,
+  charaInfo: SubjectWikiInfo['infos']
+) {
+  const charaData = await collectCharacterData(siteConfig, runtime, charaInfo);
+  if (!charaData) return;
+  showExportDialog(
+    buildExportPayload({
+      kind: 'character',
+      site: siteConfig.key,
+      sourceUrl: location.href,
+      data: charaData,
+    })
+  );
 }
 
 async function initCharacterModel(
@@ -72,14 +103,17 @@ async function initCharacterModel(
     : findAllElement(characterModel.itemSelector);
   if (!itemArr.length) return;
 
+  const extractCharacter = ($target: Element) =>
+    getCharaData(characterModel, createWikiExtractContext($target));
+
   if ((characterModel.controlMode ?? 'select') === 'inline') {
     itemArr.forEach(($target) => {
-      insertControlBtnChara($target, async () => {
-        const charaInfo = await getCharaData(
-          characterModel,
-          createWikiExtractContext($target)
-        );
-        await submitCharacter(siteConfig, runtime, charaInfo);
+      const $controls = insertControlBtnChara($target, async () => {
+        await submitCharacter(siteConfig, runtime, await extractCharacter($target));
+      });
+      if (!$controls) return;
+      appendExportBtn($controls, async () => {
+        await exportCharacter(siteConfig, runtime, await extractCharacter($target));
       });
     });
     return;
@@ -108,23 +142,25 @@ async function initCharacterModel(
       );
     })
   );
-  addCharaUI($toolbarEl, names, async (_e: Event, selectedName: string) => {
-    let targetList: Element[] = [];
+  const resolveTargets = (selectedName: string): Element[] => {
     if (selectedName === 'all') {
       // @TODO 一次性新建全部
-      // targetList = [...itemArr];
-    } else {
-      const idx = names.indexOf(selectedName);
-      if (idx !== -1) {
-        targetList = itemArr.slice(idx, idx + 1);
-      }
+      // return [...itemArr];
+      return [];
     }
-    for (const $target of targetList) {
-      const charaInfo = await getCharaData(
-        characterModel,
-        createWikiExtractContext($target)
-      );
-      await submitCharacter(siteConfig, runtime, charaInfo);
+    const idx = names.indexOf(selectedName);
+    return idx === -1 ? [] : itemArr.slice(idx, idx + 1);
+  };
+  const $ui = addCharaUI($toolbarEl, names, async (_e: Event, selectedName: string) => {
+    for (const $target of resolveTargets(selectedName)) {
+      await submitCharacter(siteConfig, runtime, await extractCharacter($target));
+    }
+  });
+  const $select = $ui?.querySelector<HTMLSelectElement>('.e-bnwh-select');
+  if (!$ui || !$select) return;
+  appendExportBtn($ui, async () => {
+    for (const $target of resolveTargets($select.value)) {
+      await exportCharacter(siteConfig, runtime, await extractCharacter($target));
     }
   });
 }
