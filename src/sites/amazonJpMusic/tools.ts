@@ -7,7 +7,7 @@ import {
 
 export const amazonJpMusicTools: SubjectTools = {
   hooks: {
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async afterGetWikiData(infos: SingleInfo[], _model, root = document) {
       const res: SingleInfo[] = [];
       for (const item of infos) {
         if (item.name === '艺术家') {
@@ -15,7 +15,7 @@ export const amazonJpMusicTools: SubjectTools = {
         }
         res.push(item);
       }
-      const date = document.querySelector('#declarative_ .title-text > span');
+      const date = root.querySelector('#declarative_ .title-text > span');
       if (date) {
         const m = date.innerHTML.trim().match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
         if (m) {
@@ -25,13 +25,17 @@ export const amazonJpMusicTools: SubjectTools = {
           });
         }
       }
-      const coverInfo = await getAmazonCoverInfo(res, {
-        imageUrlTransform: toAmazonAcSl1500ImageUrl,
-      });
+      const coverInfo = await getAmazonCoverInfo(
+        res,
+        {
+          imageUrlTransform: toAmazonAcSl1500ImageUrl,
+        },
+        root
+      );
       if (coverInfo) {
         res.push(coverInfo);
       }
-      const $tracks = document.querySelector('#music-tracks');
+      const $tracks = root.querySelector('#music-tracks');
       if ($tracks) {
         const discArr = [...$tracks.querySelectorAll('h4 + .a-row table')].map(
           (table) => {

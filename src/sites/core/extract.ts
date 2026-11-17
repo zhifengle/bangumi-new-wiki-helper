@@ -29,7 +29,8 @@ export async function getWikiData(
   const defaultInfos = siteConfig.defaultInfos || [];
   const hookRes = await getSubjectHooks(siteConfig, 'afterGetWikiData')(
     rawInfo,
-    siteConfig
+    siteConfig,
+    context.root
   );
   return [...applyHookResult(rawInfo, hookRes), ...defaultInfos];
 }

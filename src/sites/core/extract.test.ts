@@ -105,61 +105,31 @@ describe('core extract helpers', () => {
     );
   });
 
-  test('getWikiData extracts amazon jp book wiki data', async () => {
+  test('getWikiData extracts the current amazon book fields and alternate price/cover markup', async () => {
     const dom = new DOMParser().parseFromString(
-      readHtmlFixture('../../data/amazon-book.html'),
+      `
+        <span id="productTitle">ジャヒー様はくじけない!(2) (ガンガンコミックスJOKER)</span>
+        <div id="bylineInfo">
+          <span class="author"><a>昆布わかめ</a><span>(著)</span></span>
+        </div>
+        <div id="richProductInformation_feature_div">
+          <ol class="a-carousel">
+            <li>本の長さ 175ページ</li>
+            <li>出版社 スクウェア・エニックス</li>
+            <li>発売日 2018/4/21</li>
+            <li>ISBN-10 4757556977</li>
+            <li>ISBN-13 978-4757556973</li>
+          </ol>
+        </div>
+        <div id="corePriceDisplay_desktop_feature_div">
+          <span class="priceToPay"><span class="a-offscreen">￥770</span></span>
+        </div>
+        <img id="landingImage"
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==">
+      `,
       'text/html'
     );
-    const infos = await getWikiData(
-      amazonJpBookSubject,
-      createWikiExtractContext(dom)
-    );
 
-    expect(infos).toHaveLength(9);
-    expect(infos).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: '名称',
-          value: 'たゆたいエマノン',
-          category: 'subject_title',
-        }),
-        expect.objectContaining({
-          name: 'ISBN',
-          value: '978-4198643829',
-          category: 'ISBN',
-        }),
-        expect.objectContaining({
-          name: 'ASIN',
-          value: '4198643822',
-          category: 'ASIN',
-        }),
-        expect.objectContaining({
-          name: '发售日',
-          value: '2017-04-07',
-          category: 'date',
-        }),
-        expect.objectContaining({
-          name: '作者',
-          value: '梶尾真治',
-          category: 'creator',
-        }),
-        expect.objectContaining({
-          name: '出版社',
-          value: '徳間書店',
-        }),
-        expect.objectContaining({
-          name: '页数',
-          value: '221',
-        }),
-      ])
-    );
-  });
-
-  test('getWikiData extracts amazon jp book cn wiki data', async () => {
-    const dom = new DOMParser().parseFromString(
-      readHtmlFixture('../../data/amazon-book-cn.html'),
-      'text/html'
-    );
     const infos = await getWikiData(
       amazonJpBookSubject,
       createWikiExtractContext(dom)
@@ -169,38 +139,41 @@ describe('core extract helpers', () => {
       expect.arrayContaining([
         expect.objectContaining({
           name: '名称',
-          value: 'たゆたいエマノン',
+          value: 'ジャヒー様はくじけない!(2)',
           category: 'subject_title',
         }),
         expect.objectContaining({
+          name: 'ASIN',
+          value: '4757556977',
+          category: 'ASIN',
+        }),
+        expect.objectContaining({
           name: 'ISBN',
-          value: '978-4198643829',
+          value: '978-4757556973',
           category: 'ISBN',
         }),
         expect.objectContaining({
           name: '发售日',
-          value: '2017-04-07',
+          value: '2018-04-21',
           category: 'date',
         }),
         expect.objectContaining({
+          name: '出版社',
+          value: 'スクウェア・エニックス',
+        }),
+        expect.objectContaining({ name: '页数', value: '175' }),
+        expect.objectContaining({
           name: '作者',
-          value: '梶尾真治',
+          value: '昆布わかめ',
           category: 'creator',
         }),
+        expect.objectContaining({ name: '价格', value: '￥770' }),
         expect.objectContaining({
-          name: '出版社',
-          value: '徳間書店',
-          category: undefined,
-        }),
-        expect.objectContaining({
-          name: '页数',
-          value: '221',
-          category: undefined,
-        }),
-        expect.objectContaining({
-          name: 'ASIN',
-          value: '4198643822',
-          category: 'ASIN',
+          name: 'cover',
+          category: 'cover',
+          value: expect.objectContaining({
+            url: expect.stringMatching(/^data:image\/gif;base64,/),
+          }),
         }),
       ])
     );

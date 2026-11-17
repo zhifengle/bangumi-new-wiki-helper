@@ -1,4 +1,9 @@
-import { amazonUtils, toAmazonAcSl1500ImageUrl } from './shared';
+// @vitest-environment jsdom
+import {
+  amazonUtils,
+  getAmazonCoverInfo,
+  toAmazonAcSl1500ImageUrl,
+} from './shared';
 
 describe('amazon shared utils', () => {
   test('deal title text', () => {
@@ -62,5 +67,26 @@ describe('amazon shared utils', () => {
         'https://m.media-amazon.com/images/I/51qGNGiTtTL.png'
       )
     ).toBe('https://m.media-amazon.com/images/I/51qGNGiTtTL.png');
+  });
+
+  test('reads the largest dynamic image from modern amazon cover markup', async () => {
+    const doc = document.implementation.createHTMLDocument('amazon cover');
+    const small = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+    const large = 'data:image/gif;base64,R0lGODlhAQABAIAAAAD/AP///ywAAAAAAQABAAACAUwAOw==';
+    const image = doc.createElement('img');
+    image.id = 'landingImage';
+    image.setAttribute(
+      'data-a-dynamic-image',
+      JSON.stringify({ [small]: [342, 241], [large]: [1500, 1056] })
+    );
+    doc.body.appendChild(image);
+
+    const info = await getAmazonCoverInfo([], {}, doc);
+
+    expect(info).toMatchObject({
+      name: 'cover',
+      category: 'cover',
+      value: { url: large },
+    });
   });
 });

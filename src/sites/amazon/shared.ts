@@ -5,6 +5,13 @@ interface AmazonCoverInfoOptions {
   imageUrlTransform?: (url: string) => string;
 }
 
+const amazonCoverSelectors = [
+  '#imgTagWrapperId > img',
+  '#landingImage',
+  '#main-image-container img[data-a-image-name="landingImage"]',
+  '#imageBlock img[data-a-dynamic-image]',
+];
+
 function isAmazonImageUrl(url: string) {
   try {
     const parsedUrl = new URL(url);
@@ -25,6 +32,44 @@ export function toAmazonAcSl1500ImageUrl(url: string) {
   }
 
   return url.replace(/(?:\._[^/.]+_)?\.(jpe?g)(\?.*)?$/i, '._AC_SL1500_.$1$2');
+}
+
+function getLargestDynamicImageUrl($cover: HTMLImageElement) {
+  const value = $cover.getAttribute('data-a-dynamic-image');
+  if (!value) return '';
+
+  try {
+    const images = JSON.parse(value) as Record<string, unknown>;
+    return Object.entries(images).reduce(
+      (largest, [url, dimensions]) => {
+        const [width = 0, height = 0] = Array.isArray(dimensions)
+          ? dimensions.map(Number)
+          : [];
+        const area = width * height;
+        return area > largest.area ? { url, area } : largest;
+      },
+      { url: '', area: -1 }
+    ).url;
+  } catch (error) {
+    return '';
+  }
+}
+
+function getAmazonCoverUrl($cover: HTMLImageElement) {
+  return (
+    $cover.getAttribute('data-old-hires')?.trim() ||
+    getLargestDynamicImageUrl($cover) ||
+    $cover.currentSrc ||
+    $cover.getAttribute('src') ||
+    ''
+  );
+}
+
+function findAmazonCover(root: ParentNode) {
+  for (const selector of amazonCoverSelectors) {
+    const $cover = root.querySelector<HTMLImageElement>(selector);
+    if ($cover) return $cover;
+  }
 }
 
 function toHalfWidthDigits(str: string) {
@@ -61,27 +106,13 @@ export const amazonUtils = {
 
 export async function getAmazonCoverInfo(
   res: SingleInfo[],
-  options: AmazonCoverInfoOptions = {}
+  options: AmazonCoverInfoOptions = {},
+  root: ParentNode = document
 ) {
-  const $cover = document.querySelector(
-    '#imgTagWrapperId>img'
-  ) as HTMLImageElement;
+  const $cover = findAmazonCover(root);
   if ($cover && !res.find((obj) => obj.name === 'cover')) {
-    let url = '';
-    if ($cover.hasAttribute('data-old-hires')) {
-      url = $cover.getAttribute('data-old-hires');
-    } else if ($cover.hasAttribute('data-a-dynamic-image')) {
-      try {
-        const obj = JSON.parse($cover.getAttribute('data-a-dynamic-image'));
-        const urlArr = Object.keys(obj).sort().reverse();
-        if (urlArr && urlArr.length > 0) {
-          url = urlArr[0];
-        }
-      } catch (error) {}
-    }
-    if (!url) {
-      url = $cover.src;
-    }
+    let url = getAmazonCoverUrl($cover);
+    if (!url) return;
     const originalUrl = url;
     if (url && options.imageUrlTransform) {
       url = options.imageUrlTransform(url);

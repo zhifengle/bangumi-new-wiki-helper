@@ -209,10 +209,31 @@ amazonJpBookSubject.itemList.push(
         selector: '#tmmSwatches .a-button-selected .slot-price',
       },
       {
+        selector: '#tmmSwatches [aria-checked="true"] .slot-price',
+      },
+      {
+        selector: '#tmmSwatches .swatchElement.selected .slot-price',
+      },
+      {
         selector: '#Northstar-Buybox .a-button-selected .slot-price',
       },
       {
         selector: '#tmm-grid-swatch-PAPERBACK .slot-price',
+      },
+      {
+        selector: '#Northstar-Buybox .a-accordion-active .a-price .a-offscreen',
+      },
+      {
+        selector: '#corePriceDisplay_desktop_feature_div .priceToPay .a-offscreen',
+      },
+      {
+        selector: '#corePrice_feature_div .priceToPay .a-offscreen',
+      },
+      {
+        selector: '#apex_desktop .priceToPay .a-offscreen',
+      },
+      {
+        selector: '#price_inside_buybox',
       },
     ],
     pipes: ['ta'],

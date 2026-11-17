@@ -20,7 +20,8 @@ export type SubjectBeforeCreateHook = () => Promise<SubjectBeforeCreateResult>;
 
 export type SubjectAfterGetWikiDataHook = (
   infos: SingleInfo[],
-  model?: SubjectSourceDefinition
+  model?: SubjectSourceDefinition,
+  root?: WikiExtractRoot
 ) => Promise<SingleInfo[]>;
 
 export type CharacterAfterGetWikiDataHook = (

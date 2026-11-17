@@ -1,5 +1,6 @@
 import { getStringValue, SingleInfo } from '../../interface/subjectInfo';
 import { SubjectTools } from '../catalogTypes';
+import type { WikiExtractRoot } from '../core/context';
 import {
   amazonUtils,
   getAmazonCoverInfo,
@@ -13,17 +14,23 @@ const currentUsedBuyboxReg =
   /中古品\s*[:：]|中古商品\s*[:：]|コンディション\s*[:：]?\s*(?:中古|非全新品)|コレクター商品\s*[:：]|非全新品\s*[:：]/i;
 const kindleFormatReg = /Kindle|電子書籍|电子书/i;
 
-function getText(selector: string) {
-  return document.querySelector(selector)?.textContent ?? '';
+function getText(selector: string, root: WikiExtractRoot = document) {
+  return root.querySelector(selector)?.textContent ?? '';
 }
 
-function isCurrentAmazonJpBookOfferUsed() {
-  const selectedFormatText = getText('#tmmSwatches .a-button-selected');
+function isCurrentAmazonJpBookOfferUsed(root: WikiExtractRoot = document) {
+  const selectedFormatText = getText(
+    '#tmmSwatches .a-button-selected, #tmmSwatches [aria-checked="true"]',
+    root
+  );
   if (kindleFormatReg.test(selectedFormatText)) {
     return false;
   }
 
-  const currentBuyboxText = getText('#Northstar-Buybox .a-accordion-active');
+  const currentBuyboxText = getText(
+    '#Northstar-Buybox .a-accordion-active',
+    root
+  );
   if (currentUsedBuyboxReg.test(currentBuyboxText)) {
     return true;
   }
@@ -94,7 +101,7 @@ export const amazonJpBookTools: SubjectTools = {
       }
       return true;
     },
-    async afterGetWikiData(infos: SingleInfo[]) {
+    async afterGetWikiData(infos: SingleInfo[], _model, root = document) {
       const res: SingleInfo[] = [];
       for (const info of infos) {
         let newInfo: null | SingleInfo = { ...info };
@@ -110,7 +117,7 @@ export const amazonJpBookTools: SubjectTools = {
           newInfo.value = stringValue.replace('時間', '小时').replace(/ /g, '');
         } else if (info.name === '价格') {
           newInfo.value = stringValue.replace(/来自|より/, '').trim();
-          if (isCurrentAmazonJpBookOfferUsed()) {
+          if (isCurrentAmazonJpBookOfferUsed(root)) {
             newInfo = null;
           }
         }
@@ -120,9 +127,13 @@ export const amazonJpBookTools: SubjectTools = {
           });
         }
       }
-      const coverInfo = await getAmazonCoverInfo(res, {
-        imageUrlTransform: toAmazonAcSl1500ImageUrl,
-      });
+      const coverInfo = await getAmazonCoverInfo(
+        res,
+        {
+          imageUrlTransform: toAmazonAcSl1500ImageUrl,
+        },
+        root
+      );
       if (coverInfo) {
         res.push(coverInfo);
       }
