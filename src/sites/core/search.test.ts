@@ -1,50 +1,11 @@
 import { SearchResult } from '../../interface/subjectInfo';
-import { filterResults, getQueryInfo } from './search';
-
-type FuseCtor = new <T>(
-  list: readonly T[],
-  options?: Record<string, unknown>
-) => {
-  search(pattern: string): Array<{ item: T }>;
-};
-
-const globalWithFuse = globalThis as typeof globalThis & {
-  Fuse?: FuseCtor;
-};
-
-const originalFuse = globalWithFuse.Fuse;
-
-class FakeFuse<T extends Record<string, unknown>> {
-  constructor(
-    private readonly list: readonly T[],
-    private readonly options: Record<string, unknown> = {}
-  ) {}
-
-  search(pattern: string) {
-    const keys = Array.isArray(this.options.keys)
-      ? this.options.keys.filter((key): key is string => typeof key === 'string')
-      : [];
-    return this.list
-      .filter((item) =>
-        keys.some((key) => String(item[key] ?? '').includes(pattern))
-      )
-      .map((item) => ({ item }));
-  }
-}
+import {
+  filterResults,
+  getQueryInfo,
+  rankSearchResults,
+} from './search';
 
 describe('core search helpers', () => {
-  beforeAll(() => {
-    globalWithFuse.Fuse = FakeFuse as unknown as FuseCtor;
-  });
-
-  afterAll(() => {
-    if (originalFuse) {
-      globalWithFuse.Fuse = originalFuse;
-    } else {
-      delete globalWithFuse.Fuse;
-    }
-  });
-
   test('getQueryInfo extracts searchable fields from wiki infos', () => {
     expect(
       getQueryInfo([
@@ -71,17 +32,17 @@ describe('core search helpers', () => {
     });
   });
 
-  test('filterResults returns the sole result directly during search', () => {
+  test('filterResults does not accept an unrelated sole search result', () => {
     const result: SearchResult = {
-      name: '唯一条目',
+      name: '完全无关的条目',
       url: '/subject/1',
     };
 
     expect(
       filterResults([result], {
-        name: '唯一条目',
+        name: '待查条目',
       })
-    ).toEqual(result);
+    ).toBeUndefined();
   });
 
   test('filterResults prefers a result with a matching release date', () => {
@@ -127,12 +88,25 @@ describe('core search helpers', () => {
         {
           name: '测试条目',
         },
-        {
-          keys: ['name', 'greyName'],
-        },
-        false
+        { keys: ['name', 'greyName'] }
       )
     ).toEqual(items[0]);
+  });
+
+  test('treats regexp metacharacters as ordinary title characters', () => {
+    const item = { name: '*Luna', url: '/subject/4' };
+
+    expect(filterResults([item], { name: '*Luna' })).toEqual(item);
+  });
+
+  test('ranks exact normalized names before fuzzy candidates', () => {
+    const exact = { name: 'Ｔｅｓｔ  Game', url: '/subject/5' };
+    const fuzzy = { name: 'Test Games', url: '/subject/6' };
+
+    expect(rankSearchResults([fuzzy, exact], 'test game')).toEqual([
+      exact,
+      fuzzy,
+    ]);
   });
 });
 

@@ -1,15 +1,3 @@
-type FuseSearchResult<T> = {
-  item: T;
-};
-
-declare const Fuse: {
-  new <T>(
-    list: readonly T[],
-    options?: Record<string, unknown>
-  ): {
-    search(pattern: string): FuseSearchResult<T>[];
-  };
-};
 // Jest fixtures still use CommonJS require in test files.
 declare const require: NodeJS.Require;
 

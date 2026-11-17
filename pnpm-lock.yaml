@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      fuse.js:
+        specifier: 7.5.0
+        version: 7.5.0
       stackblur-canvas:
         specifier: 2.2.0
         version: 2.2.0
@@ -62,7 +65,7 @@ importers:
         version: 4.1.3(@types/node@24.10.2)(jsdom@29.0.2)(vite@8.0.8(@types/node@24.10.2)(terser@5.44.1))
       web-ext:
         specifier: ^8.9.0
-        version: 8.10.0
+        version: 8.10.0(supports-color@8.1.1)
       webextension-polyfill:
         specifier: 0.12.0
         version: 0.12.0
@@ -1261,6 +1264,10 @@ packages:
 
   function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
+
+  fuse.js@7.5.0:
+    resolution: {integrity: sha512-sQtrEfA+ez/3G0cCZecF70oqpCRttCexYUG4mUrtWL49ULUzUyxokt5kyqwtKzj1270RaKih+hcP3qLcumccow==}
+    engines: {node: '>=10'}
 
   fx-runner@1.4.0:
     resolution: {integrity: sha512-rci1g6U0rdTg6bAaBboP7XdRu01dzTAaKXxFf+PUqGuCv6Xu7o8NZdY1D5MvKGIjb6EdS1g3VlXOgksir1uGkg==}
@@ -2534,13 +2541,13 @@ snapshots:
 
   '@devicefarmer/adbkit-monkey@1.2.1': {}
 
-  '@devicefarmer/adbkit@3.3.8':
+  '@devicefarmer/adbkit@3.3.8(supports-color@8.1.1)':
     dependencies:
       '@devicefarmer/adbkit-logcat': 2.1.3
       '@devicefarmer/adbkit-monkey': 1.2.1
       bluebird: 3.7.2
       commander: 9.5.0
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       node-forge: 1.3.3
       split: 1.0.1
     transitivePeerDependencies:
@@ -2562,17 +2569,17 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@eslint-community/eslint-utils@4.9.0(eslint@8.57.1)':
+  '@eslint-community/eslint-utils@4.9.0(eslint@8.57.1(supports-color@8.1.1))':
     dependencies:
-      eslint: 8.57.1
+      eslint: 8.57.1(supports-color@8.1.1)
       eslint-visitor-keys: 3.4.3
 
   '@eslint-community/regexpp@4.12.2': {}
 
-  '@eslint/eslintrc@2.1.4':
+  '@eslint/eslintrc@2.1.4(supports-color@8.1.1)':
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.2
@@ -2591,10 +2598,10 @@ snapshots:
 
   '@fregante/relaxed-json@2.0.0': {}
 
-  '@humanwhocodes/config-array@0.13.0':
+  '@humanwhocodes/config-array@0.13.0(supports-color@8.1.1)':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -3023,7 +3030,7 @@ snapshots:
 
   acorn@8.15.0: {}
 
-  addons-linter@7.20.0:
+  addons-linter@7.20.0(supports-color@8.1.1):
     dependencies:
       '@fluent/syntax': 0.19.0
       '@fregante/relaxed-json': 2.0.0
@@ -3036,8 +3043,8 @@ snapshots:
       columnify: 1.6.0
       common-tags: 1.8.2
       deepmerge: 4.3.1
-      eslint: 8.57.1
-      eslint-plugin-no-unsanitized: 4.1.4(eslint@8.57.1)
+      eslint: 8.57.1(supports-color@8.1.1)
+      eslint-plugin-no-unsanitized: 4.1.4(eslint@8.57.1(supports-color@8.1.1))
       eslint-visitor-keys: 4.2.1
       espree: 10.4.0
       esprima: 4.0.1
@@ -3210,12 +3217,12 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
 
-  chrome-launcher@1.2.0:
+  chrome-launcher@1.2.0(supports-color@8.1.1):
     dependencies:
       '@types/node': 24.10.2
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
-      lighthouse-logger: 2.0.2
+      lighthouse-logger: 2.0.2(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -3311,13 +3318,17 @@ snapshots:
 
   debounce@1.2.1: {}
 
-  debug@4.3.7:
+  debug@4.3.7(supports-color@8.1.1):
     dependencies:
       ms: 2.1.3
+    optionalDependencies:
+      supports-color: 8.1.1
 
-  debug@4.4.3:
+  debug@4.4.3(supports-color@8.1.1):
     dependencies:
       ms: 2.1.3
+    optionalDependencies:
+      supports-color: 8.1.1
 
   decamelize@6.0.1: {}
 
@@ -3403,9 +3414,9 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-plugin-no-unsanitized@4.1.4(eslint@8.57.1):
+  eslint-plugin-no-unsanitized@4.1.4(eslint@8.57.1(supports-color@8.1.1)):
     dependencies:
-      eslint: 8.57.1
+      eslint: 8.57.1(supports-color@8.1.1)
 
   eslint-scope@5.1.1:
     dependencies:
@@ -3421,20 +3432,20 @@ snapshots:
 
   eslint-visitor-keys@4.2.1: {}
 
-  eslint@8.57.1:
+  eslint@8.57.1(supports-color@8.1.1):
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.0(eslint@8.57.1)
+      '@eslint-community/eslint-utils': 4.9.0(eslint@8.57.1(supports-color@8.1.1))
       '@eslint-community/regexpp': 4.12.2
-      '@eslint/eslintrc': 2.1.4
+      '@eslint/eslintrc': 2.1.4(supports-color@8.1.1)
       '@eslint/js': 8.57.1
-      '@humanwhocodes/config-array': 0.13.0
+      '@humanwhocodes/config-array': 0.13.0(supports-color@8.1.1)
       '@humanwhocodes/module-importer': 1.0.1
       '@nodelib/fs.walk': 1.2.8
       '@ungap/structured-clone': 1.3.0
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.2.2
@@ -3598,6 +3609,8 @@ snapshots:
 
   function-bind@1.1.2: {}
 
+  fuse.js@7.5.0: {}
+
   fx-runner@1.4.0:
     dependencies:
       commander: 2.9.0
@@ -3663,10 +3676,10 @@ snapshots:
       domutils: 3.2.2
       entities: 4.5.0
 
-  https-proxy-agent@7.0.6:
+  https-proxy-agent@7.0.6(supports-color@8.1.1):
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -3851,9 +3864,9 @@ snapshots:
     dependencies:
       immediate: 3.0.6
 
-  lighthouse-logger@2.0.2:
+  lighthouse-logger@2.0.2(supports-color@8.1.1):
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       marky: 1.3.0
     transitivePeerDependencies:
       - supports-color
@@ -4590,19 +4603,19 @@ snapshots:
     dependencies:
       defaults: 1.0.4
 
-  web-ext@8.10.0:
+  web-ext@8.10.0(supports-color@8.1.1):
     dependencies:
       '@babel/runtime': 7.28.4
-      '@devicefarmer/adbkit': 3.3.8
-      addons-linter: 7.20.0
+      '@devicefarmer/adbkit': 3.3.8(supports-color@8.1.1)
+      addons-linter: 7.20.0(supports-color@8.1.1)
       camelcase: 8.0.0
-      chrome-launcher: 1.2.0
+      chrome-launcher: 1.2.0(supports-color@8.1.1)
       debounce: 1.2.1
       decamelize: 6.0.1
       es6-error: 4.1.1
       firefox-profile: 4.7.0
       fx-runner: 1.4.0
-      https-proxy-agent: 7.0.6
+      https-proxy-agent: 7.0.6(supports-color@8.1.1)
       jose: 5.9.6
       jszip: 3.10.1
       multimatch: 6.0.0

@@ -1,4 +1,10 @@
-import { BangumiDomain, changeDomain, Protocol } from './index';
+import {
+  BangumiDomain,
+  changeDomain,
+  matchSubjectCandidates,
+  Protocol,
+} from './index';
+import type { SearchResult } from '../../interface/subjectInfo';
 import { randomNum } from '../../utils/utils';
 import { book } from '../../data/subject';
 import { convertInfoValue } from './newSubject';
@@ -137,4 +143,69 @@ test('test new game', () => {
 |原画=123
 |剧本=xxxx xx
 }}`);
+});
+
+describe('subject duplicate matching', () => {
+  const candidates: SearchResult[] = [
+    {
+      name: 'Test Game',
+      releaseDate: '2024-01-02',
+      url: '/subject/1',
+    },
+    {
+      name: 'Test Game',
+      releaseDate: '2023-03-04',
+      url: '/subject/2',
+    },
+    {
+      name: 'Test Games',
+      releaseDate: '2024-01-02',
+      url: '/subject/3',
+    },
+    {
+      name: 'Unrelated title',
+      url: '/subject/4',
+    },
+  ];
+
+  test('automatically accepts one candidate with a verified ISBN', () => {
+    expect(matchSubjectCandidates(candidates, {
+      name: 'Different title',
+      isbn: '978-4-1234-5678-9',
+    }, {
+      verifiedISBNUrls: new Set(['/subject/2']),
+    })).toEqual(candidates[1]);
+  });
+
+  test('keeps duplicate ISBN records for human review', () => {
+    expect(matchSubjectCandidates(candidates, {
+      name: 'Test Game',
+      isbn: '978-4-1234-5678-9',
+    }, {
+      verifiedISBNUrls: new Set(['/subject/1', '/subject/2']),
+    })).toEqual({ candidates: candidates.slice(0, 2) });
+  });
+
+  test('automatically accepts a unique exact title and date pair', () => {
+    expect(matchSubjectCandidates(candidates, {
+      name: 'Ｔｅｓｔ Game',
+      releaseDate: '2024/1/2',
+    })).toEqual(candidates[0]);
+  });
+
+  test('requires review when only the title agrees', () => {
+    const result = matchSubjectCandidates(candidates, { name: 'Test Game' });
+
+    expect(result).toMatchObject({
+      candidates: [candidates[0], candidates[1], candidates[2]],
+    });
+  });
+
+  test('does not let title and date override an unverified source ISBN', () => {
+    expect(matchSubjectCandidates(candidates, {
+      name: 'Test Game',
+      releaseDate: '2024-01-02',
+      isbn: '978-4-0000-0000-0',
+    })).toMatchObject({ candidates: expect.arrayContaining([candidates[0]]) });
+  });
 });

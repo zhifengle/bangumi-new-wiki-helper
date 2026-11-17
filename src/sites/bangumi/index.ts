@@ -3,6 +3,10 @@ import {sleep} from '../../utils/async/sleep';
 import {fetchJson, fetchText} from '../../utils/fetchData';
 import {SubjectTypeId} from '../../interface/wiki';
 import {dealDate} from '../../utils/utils';
+import {
+  hasSameSearchName,
+  rankSearchResults,
+} from '../core/search';
 import { getSubjectISBNs, searchAuthenticatedSubject } from './authenticatedSearch';
 
 export enum BangumiDomain {
@@ -218,17 +222,8 @@ async function searchSiteCandidates(
   return (await fetchHtmlSearchResults(url))[0];
 }
 
-function normalizeName(name: string) {
-  return name.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
-}
-
 function normalizeISBN(isbn: string) {
   return isbn.normalize('NFKC').replace(/[\s-]/g, '').toUpperCase();
-}
-
-function sameTitle(candidate: SearchResult, name: string) {
-  return !!name && [candidate.name, candidate.greyName ?? '']
-    .some((title) => normalizeName(title) === name);
 }
 
 function uniqueByUrl(candidates: SearchResult[]) {
@@ -255,6 +250,68 @@ async function verifyISBN(candidate: SearchResult, isbn: string, token?: string)
   }
 }
 
+async function verifiedISBNUrls(
+  candidates: SearchResult[],
+  isbn: string,
+  token?: string
+) {
+  const checks = await Promise.all(candidates.map(async (candidate) => ({
+    url: candidate.url,
+    matches: await verifyISBN(candidate, isbn, token),
+  })));
+  return new Set(checks.filter(({ matches }) => matches).map(({ url }) => url));
+}
+
+/**
+ * 比较候选而不是盲信搜索排序：ISBN 是强标识；标题和日期共同一致时
+ * 才能自动命中；其余相似结果只作为人工复核候选。
+ */
+export function matchSubjectCandidates(
+  candidates: SearchResult[],
+  subjectInfo: SubjectQueryInfo,
+  options: {
+    isbnCandidateUrls?: ReadonlySet<string>;
+    verifiedISBNUrls?: ReadonlySet<string>;
+  } = {}
+): SubjectDuplicateResult {
+  const items = uniqueByUrl(candidates);
+  const verifiedUrls = options.verifiedISBNUrls ?? new Set<string>();
+  const verified = items.filter(({ url }) => verifiedUrls.has(url));
+  if (verified.length === 1) return verified[0];
+  if (verified.length > 1) return { candidates: verified };
+
+  const name = subjectInfo.name?.trim() ?? '';
+  const rankedByTitle = name ? rankSearchResults(items, name) : [];
+  const rankedUrls = new Set(rankedByTitle.map(({ url }) => url));
+  const isbnCandidates = items.filter(
+    ({ url }) =>
+      options.isbnCandidateUrls?.has(url) && !rankedUrls.has(url)
+  );
+  const ranked = [...rankedByTitle, ...isbnCandidates];
+  if (!ranked.length) return;
+
+  const exact = ranked.filter((candidate) => hasSameSearchName(candidate, name));
+  const sourceDate = subjectInfo.releaseDate && dealDate(subjectInfo.releaseDate);
+  const sameDate = sourceDate
+    ? exact.filter(
+        ({ releaseDate }) => releaseDate && dealDate(releaseDate) === sourceDate
+      )
+    : [];
+
+  // 提供 ISBN 却未验证一致时，不允许较弱的标题/日期覆盖这个冲突信号。
+  if (!subjectInfo.isbn && sameDate.length === 1) return sameDate[0];
+
+  const sameDateUrls = new Set(sameDate.map(({ url }) => url));
+  const exactUrls = new Set(exact.map(({ url }) => url));
+  return {
+    candidates: [
+      ...sameDate,
+      ...exact.filter(({ url }) => !sameDateUrls.has(url)),
+      ...ranked.filter(({ url }) => !exactUrls.has(url)),
+    ],
+  };
+}
+
 /**
  * 查找条目是否存在
  * @param subjectInfo 条目基本信息
@@ -271,32 +328,40 @@ export async function checkSubjectExit(
   if (!name && !isbn) throw new Error('Subject title and ISBN are missing');
 
   const isbnCandidates = isbn ? uniqueByUrl(await searchSiteCandidates(isbn, options, true)) : [];
-  if (isbnCandidates.length === 1 && await verifyISBN(isbnCandidates[0], isbn, accessToken)) {
-    return isbnCandidates[0];
+  const isbnCandidateUrls = new Set(isbnCandidates.map(({ url }) => url));
+  let matchingISBNUrls = isbn
+    ? await verifiedISBNUrls(isbnCandidates, isbn, accessToken)
+    : new Set<string>();
+  if (matchingISBNUrls.size) {
+    return matchSubjectCandidates(isbnCandidates, subjectInfo, {
+      isbnCandidateUrls,
+      verifiedISBNUrls: matchingISBNUrls,
+    });
   }
 
-  const title = normalizeName(name);
   const keyword = type === SubjectTypeId.book
     ? name.replace(/\s*[（(][^0-9０-９()（）]+[）)]$/, '').trim() || name
     : name;
   const apiCandidates = keyword && accessToken
     ? await searchAuthenticatedSubject(keyword, type, accessToken)
     : [];
-  const siteCandidates = keyword && !apiCandidates.some((candidate) => sameTitle(candidate, title))
+  const siteCandidates = keyword && !apiCandidates.some((candidate) => hasSameSearchName(candidate, name))
     ? await searchSiteCandidates(keyword, options)
     : [];
   const candidates = uniqueByUrl([...siteCandidates, ...apiCandidates, ...isbnCandidates]);
   if (!candidates.length) return;
 
-  const exact = candidates.filter((candidate) => sameTitle(candidate, title));
-  const sourceDate = subjectInfo.releaseDate && dealDate(subjectInfo.releaseDate);
-  const resultDate = exact[0]?.releaseDate && dealDate(exact[0].releaseDate);
-  if (!isbn && exact.length === 1 && (!sourceDate || !resultDate || sourceDate === resultDate)) {
-    return exact[0];
+  if (isbn) {
+    const uncheckedExact = candidates.filter(
+      (candidate) =>
+        !isbnCandidateUrls.has(candidate.url) && hasSameSearchName(candidate, name)
+    );
+    matchingISBNUrls = await verifiedISBNUrls(uncheckedExact, isbn, accessToken);
   }
-  return {
-    candidates: [...exact, ...candidates.filter((candidate) => !sameTitle(candidate, title))],
-  };
+  return matchSubjectCandidates(candidates, subjectInfo, {
+    isbnCandidateUrls,
+    verifiedISBNUrls: matchingISBNUrls,
+  });
 }
 
 export function changeDomain(

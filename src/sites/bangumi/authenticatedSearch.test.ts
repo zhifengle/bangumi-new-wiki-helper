@@ -23,7 +23,7 @@ test('searches with a verified token and includes access-controlled results', as
   vi.stubGlobal('fetch', fetchMock);
 
   await expect(checkSubjectExit({ name: 'Test Game' }, options)).resolves.toMatchObject({
-    url: '/subject/42',
+    candidates: [{ url: '/subject/42' }],
   });
   expect(fetchMock).toHaveBeenNthCalledWith(1, `${api}/me`, expect.objectContaining({
     headers: expect.objectContaining({ Authorization: `Bearer ${accessToken}` }),
@@ -61,7 +61,7 @@ test('uses the existing search without sending the token when the API has no mat
   vi.stubGlobal('fetch', fetchMock);
 
   await expect(checkSubjectExit({ name: 'Test Game' }, options)).resolves.toMatchObject({
-    url: '/subject/42',
+    candidates: [{ url: '/subject/42' }],
   });
   expect(fetchMock).toHaveBeenNthCalledWith(3, `${host}/json/search-game/Test%20Game`, {
     method: 'GET',
@@ -92,4 +92,25 @@ test('still matches a book by ISBN before searching by name with a token', async
     expect.objectContaining({ method: 'GET' })
   );
   expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+test('verifies every ISBN search candidate instead of trusting the result count', async () => {
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(Response.json([
+      { id: 41, type_id: 1, name: 'Wrong Edition' },
+      { id: 42, type_id: 1, name: 'Test Book' },
+    ]))
+    .mockResolvedValueOnce(Response.json({
+      infobox: [{ key: 'ISBN', value: '978-4-0000-0000-0' }],
+    }))
+    .mockResolvedValueOnce(Response.json({
+      infobox: [{ key: 'ISBN-13', value: '978-4757556973' }],
+    }));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await expect(checkSubjectExit(
+    { name: 'Test Book', isbn: '978-4757556973' },
+    { ...options, type: SubjectTypeId.book }
+  )).resolves.toMatchObject({ url: '/subject/42' });
+  expect(fetchMock).toHaveBeenCalledTimes(3);
 });
