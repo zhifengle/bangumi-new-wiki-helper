@@ -1,91 +1,93 @@
-import { Notyf, NotyfNotification } from 'notyf';
-import { LogMsg } from '../interface/types';
+import type { LogMsg } from '../interface/types';
 
-let notyf: Notyf | null = null;
-const NOTYF_LIST: NotyfNotification[] = [];
+let stack: HTMLDivElement | undefined;
+const active = new Set<{ type: LogMsg['type']; dismiss(): void }>();
 
-function waitForBody() {
-  if (document.body) {
-    return Promise.resolve(true);
-  }
-  if (document.readyState !== 'loading') {
-    return Promise.resolve(false);
-  }
-  return new Promise<boolean>((resolve) => {
-    document.addEventListener(
-      'DOMContentLoaded',
-      () => {
-        resolve(!!document.body);
-      },
-      { once: true }
+async function getStack() {
+  if (!document.body && document.readyState === 'loading') {
+    await new Promise((resolve) =>
+      document.addEventListener('DOMContentLoaded', resolve, { once: true })
     );
-  });
-}
-
-async function getNotyf() {
-  if (notyf) {
-    return notyf;
   }
-  if (!(await waitForBody())) {
-    return null;
-  }
-  notyf = new Notyf({
-    duration: 3000,
-    types: [
-      {
-        type: 'success',
-        // background: '#F09199',
-      },
-      {
-        type: 'info',
-        background: '#F09199',
-      },
-      {
-        type: 'error',
-        duration: 0,
-        dismissible: true,
-      },
-    ],
-    position: {
-      x: 'right',
-      y: 'top',
-    },
-  });
-  return notyf;
-}
+  if (!document.body) return;
+  if (stack?.isConnected) return stack;
 
-export async function logMessage(
-  request: LogMsg & Record<string, string | number>
-) {
-  if (request.cmd === 'dismissAll') {
-    notyf?.dismissAll();
-    NOTYF_LIST.length = 0;
-  } else if (request.cmd === 'dismissNotError') {
-    for (const obj of NOTYF_LIST) {
-      obj && notyf?.dismiss(obj);
+  const host = document.createElement('div');
+  const root = host.attachShadow({ mode: 'closed' });
+  const style = document.createElement('style');
+  style.textContent = `
+    :host {
+      position: fixed; inset: 16px 16px auto auto; z-index: 2147483647;
+      width: min(360px, calc(100vw - 32px)); pointer-events: none;
+      font: 14px/1.45 system-ui, sans-serif;
     }
-    NOTYF_LIST.length = 0;
+    .stack { display: grid; gap: 8px; max-height: calc(100vh - 32px); overflow-y: auto; }
+    .toast {
+      display: flex; gap: 8px; align-items: start; justify-content: space-between;
+      padding: 10px 12px; pointer-events: auto; background: #fff; color: #18181b;
+      border: 1px solid #d4d4d8; border-inline-start: 4px solid #a83a61;
+      border-radius: 6px; overflow-wrap: anywhere;
+    }
+    .toast[data-type="error"] { border-inline-start-color: #b91c1c; }
+    .toast[data-type="succuss"] { border-inline-start-color: #15803d; }
+    .message { min-width: 0; white-space: pre-line; }
+    a { display: block; margin-top: 4px; color: #1d4ed8; }
+    button { border: 0; padding: 0 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+  `;
+  stack = document.createElement('div');
+  stack.className = 'stack';
+  root.append(style, stack);
+  document.body.appendChild(host);
+  return stack;
+}
+
+export async function logMessage(request: LogMsg) {
+  if (request.cmd) {
+    for (const toast of active) {
+      if (request.cmd === 'dismissAll' || toast.type !== 'error') toast.dismiss();
+    }
   }
-  // 消息为空时
-  if (request.message === '') {
-    return;
+  if (!request.message) return;
+  const container = await getStack();
+  if (!container) return;
+
+  const tile = document.createElement('div');
+  tile.className = 'toast';
+  tile.dataset.type = request.type;
+  const region = document.createElement('div');
+  region.className = 'message';
+  region.setAttribute('role', request.type === 'error' ? 'alert' : 'status');
+  tile.append(region);
+  container.append(tile);
+  region.textContent = request.message;
+  if (request.link && /^https?:\/\//i.test(request.link)) {
+    const link = document.createElement('a');
+    link.href = request.link;
+    link.textContent = request.link;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    region.append(link);
   }
-  const notyfInstance = await getNotyf();
-  if (!notyfInstance) {
-    return;
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const toast = {
+    type: request.type,
+    dismiss() {
+      clearTimeout(timer);
+      tile.remove();
+      active.delete(toast);
+    },
+  };
+  active.add(toast);
+  const duration = request.duration ?? (request.type === 'error' ? 0 : 3000);
+  if (duration > 0) {
+    timer = setTimeout(toast.dismiss, duration);
+  } else {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = '×';
+    button.setAttribute('aria-label', '关闭提示');
+    button.addEventListener('click', toast.dismiss);
+    tile.append(button);
   }
-  let newNotyf: NotyfNotification | undefined;
-  switch (request.type) {
-    case 'succuss':
-      newNotyf = notyfInstance.success(request);
-      break;
-    case 'error':
-      notyfInstance.error(request);
-      break;
-    case 'info':
-      newNotyf = notyfInstance.open(request);
-      // notyf.success(request.msg);
-      break;
-  }
-  newNotyf && NOTYF_LIST.push(newNotyf);
 }

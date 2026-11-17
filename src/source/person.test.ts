@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { setExportButtonsVisible } from '../sites/core/controls';
 import { vi } from 'vitest';
 import { SingleInfo } from '../interface/subjectInfo';
 import { PersonSourceDefinition } from '../interface/wiki';
@@ -66,6 +67,7 @@ function buttons() {
 
 describe('initSourcePerson', () => {
   beforeEach(() => {
+    setExportButtonsVisible(false);
     vi.clearAllMocks();
     document.body.innerHTML = `
       <div id="page">
@@ -194,6 +196,7 @@ describe('initSourcePerson', () => {
   });
 
   test('exports the person infos as JSON instead of opening person/new', async () => {
+    setExportButtonsVisible(true);
     const runtime = createRuntime();
     const model = createModel();
 

@@ -41,7 +41,6 @@
     "webextension-polyfill": "0.12.0"
   },
   "dependencies": {
-    "notyf": "^3.10.0",
     "stackblur-canvas": "2.2.0"
   }
 }

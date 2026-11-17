@@ -26,6 +26,20 @@ const DEFAULT_CONTROL_LABELS: ControlButtonLabels = {
 
 const EXPORT_LABEL = '导出 JSON';
 const EXPORTING_LABEL = '导出中...';
+let showExportButtons = false;
+
+function syncExportButton(button: HTMLElement) {
+  button.hidden = !showExportButtons;
+  if (showExportButtons) button.style.removeProperty('display');
+  else button.style.setProperty('display', 'none', 'important');
+}
+
+export function setExportButtonsVisible(visible: boolean) {
+  showExportButtons = visible;
+  document
+    .querySelectorAll<HTMLElement>('.e-wiki-export-json')
+    .forEach(syncExportButton);
+}
 
 /**
  * 插入控制的按钮
@@ -80,9 +94,10 @@ export function appendExportBtn($container: Element, cb: ExportControlHandler) {
   const $s = document.createElement('span');
   $s.classList.add('e-wiki-new-subject', 'e-wiki-export-json');
   $s.textContent = EXPORT_LABEL;
+  syncExportButton($s);
   $container.appendChild($s);
   $s.addEventListener('click', async (e) => {
-    if ($s.textContent !== EXPORT_LABEL) return;
+    if (!showExportButtons || $s.textContent !== EXPORT_LABEL) return;
     $s.textContent = EXPORTING_LABEL;
     try {
       await cb(e);

@@ -18,6 +18,7 @@ import {
 } from '../runtime/subjectCreation';
 import { sleep } from '../utils/async/sleep';
 import { logMessage } from '../utils/log';
+import { chooseSubjectCandidate } from '../source/subjectCandidates';
 import { userScriptRuntimeCapabilities } from './runtimeCapabilities';
 import {
   AUTO_FILL_FORM,
@@ -66,7 +67,6 @@ async function submitSubjectCreation({
 }: SubjectCreateInput) {
   const host = getBangumiHost();
   const subjectCreationRuntime = createUserScriptSubjectCreationRuntime(host);
-  await userScriptRuntimeCapabilities.storage.saveSubjectDraft(wikiData);
   if (shouldCheckDup) {
     await checkSubjectAndOpenEntry(
       {
@@ -74,11 +74,13 @@ async function submitSubjectCreation({
         type: wikiData.type,
         disableDate: payload?.disableDate,
         auxSite: payload?.auxSite,
+        draft: wikiData,
       },
       subjectCreationRuntime
     );
     return;
   }
+  await userScriptRuntimeCapabilities.storage.saveSubjectDraft(wikiData);
   await createNewSubjectEntry(
     {
       type: wikiData.type,
@@ -111,7 +113,10 @@ function createUserScriptSubjectCreationRuntime(
         GM_getValue<boolean>(FALLBACK_TO_WEB_SEARCH) || false,
     },
     notify,
+    chooseSubject: chooseSubjectCandidate,
     updateAuxData,
+    saveSubjectDraft: (draft) =>
+      userScriptRuntimeCapabilities.storage.saveSubjectDraft(draft),
     saveSubjectId(subjectId) {
       return userScriptRuntimeCapabilities.storage.saveSubjectId(subjectId);
     },

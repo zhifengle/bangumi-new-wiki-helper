@@ -15,6 +15,7 @@ export type SubjectRuntimeDeps = {
   updateAuxDataDraft?: typeof updateSubjectDraftFromAuxSite;
   notify: (payload: RuntimeNotifyPayload) => void | Promise<void>;
   openTab: (url: string) => Promise<void>;
+  chooseSubject?: SubjectCreationRuntime['chooseSubject'];
 };
 
 export function buildSubjectCreationRuntime(
@@ -50,7 +51,9 @@ export function buildSubjectCreationRuntime(
       fallbackToWebSearch: userConfig.fallbackToWebSearch,
     },
     notify,
+    chooseSubject: deps.chooseSubject,
     updateAuxData,
+    saveSubjectDraft: (draft) => capabilities.storage.saveSubjectDraft(draft),
     saveSubjectId(subjectId) {
       return capabilities.storage.saveSubjectId(subjectId);
     },

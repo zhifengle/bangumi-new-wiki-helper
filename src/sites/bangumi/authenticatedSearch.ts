@@ -1,7 +1,6 @@
-import type { SearchResult, SubjectQueryInfo } from '../../interface/subjectInfo';
+import type { SearchResult } from '../../interface/subjectInfo';
 import type { SubjectTypeId } from '../../interface/wiki';
 import { fetchJson, HttpStatusError } from '../../utils/fetchData';
-import { isEqualDate } from '../../utils/utils';
 import { APP_VERSION } from '../../version';
 
 const API_BASE = 'https://api.bgm.tv/v0';
@@ -21,64 +20,83 @@ type SubjectHit = {
   date?: string | null;
 };
 
-function normalizeName(name: string) {
-  return name.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
+function getApiHeaders(accessToken?: string) {
+  return {
+    'User-Agent': `zhifengle/bangumi-new-wiki-helper/${APP_VERSION}`,
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  };
+}
+
+function rethrowApiError(error: unknown): never {
+  if (
+    error instanceof HttpStatusError &&
+    (error.status === 401 || error.status === 403)
+  ) {
+    throw new BangumiAccessTokenError();
+  }
+  throw error;
+}
+
+export async function verifyBangumiAccessToken(accessToken: string) {
+  try {
+    const account = await fetchJson<{ id: number }>(`${API_BASE}/me`, {
+      headers: getApiHeaders(accessToken),
+    });
+    if (!Number.isSafeInteger(account?.id) || account.id <= 0) {
+      throw new Error('Invalid Bangumi account response');
+    }
+  } catch (error) {
+    rethrowApiError(error);
+  }
 }
 
 export async function searchAuthenticatedSubject(
   keyword: string,
-  subjectInfo: SubjectQueryInfo,
   type: Exclude<SubjectTypeId, SubjectTypeId.all>,
   accessToken: string
-): Promise<SearchResult | undefined> {
-  const headers = {
-    Authorization: `Bearer ${accessToken}`,
-    'User-Agent': `zhifengle/bangumi-new-wiki-helper/${APP_VERSION}`,
-  };
+): Promise<SearchResult[]> {
+  // Search accepts anonymous requests, so verify the token with /me.
+  await verifyBangumiAccessToken(accessToken);
 
   let response: { data: SubjectHit[] };
   try {
-    // Search accepts anonymous requests, so a successful search alone does not
-    // establish that Bangumi accepted the token.
-    await fetchJson(`${API_BASE}/me`, { headers });
     response = await fetchJson(`${API_BASE}/search/subjects?limit=20`, {
       method: 'POST',
-      headers: { ...headers, 'Content-Type': 'application/json' },
+      headers: { ...getApiHeaders(accessToken), 'Content-Type': 'application/json' },
       data: JSON.stringify({ keyword, sort: 'match', filter: { type: [type] } }),
     });
   } catch (error) {
-    if (
-      error instanceof HttpStatusError &&
-      (error.status === 401 || error.status === 403)
-    ) {
-      throw new BangumiAccessTokenError();
-    }
-    throw error;
+    rethrowApiError(error);
   }
 
-  if (!Array.isArray(response?.data)) {
+  if (
+    !Array.isArray(response?.data) ||
+    !response.data.every((hit) =>
+      hit && Number.isSafeInteger(hit.id) && hit.id > 0 &&
+      typeof hit.type === 'number' && typeof hit.name === 'string'
+    )
+  ) {
     throw new Error('Invalid Bangumi API search response');
   }
-  const name = normalizeName(keyword);
-  const matches = response.data.filter(
-    (hit) =>
-      hit.type === type &&
-      Number.isSafeInteger(hit.id) &&
-      [hit.name, hit.name_cn].some(
-        (title) => typeof title === 'string' && normalizeName(title) === name
-      )
+  return response.data.filter((hit) => hit.type === type).map((hit) => ({
+    name: hit.name,
+    greyName: hit.name_cn,
+    releaseDate: hit.date ?? undefined,
+    url: `/subject/${hit.id}`,
+  }));
+}
+
+export async function getSubjectISBNs(
+  subjectId: string,
+  accessToken?: string
+): Promise<string[]> {
+  const response = await fetchJson<{ infobox?: { key: string; value: unknown }[] }>(
+    `${API_BASE}/subjects/${subjectId}`,
+    { headers: getApiHeaders(accessToken) }
   );
-  const hit = matches.find(
-    ({ date }) =>
-      date && subjectInfo.releaseDate && isEqualDate(date, subjectInfo.releaseDate)
+  return (response?.infobox ?? []).flatMap(({ key, value }) =>
+    /^ISBN(?:[ -]?(?:10|13))?$/i.test(key.trim()) && typeof value === 'string'
+      ? [value]
+      : []
   );
-  const match = hit ?? matches[0];
-  if (match) {
-    return {
-      name: match.name,
-      greyName: match.name_cn,
-      releaseDate: match.date ?? undefined,
-      url: `/subject/${match.id}`,
-    };
-  }
 }

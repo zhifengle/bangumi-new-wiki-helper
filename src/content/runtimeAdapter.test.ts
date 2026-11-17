@@ -98,7 +98,7 @@ describe('contentRuntimeAdapter', () => {
     });
   });
 
-  test('saves draft before checking subject duplication', async () => {
+  test('passes the draft with the duplication request for use if creation proceeds', async () => {
     const wikiData = {
       type: SubjectTypeId.game,
       infos: [{ name: '标题', value: '测试条目' }],
@@ -120,13 +120,14 @@ describe('contentRuntimeAdapter', () => {
 
     expect(
       mockContentRuntimeCapabilities.storage.saveSubjectDraft
-    ).toHaveBeenCalledWith(wikiData);
+    ).not.toHaveBeenCalled();
     expect(
       mockContentRuntimeCapabilities.subjectCreation.checkSubjectExist
     ).toHaveBeenCalledWith({
       subjectInfo: queryInfo,
       type: SubjectTypeId.game,
       disableDate: true,
+      draft: wikiData,
     });
     expect(
       mockContentRuntimeCapabilities.subjectCreation.createNewSubject

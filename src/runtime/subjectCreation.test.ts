@@ -139,7 +139,7 @@ describe('checkSubjectAndOpenEntry', () => {
     expect(runtime.openNewSubject).toHaveBeenCalledWith(SubjectTypeId.game);
   });
 
-  test('skips search and creates new subject when subjectInfo has no name', async () => {
+  test('stops duplicate checking when subjectInfo has no name', async () => {
     const runtime = createRuntime();
 
     await checkSubjectAndOpenEntry(
@@ -148,10 +148,10 @@ describe('checkSubjectAndOpenEntry', () => {
     );
 
     expect(mockedCheckSubjectExit).not.toHaveBeenCalled();
-    expect(runtime.openNewSubject).toHaveBeenCalledWith(SubjectTypeId.game);
+    expect(runtime.openNewSubject).not.toHaveBeenCalled();
   });
 
-  test('skips search and creates new subject when subjectInfo is absent', async () => {
+  test('stops duplicate checking when subjectInfo is absent', async () => {
     const runtime = createRuntime();
     const auxSite = { url: 'https://store.steampowered.com/app/123' };
 
@@ -161,8 +161,8 @@ describe('checkSubjectAndOpenEntry', () => {
     );
 
     expect(mockedCheckSubjectExit).not.toHaveBeenCalled();
-    expect(runtime.updateAuxData).toHaveBeenCalledWith(auxSite);
-    expect(runtime.openNewSubject).toHaveBeenCalledWith(SubjectTypeId.game);
+    expect(runtime.updateAuxData).not.toHaveBeenCalled();
+    expect(runtime.openNewSubject).not.toHaveBeenCalled();
   });
 
   test('does not create a new subject when search request fails', async () => {

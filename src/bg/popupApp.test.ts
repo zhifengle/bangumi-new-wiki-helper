@@ -43,6 +43,9 @@ function renderPopupDom() {
           <input name="autoFill" type="checkbox" />
         </li>
         <li>
+          <input name="showExportButtons" type="checkbox" />
+        </li>
+        <li>
           <input name="subjectId" type="number" />
         </li>
         <li>
@@ -83,6 +86,9 @@ describe('popupApp', () => {
       document.querySelector<HTMLInputElement>('input[name=autoFill]')?.checked
     ).toBe(true);
     expect(
+      document.querySelector<HTMLInputElement>('input[name=showExportButtons]')?.checked
+    ).toBe(false);
+    expect(
       document.querySelector<HTMLInputElement>('input[name=subjectId]')?.value
     ).toBe('321');
   });
@@ -117,6 +123,7 @@ describe('popupApp', () => {
         useHttps: true,
         autoFill: false,
         fallbackToWebSearch: false,
+        showExportButtons: false,
         subjectId: 0,
       },
     });
@@ -127,8 +134,18 @@ describe('popupApp', () => {
         useHttps: true,
         autoFill: false,
         fallbackToWebSearch: false,
+        showExportButtons: false,
         subjectId: 0,
       },
+    });
+
+    const exportToggle = document.querySelector<HTMLInputElement>(
+      'input[name=showExportButtons]'
+    )!;
+    exportToggle.click();
+    await flushMicrotasks();
+    expect(browserMock.storage.local.set).toHaveBeenLastCalledWith({
+      config: expect.objectContaining({ showExportButtons: true }),
     });
   });
 

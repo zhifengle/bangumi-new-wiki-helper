@@ -97,7 +97,5 @@ export function addStyle() {
   vertical-align: -5px;
 }
   `);
-  const myCss = GM_getResourceText('NOTYF_CSS');
-  GM_addStyle(myCss);
 }
 

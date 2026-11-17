@@ -7,6 +7,7 @@ export type BrowserConfig = {
   useHttps: boolean;
   autoFill: boolean;
   fallbackToWebSearch: boolean;
+  showExportButtons: boolean;
   subjectId: string | number;
 };
 
@@ -30,6 +31,7 @@ export const DEFAULT_BROWSER_CONFIG: BrowserConfig = {
   useHttps: true,
   autoFill: false,
   fallbackToWebSearch: false,
+  showExportButtons: false,
   subjectId: 0,
 };
 

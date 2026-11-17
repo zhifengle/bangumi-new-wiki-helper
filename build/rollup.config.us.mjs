@@ -16,24 +16,17 @@ const { name, version } = require('../package.json');
 
 const outputName = name.replace(/-|\d+/g, '_').toLowerCase();
 
-function addScriptHeader(name) {
-  return {
-    name: 'add_script_header',
-    async intro() {
-      const header = fileURLToPath(new URL(`../src/header/${name}.js`, import.meta.url));
-      const headerStr = (await fs.promises.readFile(header)).toString();
-      return headerStr.replace(
-        /@version(\s+)([\.\d]+)/,
-        `@version$1${version}`
-      );
-    },
-  };
+async function renderScriptHeader() {
+  const header = new URL(`../src/header/${outputName}.js`, import.meta.url);
+  const source = await fs.promises.readFile(header, 'utf8');
+  return source.replace(/@version(\s+)([\.\d]+)/, `@version$1${version}`);
 }
 export default {
   input: fileURLToPath(new URL('../src/index.ts', import.meta.url)),
   output: {
     ...sharedOutput,
-    name: outputName,
+    format: 'iife',
+    banner: renderScriptHeader,
     file: fileURLToPath(new URL(`../dist/${outputName}.user.js`, import.meta.url)),
   },
   plugins: [
@@ -46,6 +39,5 @@ export default {
     nodeResolve(nodeResolvePluginOptions),
     typescript(typescriptPluginOptions),
     commonjs(),
-    addScriptHeader(outputName),
   ],
 };

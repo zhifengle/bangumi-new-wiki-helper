@@ -70,17 +70,26 @@ test('uses the existing search without sending the token when the API has no mat
 });
 
 test('still matches a book by ISBN before searching by name with a token', async () => {
-  const fetchMock = vi.fn().mockResolvedValue(Response.json([
-    { id: 42, type_id: 1, name: 'Test Book' },
-  ]));
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(Response.json([{ id: 42, type_id: 1, name: 'Test Book' }]))
+    .mockResolvedValueOnce(Response.json({
+      infobox: [{ key: 'ISBN', value: '978-4757556973' }],
+    }));
   vi.stubGlobal('fetch', fetchMock);
 
   await expect(checkSubjectExit(
     { name: 'Test Book', isbn: '978-4757556973' },
     { ...options, type: SubjectTypeId.book }
   )).resolves.toMatchObject({ url: '/subject/42' });
-  expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+  expect(fetchMock).toHaveBeenNthCalledWith(
+    1,
     `${host}/json/search-book/9784757556973`,
     { method: 'GET', body: null }
   );
+  expect(fetchMock).toHaveBeenNthCalledWith(
+    2,
+    `${api}/subjects/42`,
+    expect.objectContaining({ method: 'GET' })
+  );
+  expect(fetchMock).toHaveBeenCalledTimes(2);
 });

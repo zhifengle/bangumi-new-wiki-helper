@@ -1,5 +1,7 @@
 import browser from 'webextension-polyfill';
-import { BackgroundMessage } from '../interface/messages';
+import type { Runtime } from 'webextension-polyfill';
+import { BackgroundMessage, ChooseSubjectCandidateMessage } from '../interface/messages';
+import type { SubjectCandidateChoice, SubjectCandidatePrompt } from '../interface/subjectCreation';
 import { RuntimeNotifyPayload } from '../runtime/capabilities';
 import { BrowserConfig } from '../runtime/browserConfig';
 import { updateSubjectDraftFromAuxSite } from '../runtime/auxData';
@@ -74,10 +76,19 @@ export function createBackgroundController(
     }
   }
 
-  function createSubjectCreationRuntime() {
+  function createSubjectCreationRuntime(sender?: Runtime.MessageSender) {
+    const tabId = sender?.tab?.id;
+    const sendToSource = typeof tabId === 'number'
+      ? (message: RuntimeNotifyPayload | ChooseSubjectCandidateMessage) =>
+          browserApi.tabs.sendMessage(tabId, message, { frameId: sender?.frameId ?? 0 })
+      : undefined;
+    const notifySource = async (payload: RuntimeNotifyPayload) => {
+      if (sendToSource) await sendToSource(payload);
+      else await sendMsgToCurrentTab(payload);
+    };
     const capabilities = createCapabilities({
       active: getConfig().activeOpen,
-      notify: sendMsgToCurrentTab,
+      notify: notifySource,
     });
     const notify = capabilities.notifier?.notify;
     const openTab = capabilities.navigator?.openTab;
@@ -87,8 +98,13 @@ export function createBackgroundController(
     return buildSubjectCreationRuntime({
       getConfig,
       createCapabilities,
-      sendMsgToCurrentTab,
+      sendMsgToCurrentTab: notifySource,
       updateAuxDataDraft,
+      chooseSubject: async (payload: SubjectCandidatePrompt) => {
+        if (!sendToSource) return null;
+        const reply = await sendToSource({ action: 'choose_subject_candidate', payload });
+        return (reply as SubjectCandidateChoice | undefined) ?? null;
+      },
       notify,
       openTab,
     });
@@ -112,7 +128,7 @@ export function createBackgroundController(
     });
   }
 
-  async function handleMessage(request: BackgroundMessage) {
+  async function handleMessage(request: BackgroundMessage, sender?: Runtime.MessageSender) {
     const capabilities = createCapabilities({
       active: getConfig().activeOpen,
       notify: sendMsgToCurrentTab,
@@ -125,7 +141,7 @@ export function createBackgroundController(
       case 'create_new_character':
         return handleSubjectCreationMessage(
           request,
-          createSubjectCreationRuntime(),
+          createSubjectCreationRuntime(sender),
           browserApi,
           getConfig().activeOpen,
           {

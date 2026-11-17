@@ -54,15 +54,16 @@ async function submitSubjectCreation({
   if (!subjectCreation) {
     throw new Error('content subjectCreation capability is missing');
   }
-  await contentRuntimeCapabilities.storage.saveSubjectDraft(wikiData);
   if (shouldCheckDup) {
     await subjectCreation.checkSubjectExist({
       subjectInfo: queryInfo,
       type: siteConfig.type,
       ...payload,
+      draft: wikiData,
     });
     return;
   }
+  await contentRuntimeCapabilities.storage.saveSubjectDraft(wikiData);
   await subjectCreation.createNewSubject({
     type: siteConfig.type,
     ...payload,

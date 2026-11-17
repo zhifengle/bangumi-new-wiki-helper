@@ -5,6 +5,7 @@ import {
   appendExportBtn,
   insertControlBtn,
   insertControlBtnChara,
+  setExportButtonsVisible,
 } from './controls';
 
 async function flushAsyncEvents() {
@@ -15,6 +16,7 @@ async function flushAsyncEvents() {
 describe('core controls helpers', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="anchor"></div>';
+    setExportButtonsVisible(false);
     vi.clearAllMocks();
   });
 
@@ -148,7 +150,12 @@ describe('core controls helpers', () => {
     const exportButton = container.querySelector<HTMLElement>('.e-wiki-export-json')!;
     expect(exportButton.textContent).toBe('导出 JSON');
     expect(exportButton.classList.contains('e-wiki-new-subject')).toBe(true);
+    expect(exportButton.hidden).toBe(true);
+    exportButton.click();
+    expect(handler).not.toHaveBeenCalled();
 
+    setExportButtonsVisible(true);
+    expect(exportButton.hidden).toBe(false);
     exportButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushAsyncEvents();
     expect(handler).toHaveBeenCalledTimes(1);
@@ -157,9 +164,12 @@ describe('core controls helpers', () => {
     finish();
     await flushAsyncEvents();
     expect(exportButton.textContent).toBe('导出 JSON');
+    setExportButtonsVisible(false);
+    expect(exportButton.hidden).toBe(true);
   });
 
   test('appendExportBtn restores its label when the handler fails', async () => {
+    setExportButtonsVisible(true);
     const consoleError = vi
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);

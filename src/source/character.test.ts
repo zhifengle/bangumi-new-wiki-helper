@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { setExportButtonsVisible } from '../sites/core/controls';
 import { vi } from 'vitest';
 import { dmmSubject } from '../sites/dmm/subject';
 import { getchuSubject } from '../sites/getchu/subject';
@@ -84,6 +85,7 @@ function mountDmmCharacterPage() {
 
 describe('initSourceCharacter', () => {
   beforeEach(() => {
+    setExportButtonsVisible(false);
     document.body.innerHTML = `
       <div class="genretab current"><a>ゲーム</a></div>
       <div id="wrapper">
@@ -226,6 +228,7 @@ describe('initSourceCharacter', () => {
   });
 
   test('exports an inline getchu character as JSON without submitting it', async () => {
+    setExportButtonsVisible(true);
     const runtime = createRuntime();
 
     await initSourceCharacter(getchuSubject, runtime);
@@ -257,6 +260,7 @@ describe('initSourceCharacter', () => {
   });
 
   test('exports the selected DMM character as JSON', async () => {
+    setExportButtonsVisible(true);
     mountDmmCharacterPage();
     const runtime = createRuntime();
 

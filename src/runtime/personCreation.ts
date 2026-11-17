@@ -15,8 +15,6 @@ export interface PersonCreationRuntime {
   openNewPerson(): Promise<void>;
 }
 
-// 与条目的 checkSubjectAndOpenEntry 同一套流程：
-// 搜到就打开已有人物，搜不到才打开 person/new；候选筛选沿用 filterResults。
 export async function checkPersonAndOpenEntry(
   payload: CheckPersonAndOpenPayload,
   runtime: PersonCreationRuntime
@@ -29,13 +27,12 @@ export async function checkPersonAndOpenEntry(
 
   await runtime.notify({
     type: 'info',
-    message: `搜索中...<br/>${name}`,
+    message: `搜索中…\n${name}`,
     duration: 0,
   });
   let result: SearchResult | undefined;
   try {
     const candidates = await searchPersonCandidates(name);
-    // 与条目一致：filterResults 用姓名直接建正则，特殊字符会抛错，也算搜索失败
     result = filterResults(candidates, { name }, {
       keys: ['name', 'greyName'],
     });
@@ -44,7 +41,7 @@ export async function checkPersonAndOpenEntry(
     console.error('person search failed:', error);
     await runtime.notify({
       type: 'error',
-      message: `Bangumi 人物搜索失败: <br/><b>${name}</b>`,
+      message: `Bangumi 人物搜索失败\n${name}`,
       cmd: 'dismissNotError',
     });
     throw error;

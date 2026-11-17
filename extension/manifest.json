@@ -41,8 +41,7 @@
         "*://*/*"
       ],
       "css": [
-        "css/bangumi.css",
-        "lib/notyf.min.css"
+        "css/bangumi.css"
       ],
       "js": [
         "dist/content.js"

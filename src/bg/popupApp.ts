@@ -15,7 +15,8 @@ type BooleanConfigKey =
   | 'activeOpen'
   | 'useHttps'
   | 'autoFill'
-  | 'fallbackToWebSearch';
+  | 'fallbackToWebSearch'
+  | 'showExportButtons';
 
 const popupSelectConfig: PopupSelectConfig = {
   domain: {
@@ -29,6 +30,7 @@ function isBooleanConfigKey(key: string): key is BooleanConfigKey {
     'useHttps',
     'autoFill',
     'fallbackToWebSearch',
+    'showExportButtons',
   ].includes(key);
 }
 

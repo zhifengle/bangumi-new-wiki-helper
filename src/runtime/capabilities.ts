@@ -17,7 +17,7 @@ export interface RuntimeNavigator {
   openTab(url: string): Promise<void>;
 }
 
-export type RuntimeNotifyPayload = LogMsg & Record<string, string | number>;
+export type RuntimeNotifyPayload = LogMsg;
 
 export interface RuntimeNotifier {
   notify(message: RuntimeNotifyPayload): void | Promise<void>;

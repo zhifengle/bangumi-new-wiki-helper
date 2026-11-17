@@ -22,5 +22,4 @@ declare function GM_registerMenuCommand(
 ): void;
 declare function GM_addStyle(css: string): HTMLStyleElement | void;
 declare function GM_openInTab(url: string): void;
-declare function GM_getResourceText(name: string): string;
 declare function GM_deleteValue(key: string): void;

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { setExportButtonsVisible } from '../sites/core/controls';
 import { vi } from 'vitest';
 import { dmmSubject } from '../sites/dmm/subject';
 import { createWikiExtractContext } from '../sites/core/context';
@@ -90,6 +91,7 @@ const modernDmmDetailHtml = `
 
 describe('DMM subject page', () => {
   beforeEach(() => {
+    setExportButtonsVisible(false);
     document.body.innerHTML = modernDmmDetailHtml;
     const summary = document.querySelector('.text-overflow') as HTMLElement;
     Object.defineProperty(summary, 'innerText', {
@@ -223,6 +225,7 @@ describe('DMM subject page', () => {
   });
 
   test('exports the extracted subject as JSON without opening the creation flow', async () => {
+    setExportButtonsVisible(true);
     const runtime: SourceRuntimeAdapter = {
       fetchHtml: vi.fn().mockResolvedValue(''),
       hydrateSubjectCover: vi.fn().mockResolvedValue(undefined),

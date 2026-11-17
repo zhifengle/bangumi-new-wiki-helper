@@ -9,3 +9,4 @@ export const BGM_DOMAIN = SCRIPT_PREFIX + 'bgm_domain';
 export const BGM_ACCESS_TOKEN = SCRIPT_PREFIX + 'bgm_access_token';
 export const SUBJECT_ID = SCRIPT_PREFIX + 'subject_id';
 export const FALLBACK_TO_WEB_SEARCH = SCRIPT_PREFIX + 'fallback_to_web_search';
+export const SHOW_EXPORT_BUTTONS = SCRIPT_PREFIX + 'show_export_buttons';

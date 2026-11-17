@@ -59,6 +59,7 @@ export type LogCommand = 'dismissAll' | 'dismissNotError';
 export type LogMsg = {
   type: 'succuss' | 'info' | 'error';
   message: string;
+  link?: string;
   duration?: number;
   cmd?: LogCommand;
 };

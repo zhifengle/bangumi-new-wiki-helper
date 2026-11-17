@@ -1,21 +1,12 @@
 import { AuxSitePayload } from '../interface/types';
 import { combineInfoList } from '../sites/core/merge';
 import { getWikiDataByURL } from '../sites/core/remote';
-import { genAnonymousLinkText } from '../utils/domUtils';
 import { RuntimeCapabilities, RuntimeNotifier } from './capabilities';
 
 export type AuxDataRuntime = {
   storage: RuntimeCapabilities['storage'];
   notifier: RuntimeNotifier;
 };
-
-function buildAuxSiteLink(url: string) {
-  return genAnonymousLinkText(url, url);
-}
-
-function buildUnavailableMessage() {
-  return `打开上面链接确认是否能访问以及有信息，再尝试`;
-}
 
 export async function updateSubjectDraftFromAuxSite(
   payload: AuxSitePayload,
@@ -30,7 +21,8 @@ export async function updateSubjectDraftFromAuxSite(
   try {
     await runtime.notifier.notify({
       type: 'info',
-      message: `抓取第三方网站信息中:<br/>${buildAuxSiteLink(auxSite)}`,
+      message: '正在抓取第三方网站信息…',
+      link: auxSite,
       duration: 0,
     });
     console.info('the start of updating aux data');
@@ -39,16 +31,15 @@ export async function updateSubjectDraftFromAuxSite(
     if (!auxData || (auxData && auxData.length === 0)) {
       await runtime.notifier.notify({
         type: 'error',
-        message: `抓取信息为空<br/>
-      ${buildAuxSiteLink(auxSite)}
-      <br/>
-      ${buildUnavailableMessage()}`,
+        message: '未抓取到信息。请确认来源页面可访问且有资料，再重试。',
+        link: auxSite,
         cmd: 'dismissNotError',
       });
     } else {
       await runtime.notifier.notify({
         type: 'info',
-        message: `抓取第三方网站信息成功:<br/>${buildAuxSiteLink(auxSite)}`,
+        message: '抓取第三方网站信息成功。',
+        link: auxSite,
         cmd: 'dismissNotError',
       });
     }
@@ -69,10 +60,8 @@ export async function updateSubjectDraftFromAuxSite(
     console.error(error);
     await runtime.notifier.notify({
       type: 'error',
-      message: `抓取信息失败<br/>
-      ${buildAuxSiteLink(auxSite)}
-      <br/>
-      ${buildUnavailableMessage()}`,
+      message: '抓取信息失败。请确认来源页面可访问，再重试。',
+      link: auxSite,
       cmd: 'dismissNotError',
     });
   }

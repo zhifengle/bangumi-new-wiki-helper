@@ -2,7 +2,13 @@ import { CheckPersonAndOpenPayload } from './personCreation';
 import {
   CheckSubjectAndOpenPayload,
   CreateSubjectEntryPayload,
+  SubjectCandidatePrompt,
 } from './subjectCreation';
+
+export type ChooseSubjectCandidateMessage = {
+  action: 'choose_subject_candidate';
+  payload: SubjectCandidatePrompt;
+};
 
 export type BackgroundFetchHeaders = Record<string, string>;
 
