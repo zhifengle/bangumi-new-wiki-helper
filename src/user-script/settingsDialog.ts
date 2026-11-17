@@ -1,5 +1,6 @@
 import { htmlToElement } from '../utils/domUtils';
 import {
+  BGM_ACCESS_TOKEN,
   BGM_DOMAIN,
   PROTOCOL,
   FALLBACK_TO_WEB_SEARCH,
@@ -20,6 +21,7 @@ export function showSettingsDialog() {
   const useHttps = (GM_getValue<string>(PROTOCOL) || 'https') === 'https';
   const fallbackToWebSearch =
     GM_getValue<boolean>(FALLBACK_TO_WEB_SEARCH) || false;
+  const hasAccessToken = Boolean(GM_getValue<string>(BGM_ACCESS_TOKEN));
   const domainOptions = BANGUMI_DOMAINS.map(
     (domain) =>
       `<option value="${domain}"${domain === currentDomain ? ' selected' : ''}>${domain}</option>`
@@ -179,11 +181,19 @@ export function showSettingsDialog() {
     .e-bnwh-config-button:hover {
       background: #27272a;
     }
+    .e-bnwh-config-token-state {
+      margin: 0;
+    }
   </style>
   <div class="e-bnwh-config-content">
     <div class="e-bnwh-config-header">
       <p id="e-bnwh-config-title" class="e-bnwh-config-title">条目助手设置</p>
       <p class="e-bnwh-config-desc">集中管理 Bangumi 地址和查重请求行为。</p>
+    </div>
+    <div class="e-bnwh-config-section">
+      <p class="e-bnwh-config-row-title e-bnwh-config-token-state">Bangumi Access Token · ${hasAccessToken ? '已配置' : '未配置'}</p>
+      <p class="e-bnwh-config-row-desc">用于调用 Bangumi API 查重，可查找账号有权访问的 R18 条目。<a href="https://next.bgm.tv/demo/access-token" target="_blank" rel="noopener noreferrer">获取 Token</a></p>
+      <button class="e-bnwh-config-button e-bnwh-config-edit-token" type="button">设置 Access Token</button>
     </div>
     <div class="e-bnwh-config-section">
       <label class="e-bnwh-config-row" for="e-bnwh-domain">
@@ -224,6 +234,22 @@ export function showSettingsDialog() {
   const setStatus = (message: string) => {
     $status.textContent = message;
   };
+
+  $dialog
+    .querySelector<HTMLButtonElement>('.e-bnwh-config-edit-token')!
+    .addEventListener('click', () => {
+      // Keep the token out of the source site's DOM.
+      const input = window.prompt('粘贴 Bangumi Access Token。留空并确定可清除。');
+      if (input === null) return;
+      const token = input.trim();
+      if (token) {
+        GM_setValue(BGM_ACCESS_TOKEN, token);
+      } else {
+        GM_deleteValue(BGM_ACCESS_TOKEN);
+      }
+      $dialog.querySelector('.e-bnwh-config-token-state')!.textContent =
+        `Bangumi Access Token · ${token ? '已配置' : '未配置'}`;
+    });
 
   $dialog
     .querySelector<HTMLSelectElement>('#e-bnwh-domain')!

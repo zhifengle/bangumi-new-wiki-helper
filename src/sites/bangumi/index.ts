@@ -4,6 +4,7 @@ import {fetchJson, fetchText} from '../../utils/fetchData';
 import {SubjectTypeId} from '../../interface/wiki';
 import {dealDate} from '../../utils/utils';
 import { filterResults } from '../core/search';
+import { searchAuthenticatedSubject } from './authenticatedSearch';
 
 export enum BangumiDomain {
   chii = 'chii.in',
@@ -26,6 +27,7 @@ export type BangumiSearchOptions = {
   type?: SubjectTypeId;
   uniqueQueryStr?: string;
   fallbackToWebSearch?: boolean;
+  accessToken?: string;
 };
 
 export type BangumiExistSearchOptions = Omit<
@@ -193,6 +195,7 @@ export async function searchSubject(
     type = SubjectTypeId.all,
     uniqueQueryStr = '',
     fallbackToWebSearch = false,
+    accessToken,
   } = options;
   let query = (subjectInfo.name || '').trim();
   if (type === SubjectTypeId.book) {
@@ -205,6 +208,15 @@ export async function searchSubject(
   if (!query) {
     console.info('Query string is empty');
     return;
+  }
+  if (accessToken && !uniqueQueryStr && type !== SubjectTypeId.all) {
+    const match = await searchAuthenticatedSubject(
+      query,
+      subjectInfo,
+      type,
+      accessToken
+    );
+    if (match) return match;
   }
   const htmlQuery =
     type === SubjectTypeId.book || uniqueQueryStr ? `"${query}"` : query;

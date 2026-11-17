@@ -22,6 +22,7 @@ import { userScriptRuntimeCapabilities } from './runtimeCapabilities';
 import {
   AUTO_FILL_FORM,
   BGM_DOMAIN,
+  BGM_ACCESS_TOKEN,
   PROTOCOL,
   FALLBACK_TO_WEB_SEARCH,
 } from './constants';
@@ -105,6 +106,7 @@ function createUserScriptSubjectCreationRuntime(
   return {
     bangumi: {
       host,
+      accessToken: GM_getValue<string>(BGM_ACCESS_TOKEN)?.trim(),
       fallbackToWebSearch:
         GM_getValue<boolean>(FALLBACK_TO_WEB_SEARCH) || false,
     },

@@ -6,11 +6,13 @@ import {
 } from '../interface/subjectCreation';
 import { SubjectTypeId } from '../interface/wiki';
 import { checkSubjectExit } from '../sites/bangumi';
+import { BangumiAccessTokenError } from '../sites/bangumi/authenticatedSearch';
 import { getSubjectId } from '../sites/bangumi/common';
 
 export type BangumiRuntimeConfig = {
   host: string;
   fallbackToWebSearch: boolean;
+  accessToken?: string;
 };
 
 export interface SubjectCreationRuntime {
@@ -69,7 +71,9 @@ async function searchExistingSubject(
       error.name === 'InvalidBangumiSearchResponseError';
     await runtime.notify({
       type: 'error',
-      message: isUnauthenticatedSearch
+      message: error instanceof BangumiAccessTokenError
+        ? 'Bangumi 拒绝了 Access Token。请在「条目助手设置」中更新或清除 Token 后重试。'
+        : isUnauthenticatedSearch
         ? `Bangumi 搜索请求丢失了登录状态。<br/>请打开 <a href="${runtime.bangumi.host}/" target="_blank" rel="noopener noreferrer">${runtime.bangumi.host} 主页</a>恢复登录状态，然后返回当前页面重试。`
         : isInvalidSearchPage
           ? `Bangumi 返回了异常的搜索页面，可能是登录状态或搜索频率限制。<br/>请打开 <a href="${runtime.bangumi.host}/" target="_blank" rel="noopener noreferrer">${runtime.bangumi.host} 主页</a>确认登录，并等待至少 60 秒后再试。`

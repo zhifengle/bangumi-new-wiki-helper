@@ -31,6 +31,7 @@ type GMRequestOptions<T> = {
   data?: BodyInit | null;
   onload: (response: GMRequestResponse<T>) => void;
   onerror: (error: unknown) => void;
+  ontimeout: () => void;
 } & Omit<FetchRequestOptions, 'method' | 'body' | 'data'>;
 
 type GMRequestFunction = <T>(options: GMRequestOptions<T>) => void;
@@ -45,8 +46,10 @@ function isSuccessfulHttpStatus(status: number) {
   return status >= 200 && status < 300;
 }
 
-function createHttpStatusError(status: number, url: string) {
-  return new Error(`Request failed with status ${status}: ${url}`);
+export class HttpStatusError extends Error {
+  constructor(readonly status: number, url: string) {
+    super(`Request failed with status ${status}: ${url}`);
+  }
 }
 
 function resolveRequestBody(
@@ -106,7 +109,7 @@ export function fetchInfo(
         ...(requestBody ? { data: requestBody } : {}),
         onload(res) {
           if (!isSuccessfulHttpStatus(res.status)) {
-            reject(createHttpStatusError(res.status, url));
+            reject(new HttpStatusError(res.status, url));
             return;
           }
           if (decode && responseType === 'arraybuffer') {
@@ -117,6 +120,7 @@ export function fetchInfo(
           }
         },
         onerror: reject,
+        ontimeout: () => reject(new Error('fetch timeout')),
         ...restOpts,
       });
     });
@@ -135,7 +139,7 @@ export function fetchInfo(
   )
     .then(async (response) => {
       if (!isSuccessfulHttpStatus(response.status)) {
-        throw createHttpStatusError(response.status, url);
+        throw new HttpStatusError(response.status, url);
       }
       if (decode) {
         const buffer = await response.arrayBuffer();
