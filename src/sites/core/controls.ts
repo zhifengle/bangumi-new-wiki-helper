@@ -24,8 +24,8 @@ const DEFAULT_CONTROL_LABELS: ControlButtonLabels = {
   createWithCheck: '新建并查重',
 };
 
-const EXPORT_LABEL = '导出 JSON';
-const EXPORTING_LABEL = '导出中...';
+const EXPORT_LABEL = '调试数据';
+const EXPORTING_LABEL = '提取中...';
 let showExportButtons = false;
 
 function syncExportButton(button: HTMLElement) {
@@ -85,7 +85,7 @@ export function insertControlBtn(
 }
 
 /**
- * 在控制按钮容器里追加「导出 JSON」按钮
+ * 在控制按钮容器里追加「调试数据」按钮
  * @param $container insertControlBtn 等返回的容器
  * @param cb 返回 Promise 的回调
  */

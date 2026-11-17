@@ -13,8 +13,14 @@ import {
 } from '../sites/core/controls';
 import { createWikiExtractContext } from '../sites/core/context';
 import { getCharaData } from '../sites/core/extract';
+import type { ReportSelectorCheck } from '../sites/core/selector';
 import { findAllElement, findElement } from '../utils/domUtils';
-import { buildExportPayload, showExportDialog } from './export';
+import {
+  buildExportPayload,
+  openDebugSource,
+  registerDebugSource,
+} from './export';
+import type { DebugSource } from './export';
 import { SourceRuntimeAdapter } from './runtime';
 
 function getIframeSelector(itemSelector: SelectorInput): string {
@@ -70,21 +76,19 @@ async function submitCharacter(
   });
 }
 
-async function exportCharacter(
+async function buildCharacterPayload(
   siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter,
   charaInfo: SubjectWikiInfo['infos']
 ) {
   const charaData = await collectCharacterData(siteConfig, runtime, charaInfo);
-  if (!charaData) return;
-  showExportDialog(
-    buildExportPayload({
-      kind: 'character',
-      site: siteConfig.key,
-      sourceUrl: location.href,
-      data: charaData,
-    })
-  );
+  if (!charaData) throw new Error('没有提取到角色信息。');
+  return buildExportPayload({
+    kind: 'character',
+    site: siteConfig.key,
+    sourceUrl: location.href,
+    data: charaData,
+  });
 }
 
 async function initCharacterModel(
@@ -103,18 +107,29 @@ async function initCharacterModel(
     : findAllElement(characterModel.itemSelector);
   if (!itemArr.length) return;
 
-  const extractCharacter = ($target: Element) =>
-    getCharaData(characterModel, createWikiExtractContext($target));
+  const extractCharacter = (
+    $target: Element,
+    reportSelectorCheck?: ReportSelectorCheck
+  ) => getCharaData(characterModel, { root: $target, reportSelectorCheck });
 
   if ((characterModel.controlMode ?? 'select') === 'inline') {
-    itemArr.forEach(($target) => {
+    itemArr.forEach(($target, index) => {
       const $controls = insertControlBtnChara($target, async () => {
         await submitCharacter(siteConfig, runtime, await extractCharacter($target));
       });
       if (!$controls) return;
-      appendExportBtn($controls, async () => {
-        await exportCharacter(siteConfig, runtime, await extractCharacter($target));
-      });
+      const debugSource: DebugSource = {
+        id: `character:${characterModel.key}:${index}`,
+        label: `角色 ${index + 1} · ${characterModel.description}`,
+        collect: async (report) =>
+          buildCharacterPayload(
+            siteConfig,
+            runtime,
+            await extractCharacter($target, report)
+          ),
+      };
+      registerDebugSource(debugSource);
+      appendExportBtn($controls, () => openDebugSource(debugSource));
     });
     return;
   }
@@ -158,11 +173,21 @@ async function initCharacterModel(
   });
   const $select = $ui?.querySelector<HTMLSelectElement>('.e-bnwh-select');
   if (!$ui || !$select) return;
-  appendExportBtn($ui, async () => {
-    for (const $target of resolveTargets($select.value)) {
-      await exportCharacter(siteConfig, runtime, await extractCharacter($target));
-    }
-  });
+  const debugSource: DebugSource = {
+    id: `character:${characterModel.key}:selected`,
+    label: `角色（当前选择）· ${characterModel.description}`,
+    collect: async (report) => {
+      const [$target] = resolveTargets($select.value);
+      if (!$target) throw new Error('没有找到当前选择的角色。');
+      return buildCharacterPayload(
+        siteConfig,
+        runtime,
+        await extractCharacter($target, report)
+      );
+    },
+  };
+  registerDebugSource(debugSource);
+  appendExportBtn($ui, () => openDebugSource(debugSource));
 }
 
 export async function initSourceCharacter(

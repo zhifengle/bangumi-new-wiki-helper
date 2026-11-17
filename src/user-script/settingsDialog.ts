@@ -1,3 +1,4 @@
+import { UI_FONT_STACK } from '../css/fontStacks';
 import { htmlToElement } from '../utils/domUtils';
 import { setExportButtonsVisible } from '../sites/core/controls';
 import {
@@ -15,6 +16,13 @@ import {
 const BANGUMI_DOMAINS = ['bgm.tv', 'bangumi.tv', 'chii.in'] as const;
 const TOKEN_SETTINGS_HASH = '#bnwh-token-settings';
 const TOKEN_ISSUE_URL = 'https://next.bgm.tv/demo/access-token';
+const SETTINGS_HOST_CLASS = 'e-bnwh-config-host';
+
+function getSettingsDialog() {
+  return document
+    .querySelector<HTMLElement>(`.${SETTINGS_HOST_CLASS}`)
+    ?.shadowRoot?.querySelector<HTMLDialogElement>('.e-bnwh-config-dialog');
+}
 
 function canEditToken() {
   const { protocol, hostname } = window.location;
@@ -30,9 +38,7 @@ export function openLinkedTokenSettings() {
 }
 
 export function showSettingsDialog(focusToken = false) {
-  const existing = document.querySelector<HTMLDialogElement>(
-    '.e-bnwh-config-dialog'
-  );
+  const existing = getSettingsDialog();
   if (existing) {
     if (!existing.open) existing.showModal();
     if (focusToken) existing.querySelector<HTMLInputElement>('#e-bnwh-token')?.focus();
@@ -52,20 +58,29 @@ export function showSettingsDialog(focusToken = false) {
       `<option value="${domain}"${domain === currentDomain ? ' selected' : ''}>${domain}</option>`
   ).join('');
 
+  const $host = document.createElement('div');
+  $host.className = SETTINGS_HOST_CLASS;
+  const $shadow = $host.attachShadow({ mode: 'open' });
   const $dialog = htmlToElement<HTMLDialogElement>(`
-<dialog class="e-bnwh-config-dialog" aria-labelledby="e-bnwh-config-title">
+<dialog class="e-bnwh-config-dialog" lang="zh-Hans" aria-labelledby="e-bnwh-config-title">
   <style>
+    :host {
+      all: initial !important;
+      display: contents !important;
+    }
     .e-bnwh-config-dialog {
       box-sizing: border-box;
       width: min(460px, calc(100vw - 32px));
       max-height: calc(100vh - 32px);
+      margin: auto;
       padding: 0;
       border: 1px solid #e5e7eb;
       border-radius: 8px;
       color: #09090b;
       background: #fff;
       box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font: 14px/1.55 ${UI_FONT_STACK};
+      color-scheme: light;
     }
     .e-bnwh-config-dialog::backdrop {
       background: rgba(15, 23, 42, 0.42);
@@ -80,8 +95,8 @@ export function showSettingsDialog(focusToken = false) {
     .e-bnwh-config-title {
       margin: 0;
       color: #09090b;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: 700;
       line-height: 1.4;
     }
     .e-bnwh-config-row-desc,
@@ -168,6 +183,7 @@ export function showSettingsDialog(focusToken = false) {
       border-radius: 8px;
       color: #09090b;
       background: #fff;
+      font: inherit;
       font-size: 13px;
     }
     .e-bnwh-config-switch:focus-visible,
@@ -202,7 +218,7 @@ export function showSettingsDialog(focusToken = false) {
       border-radius: 8px;
       color: #fff;
       background: #18181b;
-      font-size: 14px;
+      font: inherit;
       font-weight: 500;
       cursor: pointer;
       text-decoration: none;
@@ -306,8 +322,8 @@ export function showSettingsDialog(focusToken = false) {
       </label>
       <label class="e-bnwh-config-row" for="e-bnwh-show-export">
         <span class="e-bnwh-config-row-text">
-          <span class="e-bnwh-config-row-title">显示导出 JSON 按钮</span>
-          <span class="e-bnwh-config-row-desc">在来源页面显示条目、人物和角色的导出入口</span>
+          <span class="e-bnwh-config-row-title">显示数据调试按钮</span>
+          <span class="e-bnwh-config-row-desc">在来源页面显示条目、人物和角色的快捷调试入口</span>
         </span>
         <input class="e-bnwh-config-switch" type="checkbox" id="e-bnwh-show-export"${showExportButtons ? ' checked' : ''}>
       </label>
@@ -356,7 +372,7 @@ export function showSettingsDialog(focusToken = false) {
       const checked = (event.currentTarget as HTMLInputElement).checked;
       GM_setValue(SHOW_EXPORT_BUTTONS, checked);
       setExportButtonsVisible(checked);
-      setStatus(`导出按钮已${checked ? '显示' : '隐藏'}。`);
+      setStatus(`数据调试按钮已${checked ? '显示' : '隐藏'}。`);
     });
 
   const refreshTokenState = () => {
@@ -370,13 +386,14 @@ export function showSettingsDialog(focusToken = false) {
     .addEventListener('click', () => $dialog.close());
   $dialog.addEventListener('close', () => {
     window.removeEventListener('focus', refreshTokenState);
-    $dialog.remove();
+    $host.remove();
   }, { once: true });
   $dialog.addEventListener('click', (event) => {
     if (event.target === $dialog) $dialog.close();
   });
 
-  document.body.appendChild($dialog);
+  $shadow.appendChild($dialog);
+  document.body.appendChild($host);
   $dialog.showModal();
   if (focusToken) tokenInput?.focus();
 }

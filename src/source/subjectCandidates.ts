@@ -1,3 +1,4 @@
+import { UI_FONT_STACK } from '../css/fontStacks';
 import type {
   SubjectCandidateChoice,
   SubjectCandidatePrompt,
@@ -41,7 +42,7 @@ export function chooseSubjectCandidate({
   host.style.display = 'contents';
   const shadow = host.attachShadow({ mode: 'open' });
   const dialog = htmlToElement<HTMLDialogElement>(`
-<dialog aria-labelledby="title" aria-describedby="source-title">
+<dialog lang="zh-Hans" aria-labelledby="title" aria-describedby="source-title">
   <style>
     * { box-sizing: border-box; }
     dialog {
@@ -62,7 +63,7 @@ export function chooseSubjectCandidate({
       color: var(--text);
       padding: 0;
       box-shadow: 0 16px 48px #0003;
-      font: 14px/1.45 system-ui, sans-serif;
+      font: 14px/1.55 ${UI_FONT_STACK};
     }
     @media (prefers-color-scheme: dark) {
       dialog {
@@ -101,7 +102,7 @@ export function chooseSubjectCandidate({
       margin-top: 3px;
     }
     .results { overflow-y: auto; padding-top: 0; }
-    h3 { margin-bottom: 8px; font-size: 13px; font-weight: 650; }
+    h3 { margin-bottom: 8px; font-size: 13px; font-weight: 600; }
     ul { display: grid; gap: 8px; padding: 0; list-style: none; }
     button {
       appearance: none;
@@ -129,7 +130,7 @@ export function chooseSubjectCandidate({
       overflow-wrap: anywhere;
     }
     .candidate:hover { border-color: var(--accent); background: var(--hover); }
-    .candidate-name { font-weight: 650; }
+    .candidate-name { font-weight: 600; }
     .candidate-alias { color: var(--muted); font-size: 13px; }
     .candidate-name, .candidate-alias, .candidate-details { grid-column: 1; }
     .candidate-action {

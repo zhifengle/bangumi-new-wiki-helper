@@ -5,15 +5,21 @@ import {
 } from '../interface/subjectInfo';
 import { PersonSourceDefinition } from '../interface/wiki';
 import { getPersonHooks } from '../sites';
-import { createWikiExtractContext } from '../sites/core/context';
 import {
   appendExportBtn,
   ControlButtonLabels,
   insertControlBtn,
 } from '../sites/core/controls';
 import { getPersonData } from '../sites/core/extract';
+import type { ReportSelectorCheck } from '../sites/core/selector';
 import { findElement } from '../utils/domUtils';
-import { buildExportPayload, showExportDialog } from './export';
+import {
+  buildExportPayload,
+  openDebugSource,
+  registerDebugSource,
+  registerPageDebugFallback,
+} from './export';
+import type { DebugSource } from './export';
 import { SourceRuntimeAdapter } from './runtime';
 
 const PERSON_BUTTON_LABELS: ControlButtonLabels = {
@@ -58,10 +64,11 @@ function getPersonName(infos: SingleInfo[]): string {
 
 async function collectPersonData(
   model: PersonSourceDefinition,
-  runtime: SourceRuntimeAdapter
+  runtime: SourceRuntimeAdapter,
+  reportSelectorCheck?: ReportSelectorCheck
 ): Promise<PersonWikiInfo> {
   const infos = withDefaults(
-    await getPersonData(model, createWikiExtractContext(document)),
+    await getPersonData(model, { root: document, reportSelectorCheck }),
     model
   );
   // 人物允许没有肖像；补抓失败只降级为不带图，不中断新建
@@ -78,6 +85,18 @@ export async function initSourcePerson(
   model: PersonSourceDefinition,
   runtime: SourceRuntimeAdapter
 ) {
+  const debugSource: DebugSource = {
+    id: `person:${model.key}`,
+    label: `人物 · ${model.description}`,
+    collect: async (report) =>
+      buildExportPayload({
+        kind: 'person',
+        site: model.key,
+        sourceUrl: location.href,
+        data: await collectPersonData(model, runtime, report),
+      }),
+  };
+  registerPageDebugFallback(debugSource, model);
   const $page = findElement(model.pageSelectors);
   if (!$page) return;
   const $control = findElement(model.controlSelector);
@@ -99,14 +118,6 @@ export async function initSourcePerson(
     PERSON_BUTTON_LABELS
   );
   if (!$controls) return;
-  appendExportBtn($controls, async () => {
-    showExportDialog(
-      buildExportPayload({
-        kind: 'person',
-        site: model.key,
-        sourceUrl: location.href,
-        data: await collectPersonData(model, runtime),
-      })
-    );
-  });
+  registerDebugSource(debugSource);
+  appendExportBtn($controls, () => openDebugSource(debugSource));
 }

@@ -148,7 +148,7 @@ describe('core controls helpers', () => {
     appendExportBtn(container, handler);
 
     const exportButton = container.querySelector<HTMLElement>('.e-wiki-export-json')!;
-    expect(exportButton.textContent).toBe('导出 JSON');
+    expect(exportButton.textContent).toBe('调试数据');
     expect(exportButton.classList.contains('e-wiki-new-subject')).toBe(true);
     expect(exportButton.hidden).toBe(true);
     exportButton.click();
@@ -159,11 +159,11 @@ describe('core controls helpers', () => {
     exportButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushAsyncEvents();
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(exportButton.textContent).toBe('导出中...');
+    expect(exportButton.textContent).toBe('提取中...');
 
     finish();
     await flushAsyncEvents();
-    expect(exportButton.textContent).toBe('导出 JSON');
+    expect(exportButton.textContent).toBe('调试数据');
     setExportButtonsVisible(false);
     expect(exportButton.hidden).toBe(true);
   });
@@ -185,7 +185,7 @@ describe('core controls helpers', () => {
     exportButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushAsyncEvents();
 
-    expect(exportButton.textContent).toBe('导出 JSON');
+    expect(exportButton.textContent).toBe('调试数据');
     expect(consoleError).toHaveBeenCalled();
     consoleError.mockRestore();
   });

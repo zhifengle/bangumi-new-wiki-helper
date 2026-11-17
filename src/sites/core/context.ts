@@ -1,3 +1,5 @@
+import type { ReportSelectorCheck } from './selector';
+
 export type WikiPageContext = {
   sourceUrl?: string;
   imageReferer?: string;
@@ -9,6 +11,7 @@ export type WikiExtractRoot = Document | Element;
 export type WikiExtractContext = WikiPageContext & {
   // 当前字段抽取所使用的 DOM 查询范围。
   root?: WikiExtractRoot;
+  reportSelectorCheck?: ReportSelectorCheck;
 };
 
 export function createWikiExtractContext(

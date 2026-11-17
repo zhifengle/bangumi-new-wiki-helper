@@ -1,8 +1,8 @@
 /* reset */
 html, body {
     border: 0;
-    font-family: 'Helvetica Neue', Helvetica, Tahoma, Arial, sans-serif;
-    line-height: 1.5;
+    font-family: var(--bnwh-font-ui, system-ui, sans-serif);
+    line-height: 1.55;
     margin: 0;
     padding: 0;
 }
@@ -62,4 +62,8 @@ ul, ol {
 
 input[type="search"] {
   -webkit-appearance: none;
-} 
+}
+
+button, input, select, textarea {
+  font: inherit;
+}

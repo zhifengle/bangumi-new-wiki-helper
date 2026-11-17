@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
 import { vi } from 'vitest';
 import { APP_VERSION } from '../version';
-import { buildExportPayload, showExportDialog } from './export';
+import {
+  buildExportPayload,
+  clearDebugSources,
+  inspectExportPayload,
+  openDebugSource,
+  showExportDialog,
+} from './export';
 
 async function flushAsyncEvents() {
   await Promise.resolve();
@@ -20,6 +26,14 @@ function buildPersonPayload() {
     data: personData,
     exportedAt: new Date('2026-09-25T00:00:00Z'),
   });
+}
+
+function debugRoot() {
+  return document.querySelector<HTMLElement>('.e-bnwh-debug-host')!.shadowRoot!;
+}
+
+function debugDialog() {
+  return debugRoot().querySelector<HTMLDialogElement>('.e-bnwh-debug-dialog')!;
 }
 
 describe('buildExportPayload', () => {
@@ -52,24 +66,67 @@ describe('buildExportPayload', () => {
 describe('showExportDialog', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
+    clearDebugSources();
     vi.restoreAllMocks();
   });
 
-  test('renders the payload as pretty JSON in a read-only textarea', () => {
+  test('renders the payload as searchable fields and pretty JSON', () => {
     const payload = buildPersonPayload();
 
     showExportDialog(payload);
 
-    const dialog = document.querySelector<HTMLDialogElement>(
-      'dialog.e-bnwh-export-dialog'
-    )!;
+    const dialog = debugDialog();
     const textarea = dialog.querySelector<HTMLTextAreaElement>(
-      'textarea.e-bnwh-export-json'
+      'textarea.e-bnwh-debug-json'
     )!;
     expect(dialog.open).toBe(true);
-    expect(dialog.dataset.kind).toBe('person');
     expect(textarea.readOnly).toBe(true);
     expect(textarea.value).toBe(JSON.stringify(payload, null, 2));
+    expect(dialog.querySelector('tbody')?.textContent).toContain('折戸伸治');
+    expect(dialog.querySelector('.e-bnwh-debug-findings')?.getAttribute('data-level'))
+      .toBe('ok');
+  });
+
+  test('summarizes cover data in the field table and report but keeps the original JSON', async () => {
+    const url = 'https://example.com/cover.jpg';
+    const imageData = 'ABCD'.repeat(50_000);
+    const dataUrl = `data:image/jpeg;base64,${imageData}`;
+    const payload = buildExportPayload({
+      kind: 'person',
+      site: 'vgmdb_artist',
+      sourceUrl: 'https://vgmdb.net/artist/2',
+      data: {
+        infos: [
+          { name: '封面', category: 'crt_cover', value: { url, dataUrl } },
+          ...personData.infos,
+        ],
+      },
+    });
+
+    showExportDialog(payload);
+
+    const fields = debugRoot().querySelector('tbody')!.textContent;
+    expect(fields).toContain(url);
+    expect(fields).toContain('[Data URL · 195.3 KB · 已省略]');
+    expect(fields).not.toContain(imageData.slice(0, 80));
+    expect(fields).toContain('折戸伸治');
+    expect(debugRoot().querySelector('textarea')!.value).toBe(JSON.stringify(payload, null, 2));
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    try {
+      debugRoot().querySelector<HTMLButtonElement>('.e-bnwh-debug-copy-report')!.click();
+      debugRoot().querySelector<HTMLButtonElement>('.e-bnwh-debug-copy-json')!.click();
+      await flushAsyncEvents();
+
+      const [[report], [rawJson]] = writeText.mock.calls;
+      expect(report).toContain(url);
+      expect(report).toContain('[Data URL · 195.3 KB · 已省略]');
+      expect(report).not.toContain(imageData.slice(0, 80));
+      expect(rawJson).toBe(JSON.stringify(payload, null, 2));
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   test('reuses a single dialog and replaces its content on the next export', () => {
@@ -83,11 +140,10 @@ describe('showExportDialog', () => {
 
     showExportDialog(next);
 
-    const dialogs = document.querySelectorAll('dialog.e-bnwh-export-dialog');
+    const dialogs = debugRoot().querySelectorAll('dialog.e-bnwh-debug-dialog');
     expect(dialogs).toHaveLength(1);
-    expect(dialogs[0].getAttribute('data-kind')).toBe('subject');
     expect(
-      dialogs[0].querySelector<HTMLTextAreaElement>('textarea.e-bnwh-export-json')!
+      dialogs[0].querySelector<HTMLTextAreaElement>('textarea.e-bnwh-debug-json')!
         .value
     ).toBe(JSON.stringify(next, null, 2));
   });
@@ -112,8 +168,8 @@ describe('showExportDialog', () => {
     const payload = buildPersonPayload();
     showExportDialog(payload);
 
-    document
-      .querySelector<HTMLElement>('.e-bnwh-export-download')!
+    debugRoot()
+      .querySelector<HTMLElement>('.e-bnwh-debug-download')!
       .dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
     expect(downloadName).toBe('bnwh-person-vgmdb_artist-20260925T000000Z.json');
@@ -130,7 +186,7 @@ describe('showExportDialog', () => {
     });
     const payload = buildPersonPayload();
     showExportDialog(payload);
-    const copyButton = document.querySelector<HTMLElement>('.e-bnwh-export-copy')!;
+    const copyButton = debugRoot().querySelector<HTMLElement>('.e-bnwh-debug-copy-json')!;
 
     copyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushAsyncEvents();
@@ -141,14 +197,62 @@ describe('showExportDialog', () => {
 
   test('close button closes the dialog', () => {
     showExportDialog(buildPersonPayload());
-    const dialog = document.querySelector<HTMLDialogElement>(
-      'dialog.e-bnwh-export-dialog'
-    )!;
+    const dialog = debugDialog();
 
     dialog
-      .querySelector<HTMLElement>('.e-bnwh-export-close')!
+      .querySelector<HTMLElement>('.e-bnwh-debug-close-icon')!
       .dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
     expect(dialog.open).toBe(false);
+  });
+
+  test('keeps extraction errors in a downloadable diagnostic report', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await openDebugSource({
+      id: 'subject:broken',
+      label: '损坏的条目来源',
+      collect: async () => {
+        throw new TypeError('页面结构已变化');
+      },
+    });
+
+    const report = JSON.parse(
+      debugDialog().querySelector<HTMLTextAreaElement>('.e-bnwh-debug-json')!
+        .value
+    );
+    expect(report).toMatchObject({
+      format: 'bnwh-diagnostics/1',
+      source: { id: 'subject:broken', label: '损坏的条目来源' },
+      error: { name: 'TypeError', message: '页面结构已变化' },
+    });
+    expect(debugDialog().querySelector('.e-bnwh-debug-findings')?.getAttribute('data-level'))
+      .toBe('error');
+  });
+});
+
+describe('inspectExportPayload', () => {
+  test('reports missing primary fields, empty values and exact duplicates', () => {
+    const payload = buildExportPayload({
+      kind: 'subject',
+      site: 'dmm',
+      sourceUrl: 'https://example.com',
+      data: {
+        type: 4,
+        infos: [
+          { name: '别名', value: '', category: 'alias' },
+          { name: '平台', value: 'PC', category: 'listItem' },
+          { name: '平台', value: 'PC', category: 'listItem' },
+        ],
+      },
+    });
+
+    expect(inspectExportPayload(payload).map((issue) => issue.code)).toEqual(
+      expect.arrayContaining([
+        'missing-primary-field',
+        'empty-field',
+        'duplicate-field',
+      ])
+    );
   });
 });

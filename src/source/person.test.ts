@@ -3,6 +3,7 @@ import { setExportButtonsVisible } from '../sites/core/controls';
 import { vi } from 'vitest';
 import { SingleInfo } from '../interface/subjectInfo';
 import { PersonSourceDefinition } from '../interface/wiki';
+import { clearDebugSources, registerDebugSource, showCurrentPageDebugTool } from './export';
 import { initSourcePerson } from './person';
 import { SourceRuntimeAdapter } from './runtime';
 
@@ -22,6 +23,16 @@ async function flushAsyncEvents() {
   await Promise.resolve();
   await Promise.resolve();
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+function debugRoot() {
+  return document.querySelector<HTMLElement>('.e-bnwh-debug-host')!.shadowRoot!;
+}
+
+function readDebugJson() {
+  return JSON.parse(
+    debugRoot().querySelector<HTMLTextAreaElement>('textarea.e-bnwh-debug-json')!.value
+  );
 }
 
 function createModel(): PersonSourceDefinition {
@@ -67,6 +78,7 @@ function buttons() {
 
 describe('initSourcePerson', () => {
   beforeEach(() => {
+    clearDebugSources();
     setExportButtonsVisible(false);
     vi.clearAllMocks();
     document.body.innerHTML = `
@@ -195,10 +207,28 @@ describe('initSourcePerson', () => {
     expect(warn).toHaveBeenCalled();
   });
 
-  test('exports the person infos as JSON instead of opening person/new', async () => {
+  test('diagnoses field selectors and keeps the original JSON export', async () => {
     setExportButtonsVisible(true);
     const runtime = createRuntime();
     const model = createModel();
+    model.itemList = [
+      {
+        name: '姓名',
+        selector: [{ selector: '#old-name' }, { selector: '#name' }, { selector: '#unused' }],
+        category: 'crt_name',
+      },
+      { name: '缺失字段', selector: { selector: '#missing' } },
+      { name: '空值字段', selector: { selector: '#empty' } },
+      { name: '无效规则', selector: { selector: '[' } },
+      {
+        name: '处理出错',
+        selector: { selector: '#name' },
+        pipes: [() => { throw new Error('pipe failed'); }],
+      },
+    ];
+    const empty = document.createElement('span');
+    empty.id = 'empty';
+    document.body.append(empty);
 
     await initSourcePerson(model, runtime);
     document
@@ -206,10 +236,7 @@ describe('initSourcePerson', () => {
       .dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushAsyncEvents();
 
-    const exported = JSON.parse(
-      document.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-export-json')!
-        .value
-    );
+    const exported = readDebugJson();
     expect(exported).toMatchObject({
       format: 'bnwh-export/1',
       kind: 'person',
@@ -228,16 +255,67 @@ describe('initSourcePerson', () => {
     );
     expect(runtime.hydratePersonCover).toHaveBeenCalledTimes(1);
     expect(runtime.submitPersonCreation).not.toHaveBeenCalled();
+    expect(exported).not.toHaveProperty('selectorChecks');
+    const root = debugRoot();
+    root.querySelector<HTMLButtonElement>('button[data-panel=selectors]')!.click();
+    const panel = root.querySelector<HTMLElement>('section[data-panel=selectors]')!;
+    expect(panel.hidden).toBe(false);
+    expect(Array.from(panel.querySelectorAll('summary'), (item) => item.textContent))
+      .toEqual([
+        '姓名 · 后备规则命中 · 页面',
+        '缺失字段 · 未命中 · 页面',
+        '空值字段 · 命中但未提取到值 · 页面',
+        '无效规则 · 选择器报错 · 页面',
+        '处理出错 · 取值报错 · 页面',
+      ]);
+    expect(panel.textContent).toContain('未命中 {"selector":"#old-name"}');
+    expect(panel.textContent).toContain('命中 {"selector":"#name"} → span#name');
+    expect(panel.textContent).not.toContain('#unused');
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    try {
+      root.querySelector<HTMLButtonElement>('.e-bnwh-debug-copy-report')!.click();
+      await flushAsyncEvents();
+      expect(writeText).toHaveBeenCalledWith(expect.stringContaining('## 选择器诊断'));
+      expect(writeText).toHaveBeenCalledWith(expect.stringContaining('#old-name'));
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
-  test('does nothing when the page or control anchor is missing', async () => {
-    document.body.innerHTML = '<div id="page"></div>';
+  test.each([
+    ['page', '页面识别'],
+    ['title', '按钮挂载位置'],
+  ])('diagnoses a missing %s anchor from the menu', async (id, label) => {
+    document.getElementById(id)!.remove();
     const runtime = createRuntime();
+    const model = { ...createModel(), urlRules: [/\/artist\/2$/] };
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      window.history.replaceState({}, '', '/artist/2');
+      const otherSource = vi.fn();
+      registerDebugSource({
+        id: 'subject:vgmdb',
+        label: 'VGMdb 专辑',
+        menuFallback: 'host-match',
+        collect: otherSource,
+      });
+      await initSourcePerson(model, runtime);
+      expect(buttons()).toHaveLength(0);
+      expect(mockGetPersonHooks).not.toHaveBeenCalled();
 
-    await initSourcePerson(createModel(), runtime);
-
-    expect(buttons()).toHaveLength(0);
-    expect(mockGetPersonHooks).not.toHaveBeenCalled();
+      await showCurrentPageDebugTool();
+      const panel = debugRoot().querySelector<HTMLElement>('section[data-panel=selectors]')!;
+      expect(panel.hidden).toBe(false);
+      expect(panel.textContent).toContain(`${label} · 未命中`);
+      expect(panel.textContent).toContain(`#${id}`);
+      expect(runtime.hydratePersonCover).not.toHaveBeenCalled();
+      expect(otherSource).not.toHaveBeenCalled();
+    } finally {
+      window.history.replaceState({}, '', '/');
+      log.mockRestore();
+    }
   });
 
   test('does nothing when the beforeCreate hook declines', async () => {

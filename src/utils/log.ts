@@ -1,3 +1,4 @@
+import { UI_FONT_STACK } from '../css/fontStacks';
 import type { LogMsg } from '../interface/types';
 
 let stack: HTMLDivElement | undefined;
@@ -19,9 +20,14 @@ async function getStack() {
     :host {
       position: fixed; inset: 16px 16px auto auto; z-index: 2147483647;
       width: min(360px, calc(100vw - 32px)); pointer-events: none;
-      font: 14px/1.45 system-ui, sans-serif;
     }
-    .stack { display: grid; gap: 8px; max-height: calc(100vh - 32px); overflow-y: auto; }
+    .stack {
+      display: grid;
+      gap: 8px;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      font: 14px/1.55 ${UI_FONT_STACK};
+    }
     .toast {
       display: flex; gap: 8px; align-items: start; justify-content: space-between;
       padding: 10px 12px; pointer-events: auto; background: #fff; color: #18181b;
@@ -36,6 +42,7 @@ async function getStack() {
   `;
   stack = document.createElement('div');
   stack.className = 'stack';
+  stack.lang = 'zh-Hans';
   root.append(style, stack);
   document.body.appendChild(host);
   return stack;

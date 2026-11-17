@@ -24,9 +24,10 @@ function createRuntime(): SourceRuntimeAdapter {
 }
 
 function readExportedJson() {
+  const root = document.querySelector<HTMLElement>('.e-bnwh-debug-host')!
+    .shadowRoot!;
   return JSON.parse(
-    document.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-export-json')!
-      .value
+    root.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-debug-json')!.value
   );
 }
 
@@ -270,8 +271,9 @@ describe('initSourceCharacter', () => {
     wrap.querySelector<HTMLElement>('.e-wiki-export-json')!.click();
     await vi.waitFor(() => {
       expect(
-        document.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-export-json')
-      ).not.toBeNull();
+        document.querySelector<HTMLElement>('.e-bnwh-debug-host')?.shadowRoot
+          ?.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-debug-json')
+      ).toBeTruthy();
     });
 
     const exported = readExportedJson();

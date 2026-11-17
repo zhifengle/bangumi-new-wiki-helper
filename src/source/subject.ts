@@ -5,8 +5,15 @@ import { getSubjectHooks } from '../sites';
 import { appendExportBtn, insertControlBtn } from '../sites/core/controls';
 import { getWikiData } from '../sites/core/extract';
 import { getQueryInfo } from '../sites/core/search';
+import type { ReportSelectorCheck } from '../sites/core/selector';
 import { findElement } from '../utils/domUtils';
-import { buildExportPayload, showExportDialog } from './export';
+import {
+  buildExportPayload,
+  openDebugSource,
+  registerDebugSource,
+  registerPageDebugFallback,
+} from './export';
+import type { DebugSource } from './export';
 import { SourceRuntimeAdapter } from './runtime';
 
 function normalizeHookResult(
@@ -28,9 +35,10 @@ function normalizeHookResult(
 // 新建与导出共用同一份抽取结果，保证导出的就是会填进表单的数据
 async function collectSubjectData(
   siteConfig: SubjectSourceDefinition,
-  runtime: SourceRuntimeAdapter
+  runtime: SourceRuntimeAdapter,
+  reportSelectorCheck?: ReportSelectorCheck
 ): Promise<SubjectWikiInfo> {
-  const infos = await getWikiData(siteConfig);
+  const infos = await getWikiData(siteConfig, { reportSelectorCheck });
   await runtime.hydrateSubjectCover?.(infos);
   console.info('wiki info list: ', infos);
   return {
@@ -44,6 +52,18 @@ export async function initSourceSubject(
   siteConfig: SubjectSourceDefinition,
   runtime: SourceRuntimeAdapter
 ) {
+  const debugSource: DebugSource = {
+    id: `subject:${siteConfig.key}`,
+    label: `条目 · ${siteConfig.description}`,
+    collect: async (report) =>
+      buildExportPayload({
+        kind: 'subject',
+        site: siteConfig.key,
+        sourceUrl: location.href,
+        data: await collectSubjectData(siteConfig, runtime, report),
+      }),
+  };
+  registerPageDebugFallback(debugSource, siteConfig);
   const $page = findElement(siteConfig.pageSelectors);
   if (!$page) return;
   const $title = findElement(siteConfig.controlSelector);
@@ -65,16 +85,8 @@ export async function initSourceSubject(
     });
   });
   if (!$controls) return;
-  appendExportBtn($controls, async () => {
-    showExportDialog(
-      buildExportPayload({
-        kind: 'subject',
-        site: siteConfig.key,
-        sourceUrl: location.href,
-        data: await collectSubjectData(siteConfig, runtime),
-      })
-    );
-  });
+  registerDebugSource(debugSource);
+  appendExportBtn($controls, () => openDebugSource(debugSource));
 }
 
 

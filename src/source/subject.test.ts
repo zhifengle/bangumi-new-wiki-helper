@@ -13,6 +13,14 @@ async function flushAsyncEvents() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function readDebugJson() {
+  const root = document.querySelector<HTMLElement>('.e-bnwh-debug-host')!
+    .shadowRoot!;
+  return JSON.parse(
+    root.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-debug-json')!.value
+  );
+}
+
 const demoSummaryLines = ['Demo Summary', 'Line One', 'Line Two'];
 const demoStoryLines = [
   'This is the demo story opening.',
@@ -241,10 +249,7 @@ describe('DMM subject page', () => {
       .dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushAsyncEvents();
 
-    const exported = JSON.parse(
-      document.querySelector<HTMLTextAreaElement>('textarea.e-bnwh-export-json')!
-        .value
-    );
+    const exported = readDebugJson();
     expect(exported).toMatchObject({
       format: 'bnwh-export/1',
       kind: 'subject',
