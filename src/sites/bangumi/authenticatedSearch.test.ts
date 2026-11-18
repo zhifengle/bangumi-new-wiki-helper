@@ -40,6 +40,102 @@ test('searches with a verified token and includes access-controlled results', as
   expect(fetchMock).toHaveBeenCalledTimes(2);
 });
 
+test.each([
+  '西園家のかくしゴト- The Secret Revealed by the Lens -',
+  '西園家のかくしゴト-The Secret Revealed by the Lens-',
+])('keeps the main-title API hit for %s', async (name) => {
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(Response.json({ id: 1 }))
+    .mockResolvedValueOnce(Response.json({
+      data: [
+        { id: 667682, type: 4, name: '西園家のかくしゴト', date: '2026-10-30' },
+        { id: 412884, type: 4, name: '西園美魚密室殺人事件？', date: '2014-01-29' },
+      ],
+    }));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await expect(checkSubjectExit({
+    name,
+    releaseDate: '2026-10-30',
+  }, { ...options, fallbackToWebSearch: true })).resolves.toMatchObject({
+    candidates: [{ url: '/subject/667682' }],
+  });
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+test('retries a legacy search with no matching title and retains earlier candidates', async () => {
+  const name = '西園家のかくしゴト-The Secret Revealed by the Lens-';
+  const nearTitle = '西園家のかくしゴト- The Secret Revealed by the Camera -';
+  const shortTitle = { id: 667682, type_id: 4, name: '西園家のかくしゴト' };
+  const nearTitleHit = { id: 42, type_id: 4, name: nearTitle };
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(Response.json([nearTitleHit]))
+    .mockResolvedValueOnce(Response.json([shortTitle]));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await expect(checkSubjectExit(
+    { name },
+    { host, type: SubjectTypeId.game }
+  )).resolves.toMatchObject({
+    candidates: [{ url: '/subject/667682' }, { url: '/subject/42' }],
+  });
+  expect(fetchMock).toHaveBeenNthCalledWith(
+    2,
+    `${host}/json/search-game/${encodeURIComponent('西園家のかくしゴト')}`,
+    { method: 'GET', body: null }
+  );
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+test.each([
+  { name: 'Half-Life 2〜Episode One～', mainTitle: 'Half-Life 2' },
+  { name: 'Half-Life 2 -Episode-One-', mainTitle: 'Half-Life 2' },
+  { name: 'サクラノ詩２-Episode-One-', mainTitle: 'サクラノ詩2' },
+  { name: 'Happy-Smile-終わり-', mainTitle: 'Happy-Smile' },
+])('retries $name through the authenticated API after verifying the token once', async ({ name, mainTitle }) => {
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(Response.json({ id: 1 }))
+    .mockResolvedValueOnce(Response.json({
+      data: [{ id: 1, type: 4, name: 'Half-Life 3' }],
+    }))
+    .mockResolvedValueOnce(Response.json({
+      data: [{ id: 2, type: 4, name: mainTitle, date: '2004-11-16' }],
+    }));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await expect(checkSubjectExit({
+    name,
+    releaseDate: '2004-11-16',
+  }, options)).resolves.toMatchObject({
+    candidates: expect.arrayContaining([expect.objectContaining({ url: '/subject/2' })]),
+  });
+  expect(fetchMock).toHaveBeenNthCalledWith(
+    3,
+    `${api}/search/subjects?limit=20`,
+    expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({ Authorization: `Bearer ${accessToken}` }),
+      body: JSON.stringify({ keyword: mainTitle, sort: 'match', filter: { type: [4] } }),
+    })
+  );
+  expect(fetchMock).toHaveBeenCalledTimes(3);
+});
+
+test.each([
+  'Half-Life-',
+  'Half-Life 2-Episode-One-',
+  'サクラノ詩-櫻-森-',
+])('keeps the full query when %s has no clear subtitle boundary', async (name) => {
+  const fetchMock = vi.fn()
+    .mockImplementation(async () => Response.json({ data: [] }))
+    .mockResolvedValueOnce(Response.json({ id: 1 }));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await expect(checkSubjectExit({ name }, options))
+    .resolves.toBeUndefined();
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
 test('stops duplicate checking if Bangumi rejects the token', async () => {
   const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 401 }));
   vi.stubGlobal('fetch', fetchMock);
@@ -49,24 +145,23 @@ test('stops duplicate checking if Bangumi rejects the token', async () => {
   expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
-test('uses the existing search without sending the token when the API has no matching title', async () => {
+test('does not use site search when the authenticated API has no matching title after retrying', async () => {
   const fetchMock = vi.fn()
     .mockResolvedValueOnce(Response.json({ id: 1 }))
     .mockResolvedValueOnce(Response.json({
       data: [{ id: 41, type: 4, name: 'Other title' }],
     }))
+    .mockResolvedValueOnce(Response.json({ data: [] }))
     .mockResolvedValueOnce(Response.json([
-      { id: 42, type_id: 4, name: 'Test Game' },
+      { id: 42, type_id: 4, name: 'Test Game - Subtitle -' },
     ]));
   vi.stubGlobal('fetch', fetchMock);
 
-  await expect(checkSubjectExit({ name: 'Test Game' }, options)).resolves.toMatchObject({
-    candidates: [{ url: '/subject/42' }],
-  });
-  expect(fetchMock).toHaveBeenNthCalledWith(3, `${host}/json/search-game/Test%20Game`, {
-    method: 'GET',
-    body: null,
-  });
+  await expect(checkSubjectExit(
+    { name: 'Test Game - Subtitle -' },
+    { ...options, fallbackToWebSearch: true }
+  )).resolves.toBeUndefined();
+  expect(fetchMock).toHaveBeenCalledTimes(3);
 });
 
 test('still matches a book by ISBN before searching by name with a token', async () => {

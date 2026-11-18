@@ -55,9 +55,6 @@ export async function searchAuthenticatedSubject(
   type: Exclude<SubjectTypeId, SubjectTypeId.all>,
   accessToken: string
 ): Promise<SearchResult[]> {
-  // Search accepts anonymous requests, so verify the token with /me.
-  await verifyBangumiAccessToken(accessToken);
-
   let response: { data: SubjectHit[] };
   try {
     response = await fetchJson(`${API_BASE}/search/subjects?limit=20`, {

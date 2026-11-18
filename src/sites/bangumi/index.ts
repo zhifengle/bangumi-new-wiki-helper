@@ -3,11 +3,17 @@ import {sleep} from '../../utils/async/sleep';
 import {fetchJson, fetchText} from '../../utils/fetchData';
 import {SubjectTypeId} from '../../interface/wiki';
 import {dealDate} from '../../utils/utils';
+import { hasSameSearchName, rankSearchResults } from '../core/search';
 import {
-  hasSameSearchName,
-  rankSearchResults,
-} from '../core/search';
-import { getSubjectISBNs, searchAuthenticatedSubject } from './authenticatedSearch';
+  getSubjectSearchKeyword,
+  getTitleRetryQuery,
+  hasSameSubjectMainTitle,
+} from '../core/subjectTitle';
+import {
+  getSubjectISBNs,
+  searchAuthenticatedSubject,
+  verifyBangumiAccessToken,
+} from './authenticatedSearch';
 
 export enum BangumiDomain {
   chii = 'chii.in',
@@ -194,24 +200,29 @@ export function dealSearchResults(info: string): [SearchResult[], number] {
 async function searchSiteCandidates(
   query: string,
   options: BangumiExistSearchOptions,
-  isISBN = false
+  title?: string
 ): Promise<SearchResult[]> {
   const {
     host = 'https://bgm.tv',
     type,
     fallbackToWebSearch = false,
   } = options;
-  const htmlQuery = type === SubjectTypeId.book || isISBN ? `"${query}"` : query;
+  const htmlQuery = type === SubjectTypeId.book ? `"${query}"` : query;
   const url = `${host}/subject_search/${encodeURIComponent(
     htmlQuery
   )}?cat=${type}`;
   const jsonSearchType = JSON_SEARCH_TYPES[type];
+  let candidates: SearchResult[] = [];
   if (jsonSearchType) {
-    const jsonUrl = `${host}/json/search-${jsonSearchType}/${encodeURIComponent(query)}`;
-    console.info('search bangumi subject JSON URL: ', jsonUrl);
+    async function searchJson(keyword: string) {
+      const jsonUrl = `${host}/json/search-${jsonSearchType}/${encodeURIComponent(keyword)}`;
+      console.info('search bangumi subject JSON URL: ', jsonUrl);
+      return dealJsonSearchResults(await fetchJson<unknown>(jsonUrl), type);
+    }
     try {
-      const jsonResponse = await fetchJson<unknown>(jsonUrl);
-      const candidates = dealJsonSearchResults(jsonResponse, type);
+      candidates = await searchJson(query);
+      const retryQuery = title && getTitleRetryQuery(candidates, title);
+      if (retryQuery) candidates.push(...await searchJson(retryQuery));
       if (candidates.length || !fallbackToWebSearch) return candidates;
       console.info('Bangumi JSON search returned no candidates, falling back to HTML');
     } catch (error) {
@@ -219,7 +230,8 @@ async function searchSiteCandidates(
     }
   }
   console.info('search bangumi subject HTML URL: ', url);
-  return (await fetchHtmlSearchResults(url))[0];
+  const [htmlCandidates] = await fetchHtmlSearchResults(url);
+  return [...candidates, ...htmlCandidates];
 }
 
 function normalizeISBN(isbn: string) {
@@ -263,8 +275,8 @@ async function verifiedISBNUrls(
 }
 
 /**
- * 比较候选而不是盲信搜索排序：ISBN 是强标识；标题和日期共同一致时
- * 才能自动命中；其余相似结果只作为人工复核候选。
+ * 已验证 ISBN 或唯一的完整标题与日期组合可以自动命中。
+ * 主标题和相似标题只作为人工复核候选。
  */
 export function matchSubjectCandidates(
   candidates: SearchResult[],
@@ -281,16 +293,7 @@ export function matchSubjectCandidates(
   if (verified.length > 1) return { candidates: verified };
 
   const name = subjectInfo.name?.trim() ?? '';
-  const rankedByTitle = name ? rankSearchResults(items, name) : [];
-  const rankedUrls = new Set(rankedByTitle.map(({ url }) => url));
-  const isbnCandidates = items.filter(
-    ({ url }) =>
-      options.isbnCandidateUrls?.has(url) && !rankedUrls.has(url)
-  );
-  const ranked = [...rankedByTitle, ...isbnCandidates];
-  if (!ranked.length) return;
-
-  const exact = ranked.filter((candidate) => hasSameSearchName(candidate, name));
+  const exact = items.filter((candidate) => hasSameSearchName(candidate, name));
   const sourceDate = subjectInfo.releaseDate && dealDate(subjectInfo.releaseDate);
   const sameDate = sourceDate
     ? exact.filter(
@@ -301,15 +304,15 @@ export function matchSubjectCandidates(
   // 提供 ISBN 却未验证一致时，不允许较弱的标题/日期覆盖这个冲突信号。
   if (!subjectInfo.isbn && sameDate.length === 1) return sameDate[0];
 
-  const sameDateUrls = new Set(sameDate.map(({ url }) => url));
-  const exactUrls = new Set(exact.map(({ url }) => url));
-  return {
-    candidates: [
-      ...sameDate,
-      ...exact.filter(({ url }) => !sameDateUrls.has(url)),
-      ...ranked.filter(({ url }) => !exactUrls.has(url)),
-    ],
-  };
+  const mainTitleMatches = items.filter((candidate) => hasSameSubjectMainTitle(candidate, name));
+  const ranked = new Set([
+    ...sameDate,
+    ...exact,
+    ...mainTitleMatches,
+    ...rankSearchResults(items, name),
+    ...items.filter(({ url }) => options.isbnCandidateUrls?.has(url)),
+  ]);
+  return ranked.size ? { candidates: [...ranked] } : undefined;
 }
 
 /**
@@ -327,7 +330,7 @@ export async function checkSubjectExit(
   const isbn = type === SubjectTypeId.book ? normalizeISBN(subjectInfo.isbn ?? '') : '';
   if (!name && !isbn) throw new Error('Subject title and ISBN are missing');
 
-  const isbnCandidates = isbn ? uniqueByUrl(await searchSiteCandidates(isbn, options, true)) : [];
+  const isbnCandidates = isbn ? uniqueByUrl(await searchSiteCandidates(isbn, options)) : [];
   const isbnCandidateUrls = new Set(isbnCandidates.map(({ url }) => url));
   let matchingISBNUrls = isbn
     ? await verifiedISBNUrls(isbnCandidates, isbn, accessToken)
@@ -339,16 +342,20 @@ export async function checkSubjectExit(
     });
   }
 
-  const keyword = type === SubjectTypeId.book
-    ? name.replace(/\s*[（(][^0-9０-９()（）]+[）)]$/, '').trim() || name
-    : name;
-  const apiCandidates = keyword && accessToken
-    ? await searchAuthenticatedSubject(keyword, type, accessToken)
-    : [];
-  const siteCandidates = keyword && !apiCandidates.some((candidate) => hasSameSearchName(candidate, name))
-    ? await searchSiteCandidates(keyword, options)
-    : [];
-  const candidates = uniqueByUrl([...siteCandidates, ...apiCandidates, ...isbnCandidates]);
+  const keyword = getSubjectSearchKeyword(name, type);
+  let titleCandidates: SearchResult[] = [];
+  if (keyword && accessToken) {
+    // 搜索接口也接受匿名请求，先验证一次令牌，再执行所有标题查询。
+    await verifyBangumiAccessToken(accessToken);
+    titleCandidates = await searchAuthenticatedSubject(keyword, type, accessToken);
+    const retryQuery = getTitleRetryQuery(titleCandidates, name);
+    if (retryQuery) {
+      titleCandidates.push(...await searchAuthenticatedSubject(retryQuery, type, accessToken));
+    }
+  } else if (keyword) {
+    titleCandidates = await searchSiteCandidates(keyword, options, name);
+  }
+  const candidates = uniqueByUrl([...titleCandidates, ...isbnCandidates]);
   if (!candidates.length) return;
 
   if (isbn) {

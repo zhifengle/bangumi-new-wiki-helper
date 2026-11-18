@@ -316,7 +316,7 @@ export function showSettingsDialog(focusToken = false) {
       <label class="e-bnwh-config-row" for="e-bnwh-web-search-fallback">
         <span class="e-bnwh-config-row-text">
           <span class="e-bnwh-config-row-title">启用网页搜索回退</span>
-          <span class="e-bnwh-config-row-desc">默认关闭。Bangumi 接口未返回条目时，再请求站内搜索页查重。</span>
+          <span class="e-bnwh-config-row-desc">默认关闭。旧版 JSON 搜索无结果时，再请求站内搜索页查重。</span>
         </span>
         <input class="e-bnwh-config-switch" type="checkbox" id="e-bnwh-web-search-fallback"${fallbackToWebSearch ? ' checked' : ''}>
       </label>

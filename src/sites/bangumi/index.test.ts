@@ -201,6 +201,36 @@ describe('subject duplicate matching', () => {
     });
   });
 
+  test.each([
+    { name: 'Half-Life 2 - Episode One -', mainTitle: 'Half-Life 2' },
+    { name: 'サクラノ詩－櫻の森の上を舞う－', mainTitle: 'サクラノ詩' },
+  ])('ranks $name ahead of fuzzy titles when its main title matches', ({ name, mainTitle }) => {
+    const fuzzy = { name: `${mainTitle} Plus`, url: '/subject/1' };
+    const withSubtitle = { name, releaseDate: '2006-06-01', url: '/subject/2' };
+
+    expect(matchSubjectCandidates([fuzzy, withSubtitle], {
+      name: mainTitle,
+      releaseDate: '2006-06-01',
+    })).toEqual({ candidates: [withSubtitle, fuzzy] });
+  });
+
+  test.each([
+    'Half-Life 2-Episode-One-',
+    'Half-Life 2－Episode-One－',
+  ])('leaves %s in fuzzy order when its hyphens join Latin words', (name) => {
+    const fuzzy = { name: 'Half-Life 2.1', url: '/subject/1' };
+    const withSubtitle = {
+      name,
+      releaseDate: '2006-06-01',
+      url: '/subject/2',
+    };
+
+    expect(matchSubjectCandidates([fuzzy, withSubtitle], {
+      name: 'Half-Life 2',
+      releaseDate: '2006-06-01',
+    })).toEqual({ candidates: [fuzzy, withSubtitle] });
+  });
+
   test('does not let title and date override an unverified source ISBN', () => {
     expect(matchSubjectCandidates(candidates, {
       name: 'Test Game',
