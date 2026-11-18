@@ -2,7 +2,6 @@ import { fetchJson, fetchText } from '../../utils/fetchData';
 import { SubjectTypeId } from '../../interface/wiki';
 import { FormItem, sendForm, sendFormImg } from '../../utils/ajax';
 import { getBgmHost, getFormByIframe } from './common';
-import { dataURItoBlob } from '../../utils/dealImage';
 import { SingleInfo, SubjectWikiInfo } from '../../interface/subjectInfo';
 import { MusicDiscTrack } from '../../interface/types';
 import { sleep } from '../../utils/async/sleep';
@@ -29,7 +28,7 @@ function isDiscTrackList(value: SingleInfo['value']): value is MusicDiscTrack[][
 
 export async function uploadSubjectCover(
   subjectId: string,
-  dataUrl: string,
+  image: Blob,
   bgmHost: string = ''
 ): Promise<SubjectCoverUploadResult> {
   if (!bgmHost) {
@@ -42,7 +41,7 @@ export async function uploadSubjectCover(
   if ($hash) {
     const fd = new FormData();
     fd.set('formhash', $hash.value);
-    fd.set('picfile', dataURItoBlob(dataUrl), genRandomStr(5) + '.png');
+    fd.set('picfile', image, genRandomStr(5) + '.png');
     fd.set('submit', '上传图片');
     return await fetch(url, {
       body: fd,
@@ -56,7 +55,7 @@ export async function uploadSubjectCover(
       console.error('获取封面表单失败');
       return;
     }
-    await sendFormImg($form, dataUrl);
+    await sendFormImg($form, image);
   }
 }
 

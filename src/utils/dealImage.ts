@@ -1,6 +1,18 @@
 import { IFetchOpts } from '../interface/types';
 import { fetchBinary } from './fetchData';
 
+export function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error('failed to encode canvas image'));
+      }
+    }, 'image/png');
+  });
+}
+
 function getImageSuffix(url: string) {
   const m = url.match(/png|jpg|jpeg|gif|bmp/);
   if (m) {

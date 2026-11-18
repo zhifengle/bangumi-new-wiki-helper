@@ -1,8 +1,10 @@
 import { getStringValue, SingleInfo, SubjectWikiInfo } from '../../../interface/subjectInfo';
 import { sendFormImg, sendForm } from '../../../utils/ajax';
+import { canvasToBlob } from '../../../utils/dealImage';
 import { $q, htmlToElement } from '../../../utils/domUtils';
 import { sleep } from '../../../utils/async/sleep';
 import { insertLoading } from '../imageWidget';
+import { hasValidCanvasSize } from '../imageWidget/state';
 import {
   addPersonRelatedCV,
   addPersonRelatedSubject,
@@ -51,12 +53,13 @@ export function initSubjectSubmit(wikiInfo: SubjectWikiInfo) {
         ) as HTMLElement;
         $wikiMode && $wikiMode.click();
         await sleep(200);
+        const image = $canvas && hasValidCanvasSize($canvas)
+          ? await canvasToBlob($canvas)
+          : null;
         const url = await sendForm($form);
         const subjectId = getSubjectId(url);
-        if (subjectId) {
-          if ($canvas.clientWidth > 8 && $canvas.clientHeight > 10) {
-            await uploadSubjectCover(subjectId, $canvas.toDataURL('image/png', 1));
-          }
+        if (subjectId && image) {
+          await uploadSubjectCover(subjectId, image);
         }
         await sleep(200);
         await addMusicEp(subjectId, wikiInfo, (str) => {
@@ -73,7 +76,7 @@ export function initSubjectSubmit(wikiInfo: SubjectWikiInfo) {
   }, 300);
 }
 
-export function initCharacterSubmit(wikiInfo: SubjectWikiInfo, dataUrl: string) {
+export function initCharacterSubmit(wikiInfo: SubjectWikiInfo) {
   setTimeout(() => {
     const $form = $q('form[name=new_character]') as HTMLFormElement;
     const $input = $q(
@@ -96,7 +99,7 @@ export function initCharacterSubmit(wikiInfo: SubjectWikiInfo, dataUrl: string) 
     const $canvas: HTMLCanvasElement = $q('#e-wiki-cover-preview');
     $clonedInput.addEventListener('click', async (e) => {
       e.preventDefault();
-      if ($canvas.width > 8 && $canvas.height > 10) {
+      if (hasValidCanvasSize($canvas)) {
         const $el = e.target as HTMLElement;
         $el.style.display = 'none';
         $clonedInput.style.display = 'none';
@@ -108,7 +111,8 @@ export function initCharacterSubmit(wikiInfo: SubjectWikiInfo, dataUrl: string) 
           $wikiMode && $wikiMode.click();
           await sleep(200);
           const currentHost = getBgmHost();
-          const url = await sendFormImg($form, dataUrl);
+          const image = await canvasToBlob($canvas);
+          const url = await sendFormImg($form, image);
           insertLogInfo($el, `新建角色成功: ${genLinkText(url, '角色地址')}`);
           const charaId = getSubjectId(url);
           // subject id
@@ -154,12 +158,8 @@ export type PersonSubmitDeps = {
   navigate?: (url: string) => void;
 };
 
-function hasPortrait($canvas: HTMLCanvasElement | null) {
-  return !!$canvas && $canvas.width > 8 && $canvas.height > 10;
-}
-
 // 人物页没有关联条目与 CV 的步骤；没有肖像时也允许直接提交表单
-export function initPersonSubmit(dataUrl: string, deps: PersonSubmitDeps = {}) {
+export function initPersonSubmit(deps: PersonSubmitDeps = {}) {
   const navigate = deps.navigate ?? ((url: string) => location.assign(url));
   setTimeout(() => {
     const $form = $q('form[name=new_character]') as HTMLFormElement | null;
@@ -184,11 +184,8 @@ export function initPersonSubmit(dataUrl: string, deps: PersonSubmitDeps = {}) {
         ) as HTMLElement | null;
         $wikiMode?.click();
         await sleep(200);
-        const url = hasPortrait($canvas)
-          ? await sendFormImg(
-              $form,
-              $canvas!.toDataURL('image/png', 1) || dataUrl
-            )
+        const url = $canvas && hasValidCanvasSize($canvas)
+          ? await sendFormImg($form, await canvasToBlob($canvas))
           : await sendForm($form);
         insertLogInfo($el, `新建人物成功: ${genLinkText(url, '人物地址')}`);
         $loading.remove();

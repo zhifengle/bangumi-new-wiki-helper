@@ -1,4 +1,3 @@
-import { dataURItoBlob } from './dealImage';
 import { genRandomStr } from './utils';
 
 export type FormValue = Blob | File | string | number;
@@ -21,21 +20,15 @@ function appendFormItem(fd: FormData, item: FormItem) {
   fd.set(item.name, String(item.value));
 }
 
-/**
- * send form data with image
- * @param $form
- * @param dataURL
- */
-export async function sendFormImg($form: HTMLFormElement, dataURL: string) {
-  const info: FormItem[] = [];
+export function sendFormImg($form: HTMLFormElement, image: Blob) {
   const $file = $form.querySelector<HTMLInputElement>('input[type=file]');
-  const inputFileName = $file?.name ? $file.name : 'picfile';
-  info.push({
-    name: inputFileName,
-    value: dataURItoBlob(dataURL),
-    filename: `${genRandomStr(5)}.png`,
-  });
-  return await sendForm($form, info);
+  return sendForm($form, [
+    {
+      name: $file?.name || 'picfile',
+      value: image,
+      filename: `${genRandomStr(5)}.png`,
+    },
+  ]);
 }
 
 /**

@@ -25,6 +25,7 @@ vi.mock('./newSubject/controls', () => ({
 
 vi.mock('./imageWidget', () => ({
   initImageWidget: mockInitImageWidget,
+  removeImageWidget: () => document.querySelector('.e-wiki-cover-container')?.remove(),
 }));
 
 vi.mock('./newSubject/submit', () => ({
@@ -331,10 +332,7 @@ describe('newSubject Batch C', () => {
     );
     expect(document.querySelector<HTMLInputElement>('#crt_summary')?.value).toBe('');
     expect(document.querySelector('.e-wiki-cover-container')).toBeNull();
-    expect(mockInitCharacterSubmit).toHaveBeenCalledWith(
-      characterInfo,
-      'data:image/png;base64,chara'
-    );
+    expect(mockInitCharacterSubmit).toHaveBeenCalledWith(characterInfo);
   });
 
   test('fillInfoBox checks checkboxes whose names contain brackets', async () => {
@@ -394,8 +392,6 @@ describe('newSubject Batch C', () => {
       document.querySelector('form[name=new_character]'),
       'data:image/png;base64,person'
     );
-    expect(mockInitPersonSubmit).toHaveBeenCalledWith(
-      'data:image/png;base64,person'
-    );
+    expect(mockInitPersonSubmit).toHaveBeenCalledWith();
   });
 });

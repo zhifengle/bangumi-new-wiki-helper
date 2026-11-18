@@ -72,19 +72,16 @@ describe('bangumi related helpers', () => {
 
   test('uploadSubjectCover falls back to parsed upload form', async () => {
     mockFetchText.mockResolvedValue('<form name="img_upload"></form>');
+    const cover = new Blob(['hello'], { type: 'image/png' });
 
-    await uploadSubjectCover(
-      '12',
-      'data:image/png;base64,aGVsbG8=',
-      'https://bgm.tv'
-    );
+    await uploadSubjectCover('12', cover, 'https://bgm.tv');
 
     expect(mockFetchText).toHaveBeenCalledWith(
       'https://bgm.tv/subject/12/upload_img'
     );
     expect(mockSendFormImg).toHaveBeenCalledWith(
       expect.any(HTMLFormElement),
-      'data:image/png;base64,aGVsbG8='
+      cover
     );
   });
 

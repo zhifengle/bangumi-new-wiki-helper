@@ -1,4 +1,5 @@
 import { sendFormImg } from '../../../utils/ajax';
+import { canvasToBlob } from '../../../utils/dealImage';
 import { fetchText } from '../../../utils/fetchData';
 import { sleep } from '../../../utils/async/sleep';
 import { hasValidCanvasSize } from './state';
@@ -34,7 +35,8 @@ export function bindUploadButton(
         ) as HTMLElement | null;
         $wikiMode?.click();
         await sleep(200);
-        const url = await sendFormImg($form, $canvas.toDataURL('image/png', 1));
+        const image = await canvasToBlob($canvas);
+        const url = await sendFormImg($form, image);
         location.assign(url);
       } catch (e) {
         console.log('send form err: ', e);
@@ -77,7 +79,8 @@ export async function uploadImage(subjectId: string) {
   }
 
   if (hasValidCanvasSize($canvas)) {
-    const url = await sendFormImg($form, $canvas.toDataURL('image/png', 1));
+    const image = await canvasToBlob($canvas);
+    const url = await sendFormImg($form, image);
     location.assign(url);
   }
 }

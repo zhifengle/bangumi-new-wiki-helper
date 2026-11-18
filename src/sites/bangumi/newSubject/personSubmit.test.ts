@@ -53,9 +53,9 @@ function renderPersonForm(canvasWidth: number) {
   `;
 }
 
-function armSubmit(dataUrl: string, navigate: (url: string) => void) {
+function armSubmit(navigate: (url: string) => void) {
   vi.useFakeTimers();
-  initPersonSubmit(dataUrl, { navigate });
+  initPersonSubmit({ navigate });
   vi.advanceTimersByTime(300);
   vi.useRealTimers();
   return document.querySelector<HTMLInputElement>(
@@ -74,7 +74,7 @@ describe('initPersonSubmit', () => {
     mockSendForm.mockResolvedValue('https://bgm.tv/person/999');
     const navigate = vi.fn();
 
-    const button = armSubmit('', navigate);
+    const button = armSubmit(navigate);
     expect(button.value).toBe('添加人物并上传肖像');
     button.click();
 
@@ -92,11 +92,12 @@ describe('initPersonSubmit', () => {
     const canvas = document.querySelector<HTMLCanvasElement>(
       '#e-wiki-cover-preview'
     )!;
-    vi.spyOn(canvas, 'toDataURL').mockReturnValue('data:image/png;base64,edited');
+    const portrait = new Blob(['edited'], { type: 'image/png' });
+    vi.spyOn(canvas, 'toBlob').mockImplementation((callback) => callback(portrait));
     mockSendFormImg.mockResolvedValue('https://bgm.tv/person/1000');
     const navigate = vi.fn();
 
-    const button = armSubmit('data:image/png;base64,original', navigate);
+    const button = armSubmit(navigate);
     button.click();
 
     await vi.waitFor(() => {
@@ -104,7 +105,7 @@ describe('initPersonSubmit', () => {
     });
     expect(mockSendFormImg).toHaveBeenCalledWith(
       document.querySelector('form[name=new_character]'),
-      'data:image/png;base64,edited'
+      portrait
     );
     expect(mockSendForm).not.toHaveBeenCalled();
   });

@@ -10,9 +10,23 @@ type PreviewLinkRefs = Pick<
   'container' | 'previewCanvas' | 'previewImage' | 'previewFetchLink'
 >;
 
-function clearPreviewCanvas($canvas: HTMLCanvasElement) {
-  $canvas.width = 0;
-  $canvas.height = 0;
+type PreviewImageRefs = Pick<ImageWidgetRefs, 'previewCanvas' | 'previewImage'>;
+
+const previewObjectUrls = new WeakMap<HTMLImageElement, string>();
+
+function releasePreviewObjectUrl($image: HTMLImageElement) {
+  const url = previewObjectUrls.get($image);
+  if (url) {
+    URL.revokeObjectURL(url);
+    previewObjectUrls.delete($image);
+  }
+}
+
+function clearPreviewImage(refs: PreviewImageRefs) {
+  refs.previewImage.removeAttribute('src');
+  releasePreviewObjectUrl(refs.previewImage);
+  refs.previewCanvas.width = 0;
+  refs.previewCanvas.height = 0;
 }
 
 function removePreviewFetchLink(refs: PreviewLinkRefs) {
@@ -42,7 +56,7 @@ function getPreviewImageSize($img: HTMLImageElement) {
   };
 }
 
-function renderPreviewImage(refs: Pick<ImageWidgetRefs, 'previewCanvas' | 'previewImage'>) {
+function renderPreviewImage(refs: PreviewImageRefs) {
   const ctx = refs.previewCanvas.getContext('2d');
   if (!ctx) {
     return;
@@ -57,15 +71,20 @@ function renderPreviewImage(refs: Pick<ImageWidgetRefs, 'previewCanvas' | 'previ
   window.dispatchEvent(new Event('resize'));
 }
 
-function loadPreviewImageSource(
-  refs: Pick<ImageWidgetRefs, 'previewCanvas' | 'previewImage'>,
-  dataUrl: string
-) {
-  if (refs.previewImage.src === dataUrl) {
+function loadPreviewImageSource(refs: PreviewImageRefs, source: string | Blob) {
+  const $image = refs.previewImage;
+  if (typeof source === 'string' && $image.src === source) {
     renderPreviewImage(refs);
     return;
   }
-  refs.previewImage.src = dataUrl;
+  releasePreviewObjectUrl($image);
+  if (typeof source === 'string') {
+    $image.src = source;
+  } else {
+    const url = URL.createObjectURL(source);
+    previewObjectUrls.set($image, url);
+    $image.src = url;
+  }
 }
 
 export function applyInitialPreviewData(
@@ -79,8 +98,7 @@ export function applyInitialPreviewData(
   if (initialSource.kind === 'external_url') {
     // 跨域和 refer 的问题，暂时改成链接
     ensurePreviewFetchLink(refs, initialSource.url);
-    clearPreviewCanvas(refs.previewCanvas);
-    refs.previewImage.removeAttribute('src');
+    clearPreviewImage(refs);
   } else {
     removePreviewFetchLink(refs);
     loadPreviewImageSource(refs, initialSource.dataUrl);
@@ -89,37 +107,26 @@ export function applyInitialPreviewData(
 
 export function bindPreviewFileImage(
   $file: HTMLInputElement | null,
-  refs: Pick<ImageWidgetRefs, 'previewCanvas' | 'previewImage'>
+  refs: PreviewImageRefs
 ) {
   const handleImageLoad = () => {
     renderPreviewImage(refs);
   };
 
-  refs.previewImage.addEventListener('load', handleImageLoad);
-  if ($file) {
-    const loadImgData = () => {
-      const file = $file.files?.[0];
-      if (!file) {
-        return;
-      }
-      const reader = new FileReader();
-      reader.addEventListener('load', () => {
-        if (typeof reader.result === 'string') {
-          loadPreviewImageSource(refs, reader.result);
-        }
-      });
-      reader.readAsDataURL(file);
-    };
+  const handleFileChange = () => {
+    const file = $file?.files?.[0];
+    if (file) {
+      loadPreviewImageSource(refs, file);
+    }
+  };
 
-    $file.addEventListener('change', loadImgData);
-    return () => {
-      refs.previewImage.removeEventListener('load', handleImageLoad);
-      $file.removeEventListener('change', loadImgData);
-    };
-  }
+  refs.previewImage.addEventListener('load', handleImageLoad);
+  $file?.addEventListener('change', handleFileChange);
 
   return () => {
     refs.previewImage.removeEventListener('load', handleImageLoad);
+    $file?.removeEventListener('change', handleFileChange);
+    clearPreviewImage(refs);
   };
 }
 
@@ -150,7 +157,7 @@ export function bindPreviewControls(
   };
 
   const handleClear = (e: Event) => {
-    clearPreviewCanvas(refs.previewCanvas);
+    clearPreviewImage(refs);
     e.preventDefault();
   };
 
@@ -189,15 +196,12 @@ export function bindPastePreview(
     }
     if (!isMouseInPasteArea) return;
     e.preventDefault();
-    let imageFile = null;
-    if (e.clipboardData && e.clipboardData.files) {
-      imageFile = e.clipboardData.files[0];
-    } else if (e.clipboardData && e.clipboardData.items) {
-      const items = e.clipboardData.items;
-      for (let item of items) {
+    let imageFile = e.clipboardData?.files?.[0];
+    if (!imageFile) {
+      for (const item of e.clipboardData?.items ?? []) {
         if (item.kind === 'file' && item.type.startsWith('image/')) {
-          imageFile = item.getAsFile(); // 转换为File对象
-          break;
+          imageFile = item.getAsFile();
+          if (imageFile) break;
         }
       }
     }
@@ -205,14 +209,7 @@ export function bindPastePreview(
       refs.pasteTips.textContent = '未检测到图片！';
       return;
     }
-    const reader = new FileReader();
-    reader.addEventListener('load', (event) => {
-      const pasteBase64Data = event.target?.result;
-      if (typeof pasteBase64Data === 'string') {
-        loadPreviewImageSource(refs, pasteBase64Data);
-      }
-    });
-    reader.readAsDataURL(imageFile);
+    loadPreviewImageSource(refs, imageFile);
   };
 
   refs.container.addEventListener('mouseenter', handleMouseEnter);

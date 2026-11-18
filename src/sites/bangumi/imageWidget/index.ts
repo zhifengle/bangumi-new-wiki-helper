@@ -17,6 +17,15 @@ type ImageWidgetInstance = {
 
 const imageWidgetInstances = new WeakMap<HTMLFormElement, ImageWidgetInstance>();
 
+export function removeImageWidget($form: HTMLFormElement) {
+  const instance = imageWidgetInstances.get($form);
+  if (instance) {
+    instance.dispose();
+    instance.container.remove();
+    imageWidgetInstances.delete($form);
+  }
+}
+
 /**
  * 初始化上传处理图片组件
  * @param {Object} $form - 包含 input file 的 DOM
@@ -30,8 +39,7 @@ export function initImageWidget(
   if (currentInstance?.container.isConnected) {
     return;
   }
-  currentInstance?.dispose();
-  imageWidgetInstances.delete($form);
+  removeImageWidget($form);
 
   if (document.querySelector('.e-wiki-cover-container')) return;
 

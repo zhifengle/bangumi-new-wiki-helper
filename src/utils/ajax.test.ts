@@ -77,7 +77,7 @@ describe('ajax helpers', () => {
     const mockXhr = installMockXhr('https://bgm.tv/uploaded');
     const $form = document.querySelector<HTMLFormElement>('form')!;
 
-    const result = await sendFormImg($form, 'data:image/png;base64,aGVsbG8=');
+    const result = await sendFormImg($form, new Blob(['hello'], { type: 'image/png' }));
 
     expect(result).toBe('https://bgm.tv/uploaded');
     expect(mockXhr.body?.get('cover')).toBeInstanceOf(Blob);

@@ -24,8 +24,8 @@ describe('imageWidget upload bindings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi
-      .spyOn(HTMLCanvasElement.prototype, 'toDataURL')
-      .mockReturnValue('data:image/png;base64,canvas');
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+      .mockImplementation((callback) => callback(new Blob(['canvas'], { type: 'image/png' })));
     document.body.innerHTML = `
       <table>
         <tr>
@@ -59,11 +59,10 @@ describe('imageWidget upload bindings', () => {
 
     bindUploadButton($file, $inputBtn, $canvas, $form);
     $inputBtn.click();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(mockSendFormImg).toHaveBeenCalledTimes(1);
-    expect($inputBtn.style.display).toBe('');
-    expect($form.querySelector('div')).toBeNull();
+    await vi.waitFor(() => {
+      expect(mockSendFormImg).toHaveBeenCalledTimes(1);
+      expect($inputBtn.style.display).toBe('');
+      expect($form.querySelector('div')).toBeNull();
+    });
   });
 });

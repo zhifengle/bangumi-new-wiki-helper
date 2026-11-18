@@ -8,7 +8,7 @@ import {
 } from '../../interface/subjectInfo';
 import { $q, $qa } from '../../utils/domUtils';
 import { sleep } from '../../utils/async/sleep';
-import { initImageWidget } from './imageWidget';
+import { initImageWidget, removeImageWidget } from './imageWidget';
 import { convertInfoValue } from './newSubject/mapper';
 import { insertFillFormBtn } from './newSubject/controls';
 import {
@@ -129,7 +129,10 @@ function resetCharacterForm(defaultVal: string) {
   setTextAreaValue(SUBJECT_INFOBOX_SELECTOR, defaultVal);
   setInputValue(CHARACTER_NAME_RESET_SELECTOR, '');
   setInputValue(CHARACTER_SUMMARY_SELECTOR, '');
-  getElement('.e-wiki-cover-container')?.remove();
+  const form = getElement<HTMLFormElement>(CHARACTER_FORM_SELECTOR);
+  if (form) {
+    removeImageWidget(form);
+  }
 }
 
 /**
@@ -277,7 +280,7 @@ export function initNewCharacter(
   if (characterForm) {
     initImageWidget(characterForm, dataUrl);
   }
-  initCharacterSubmit(wikiInfo, dataUrl);
+  initCharacterSubmit(wikiInfo);
 }
 
 function getPortraitDataUrl(infos: SingleInfo[]) {
@@ -313,7 +316,7 @@ export function initNewPerson(wikiInfo: PersonWikiInfo) {
   if (personForm) {
     initImageWidget(personForm, dataUrl);
   }
-  initPersonSubmit(dataUrl);
+  initPersonSubmit();
 }
 
 export function initUploadImg(wikiInfo: SubjectWikiInfo) {
