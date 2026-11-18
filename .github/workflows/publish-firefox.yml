@@ -1,0 +1,59 @@
+name: Publish Firefox extension
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: github.event.deleted == false
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-firefox-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: pnpm
+      - name: Verify tag matches package version
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          if [[ "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm run build-for-amo
+      - run: pnpm exec web-ext lint --source-dir=extension
+      - name: Archive source for AMO review
+        run: |
+          cat > "$RUNNER_TEMP/AMO-BUILD.txt" <<'EOF'
+          On Linux with Node.js 24 and pnpm 10, run from the extracted archive root:
+
+          pnpm install --frozen-lockfile
+          pnpm run build-for-amo
+          pnpm exec web-ext build --source-dir=extension
+
+          The unpacked extension is in extension/ and the ZIP is in web-ext-artifacts/.
+          EOF
+          git archive --format=zip --add-file="$RUNNER_TEMP/AMO-BUILD.txt" \
+            --output="$RUNNER_TEMP/firefox-source.zip" HEAD
+      - name: Submit update to AMO
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: |
+          pnpm exec web-ext sign --channel=listed --source-dir=extension \
+            --upload-source-code="$RUNNER_TEMP/firefox-source.zip" --approval-timeout=0

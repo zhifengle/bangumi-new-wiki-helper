@@ -3,6 +3,11 @@
   "name": "bangumi new wiki helper",
   "description": "辅助创建 bangumi.tv 上的条目",
   "version": "0.7.1",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{62eb864b-547d-4f61-8d3d-81373f8f2e84}"
+    }
+  },
   "browser_action": {
     "browser_style": true,
     "default_icon": {

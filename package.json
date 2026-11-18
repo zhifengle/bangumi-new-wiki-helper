@@ -9,6 +9,7 @@
     "build": "web-ext build -s extension",
     "build:script": "rollup -c build/rollup.config.us.mjs",
     "build:ext": "rollup -c build/rollup.config.ext.mjs",
+    "build-for-amo": "npm run sync:version && npm run build:ext",
     "dev:ext": "rollup -w -c build/rollup.config.ext.mjs",
     "dev:test": "rollup -w -c build/rollup.config.dev.mjs",
     "clean": "rimraf dist/ extension/dist",
