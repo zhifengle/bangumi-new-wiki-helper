@@ -1,6 +1,6 @@
 import type { SearchResult } from '../../interface/subjectInfo';
 import { SubjectTypeId } from '../../interface/wiki';
-import { hasSameSearchName, normalizeSearchName } from './search';
+import { normalizeSearchName } from './search';
 
 type SubtitleBoundary = {
   mainTitle: string;
@@ -43,6 +43,13 @@ export function getSubjectSearchKeyword(name: string, type: SubjectTypeId) {
     : name;
 }
 
+export function hasSameSubjectSearchTitle(candidate: SearchResult, name: string) {
+  const normalize = (title: string) => normalizeSearchName(title).replace(/\s*[~〜]\s*/g, '~');
+  const title = normalize(name);
+  return !!title && [candidate.name, candidate.greyName ?? '']
+    .some((candidateName) => normalize(candidateName) === title);
+}
+
 export function hasSameSubjectMainTitle(candidate: SearchResult, name: string) {
   const nameBoundaries = getSubtitleBoundaries(name);
   return [candidate.name, candidate.greyName ?? ''].some((candidateName) => {
@@ -62,9 +69,11 @@ export function getTitleRetryQuery(candidates: readonly SearchResult[], name: st
   const boundaries = getSubtitleBoundaries(name);
   // 有多个可能的边界时，优先采用唯一带空格的边界。
   const choices = boundaries.length > 1 ? boundaries.filter(({ spaced }) => spaced) : boundaries;
-  if (choices.length !== 1 || candidates.some((candidate) =>
-    hasSameSearchName(candidate, name) || hasSameSubjectMainTitle(candidate, name)
-  )) return;
+  if (choices.length !== 1 || candidates.some((candidate) => matchesSubjectTitle(candidate, name))) return;
 
   return choices[0].mainTitle;
+}
+
+export function matchesSubjectTitle(candidate: SearchResult, name: string) {
+  return hasSameSubjectSearchTitle(candidate, name) || hasSameSubjectMainTitle(candidate, name);
 }

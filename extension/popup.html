@@ -47,6 +47,20 @@
           </label>
         </li>
         <li class="config-item check-item">
+          <input name="useLegacyJsonSearch" id="useLegacyJsonSearch" type="checkbox" checked />
+          <label for="useLegacyJsonSearch" title="有无 Token 都优先使用旧版 JSON。关闭后从 v0 开始。">
+            <span>优先用旧版 JSON 搜标题</span>
+            <i class="checkbox-circle"></i>
+          </label>
+        </li>
+        <li class="config-item check-item">
+          <input name="fallbackToPersonWorks" id="fallbackToPersonWorks" type="checkbox" />
+          <label for="fallbackToPersonWorks">
+            <span>按人物作品补查</span>
+            <i class="checkbox-circle"></i>
+          </label>
+        </li>
+        <li class="config-item check-item">
           <input name="fallbackToWebSearch" id="fallbackToWebSearch" type="checkbox" />
           <label for="fallbackToWebSearch">
             <span>启用网页搜索回退</span>

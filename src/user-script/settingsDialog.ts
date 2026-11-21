@@ -9,7 +9,9 @@ import {
   BGM_ACCESS_TOKEN,
   BGM_DOMAIN,
   PROTOCOL,
+  FALLBACK_TO_PERSON_WORKS,
   FALLBACK_TO_WEB_SEARCH,
+  USE_LEGACY_JSON_SEARCH,
   SHOW_EXPORT_BUTTONS,
 } from './constants';
 
@@ -47,6 +49,8 @@ export function showSettingsDialog(focusToken = false) {
 
   const currentDomain = GM_getValue<string>(BGM_DOMAIN) || 'bgm.tv';
   const useHttps = (GM_getValue<string>(PROTOCOL) || 'https') === 'https';
+  const useLegacyJsonSearch = GM_getValue<boolean>(USE_LEGACY_JSON_SEARCH) !== false;
+  const fallbackToPersonWorks = GM_getValue<boolean>(FALLBACK_TO_PERSON_WORKS) === true;
   const fallbackToWebSearch =
     GM_getValue<boolean>(FALLBACK_TO_WEB_SEARCH) || false;
   const showExportButtons = GM_getValue<boolean>(SHOW_EXPORT_BUTTONS) === true;
@@ -313,10 +317,24 @@ export function showSettingsDialog(focusToken = false) {
       </label>
     </div>
     <div class="e-bnwh-config-section">
+      <label class="e-bnwh-config-row" for="e-bnwh-legacy-json-search">
+        <span class="e-bnwh-config-row-text">
+          <span class="e-bnwh-config-row-title">优先用旧版 JSON 搜标题</span>
+          <span class="e-bnwh-config-row-desc">有无 Token 都优先使用旧版 JSON。关闭后从 v0 开始。</span>
+        </span>
+        <input class="e-bnwh-config-switch" type="checkbox" id="e-bnwh-legacy-json-search"${useLegacyJsonSearch ? ' checked' : ''}>
+      </label>
+      <label class="e-bnwh-config-row" for="e-bnwh-person-works-fallback">
+        <span class="e-bnwh-config-row-text">
+          <span class="e-bnwh-config-row-title">按人物作品补查</span>
+          <span class="e-bnwh-config-row-desc">标题未找到匹配时，按来源提供的创作者查作品。</span>
+        </span>
+        <input class="e-bnwh-config-switch" type="checkbox" id="e-bnwh-person-works-fallback"${fallbackToPersonWorks ? ' checked' : ''}>
+      </label>
       <label class="e-bnwh-config-row" for="e-bnwh-web-search-fallback">
         <span class="e-bnwh-config-row-text">
           <span class="e-bnwh-config-row-title">启用网页搜索回退</span>
-          <span class="e-bnwh-config-row-desc">默认关闭。旧版 JSON 搜索无结果时，再请求站内搜索页查重。</span>
+          <span class="e-bnwh-config-row-desc">未配置 Token 且未找到匹配时，用站内搜索页补查。</span>
         </span>
         <input class="e-bnwh-config-switch" type="checkbox" id="e-bnwh-web-search-fallback"${fallbackToWebSearch ? ' checked' : ''}>
       </label>
@@ -358,6 +376,20 @@ export function showSettingsDialog(focusToken = false) {
       const checked = (event.currentTarget as HTMLInputElement).checked;
       GM_setValue(PROTOCOL, checked ? 'https' : 'http');
       setStatus(`HTTPS 已${checked ? '开启' : '关闭'}。`);
+    });
+  $dialog
+    .querySelector<HTMLInputElement>('#e-bnwh-legacy-json-search')!
+    .addEventListener('change', (event) => {
+      const checked = (event.currentTarget as HTMLInputElement).checked;
+      GM_setValue(USE_LEGACY_JSON_SEARCH, checked);
+      setStatus(`旧版 JSON 标题搜索已${checked ? '开启' : '关闭'}。`);
+    });
+  $dialog
+    .querySelector<HTMLInputElement>('#e-bnwh-person-works-fallback')!
+    .addEventListener('change', (event) => {
+      const checked = (event.currentTarget as HTMLInputElement).checked;
+      GM_setValue(FALLBACK_TO_PERSON_WORKS, checked);
+      setStatus(`按人物作品补查已${checked ? '开启' : '关闭'}。`);
     });
   $dialog
     .querySelector<HTMLInputElement>('#e-bnwh-web-search-fallback')!

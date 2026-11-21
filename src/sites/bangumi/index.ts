@@ -8,12 +8,11 @@ import {
   getSubjectSearchKeyword,
   getTitleRetryQuery,
   hasSameSubjectMainTitle,
+  hasSameSubjectSearchTitle,
+  matchesSubjectTitle,
 } from '../core/subjectTitle';
-import {
-  getSubjectISBNs,
-  searchAuthenticatedSubject,
-  verifyBangumiAccessToken,
-} from './authenticatedSearch';
+import { getSubjectISBNs, searchSubjectsByTitle } from './authenticatedSearch';
+import { searchSubjectsByCreator } from './personWorks';
 
 export enum BangumiDomain {
   chii = 'chii.in',
@@ -35,6 +34,8 @@ export type BangumiSearchOptions = {
   host?: string;
   type?: SubjectTypeId;
   fallbackToWebSearch?: boolean;
+  fallbackToPersonWorks?: boolean;
+  useLegacyJsonSearch?: boolean;
   accessToken?: string;
 };
 
@@ -197,41 +198,64 @@ export function dealSearchResults(info: string): [SearchResult[], number] {
   return [results, numOfPage];
 }
 
-async function searchSiteCandidates(
+async function searchLegacyCandidates(
   query: string,
-  options: BangumiExistSearchOptions,
+  jsonSearchType: JsonSearchType,
+  type: SubjectTypeId,
+  host: string,
   title?: string
 ): Promise<SearchResult[]> {
-  const {
-    host = 'https://bgm.tv',
-    type,
-    fallbackToWebSearch = false,
-  } = options;
+  async function searchJson(keyword: string) {
+    const url = `${host}/json/search-${jsonSearchType}/${encodeURIComponent(keyword)}`;
+    console.info('search bangumi subject JSON URL: ', url);
+    return dealJsonSearchResults(await fetchJson<unknown>(url), type);
+  }
+  const candidates = await searchJson(query);
+  const retryQuery = title && getTitleRetryQuery(candidates, title);
+  if (retryQuery && retryQuery !== query) candidates.push(...await searchJson(retryQuery));
+  return candidates;
+}
+
+async function searchWebCandidates(query: string, type: SubjectTypeId, host: string) {
   const htmlQuery = type === SubjectTypeId.book ? `"${query}"` : query;
   const url = `${host}/subject_search/${encodeURIComponent(
     htmlQuery
   )}?cat=${type}`;
-  const jsonSearchType = JSON_SEARCH_TYPES[type];
-  let candidates: SearchResult[] = [];
-  if (jsonSearchType) {
-    async function searchJson(keyword: string) {
-      const jsonUrl = `${host}/json/search-${jsonSearchType}/${encodeURIComponent(keyword)}`;
-      console.info('search bangumi subject JSON URL: ', jsonUrl);
-      return dealJsonSearchResults(await fetchJson<unknown>(jsonUrl), type);
-    }
-    try {
-      candidates = await searchJson(query);
-      const retryQuery = title && getTitleRetryQuery(candidates, title);
-      if (retryQuery) candidates.push(...await searchJson(retryQuery));
-      if (candidates.length || !fallbackToWebSearch) return candidates;
-      console.info('Bangumi JSON search returned no candidates, falling back to HTML');
-    } catch (error) {
-      console.warn('Bangumi JSON search failed, falling back to HTML:', error);
-    }
-  }
   console.info('search bangumi subject HTML URL: ', url);
-  const [htmlCandidates] = await fetchHtmlSearchResults(url);
-  return [...candidates, ...htmlCandidates];
+  const [candidates] = await fetchHtmlSearchResults(url);
+  return candidates;
+}
+
+async function searchTitleCandidates(
+  keyword: string,
+  title: string,
+  options: BangumiExistSearchOptions & { type: Exclude<SubjectTypeId, SubjectTypeId.all> }
+) {
+  const { type, host = 'https://bgm.tv', accessToken } = options;
+  const legacyType = options.useLegacyJsonSearch !== false ? JSON_SEARCH_TYPES[type] : undefined;
+  const useV0Fallback = legacyType && accessToken;
+  const useWebFallback = !accessToken && options.fallbackToWebSearch;
+  let candidates: SearchResult[] = [];
+  try {
+    candidates = legacyType
+      ? await searchLegacyCandidates(keyword, legacyType, type, host, title)
+      : await searchSubjectsByTitle(keyword, type, title, accessToken);
+  } catch (error) {
+    if (!useV0Fallback && !useWebFallback) throw error;
+    console.warn('Bangumi initial title search failed:', error);
+  }
+
+  if (candidates.some((candidate) => matchesSubjectTitle(candidate, title))) return candidates;
+
+  if (useV0Fallback) {
+    const v0Candidates = await searchSubjectsByTitle(keyword, type, title, accessToken);
+    return [...v0Candidates, ...candidates];
+  }
+  if (useWebFallback) {
+    const webCandidates = await searchWebCandidates(keyword, type, host);
+    return [...webCandidates, ...candidates];
+  }
+  return candidates;
 }
 
 function normalizeISBN(isbn: string) {
@@ -246,6 +270,7 @@ function uniqueByUrl(candidates: SearchResult[]) {
       ...first,
       greyName: first.greyName || candidate.greyName,
       releaseDate: first.releaseDate || candidate.releaseDate,
+      ...(candidate.personCredit && { personCredit: candidate.personCredit }),
     } : candidate);
   }
   return [...byUrl.values()];
@@ -308,6 +333,7 @@ export function matchSubjectCandidates(
   const ranked = new Set([
     ...sameDate,
     ...exact,
+    ...items.filter((candidate) => hasSameSubjectSearchTitle(candidate, name)),
     ...mainTitleMatches,
     ...rankSearchResults(items, name),
     ...items.filter(({ url }) => options.isbnCandidateUrls?.has(url)),
@@ -324,13 +350,27 @@ export async function checkSubjectExit(
   subjectInfo: SubjectQueryInfo,
   options: BangumiExistSearchOptions
 ): Promise<SubjectDuplicateResult> {
-  const { type, accessToken } = options;
+  const { type, accessToken, host = 'https://bgm.tv' } = options;
   if (type === SubjectTypeId.all) throw new Error('Subject type is missing');
   const name = subjectInfo.name?.trim() ?? '';
   const isbn = type === SubjectTypeId.book ? normalizeISBN(subjectInfo.isbn ?? '') : '';
   if (!name && !isbn) throw new Error('Subject title and ISBN are missing');
 
-  const isbnCandidates = isbn ? uniqueByUrl(await searchSiteCandidates(isbn, options)) : [];
+  const allowWebSearch = !accessToken && options.fallbackToWebSearch;
+  const keyword = getSubjectSearchKeyword(name, type);
+  let isbnCandidates: SearchResult[] = [];
+  if (isbn) {
+    try {
+      isbnCandidates = await searchLegacyCandidates(isbn, 'book', type, host);
+    } catch (error) {
+      if (!allowWebSearch) throw error;
+      console.warn('Bangumi ISBN search failed:', error);
+    }
+    if (!keyword && !isbnCandidates.length && allowWebSearch) {
+      isbnCandidates = await searchWebCandidates(isbn, type, host);
+    }
+    isbnCandidates = uniqueByUrl(isbnCandidates);
+  }
   const isbnCandidateUrls = new Set(isbnCandidates.map(({ url }) => url));
   let matchingISBNUrls = isbn
     ? await verifiedISBNUrls(isbnCandidates, isbn, accessToken)
@@ -342,21 +382,21 @@ export async function checkSubjectExit(
     });
   }
 
-  const keyword = getSubjectSearchKeyword(name, type);
-  let titleCandidates: SearchResult[] = [];
-  if (keyword && accessToken) {
-    // 搜索接口也接受匿名请求，先验证一次令牌，再执行所有标题查询。
-    await verifyBangumiAccessToken(accessToken);
-    titleCandidates = await searchAuthenticatedSubject(keyword, type, accessToken);
-    const retryQuery = getTitleRetryQuery(titleCandidates, name);
-    if (retryQuery) {
-      titleCandidates.push(...await searchAuthenticatedSubject(retryQuery, type, accessToken));
+  const titleCandidates = keyword
+    ? await searchTitleCandidates(keyword, name, { ...options, type })
+    : [];
+  let personCandidates: SearchResult[] = [];
+  if (
+    keyword && options.fallbackToPersonWorks && subjectInfo.creators?.length &&
+    !titleCandidates.some((candidate) => matchesSubjectTitle(candidate, name))
+  ) {
+    try {
+      personCandidates = await searchSubjectsByCreator(name, type, subjectInfo.creators);
+    } catch (error) {
+      console.warn('Bangumi person works search failed:', error);
     }
-  } else if (keyword) {
-    titleCandidates = await searchSiteCandidates(keyword, options, name);
   }
   const candidates = uniqueByUrl([...titleCandidates, ...isbnCandidates]);
-  if (!candidates.length) return;
 
   if (isbn) {
     const uncheckedExact = candidates.filter(
@@ -365,10 +405,13 @@ export async function checkSubjectExit(
     );
     matchingISBNUrls = await verifiedISBNUrls(uncheckedExact, isbn, accessToken);
   }
-  return matchSubjectCandidates(candidates, subjectInfo, {
+  const result = matchSubjectCandidates(candidates, subjectInfo, {
     isbnCandidateUrls,
     verifiedISBNUrls: matchingISBNUrls,
   });
+  if (!personCandidates.length || (result && 'url' in result)) return result;
+  const titleMatches = result && 'candidates' in result ? result.candidates : [];
+  return { candidates: uniqueByUrl([...personCandidates, ...titleMatches]) };
 }
 
 export function changeDomain(

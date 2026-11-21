@@ -179,6 +179,8 @@ describe('backgroundApp', () => {
       expect.objectContaining({
         bangumi: {
           host: 'http://chii.in',
+          useLegacyJsonSearch: true,
+          fallbackToPersonWorks: false,
           fallbackToWebSearch: false,
         },
       })
@@ -190,6 +192,8 @@ describe('backgroundApp', () => {
       expect.objectContaining({
         bangumi: {
           host: 'http://chii.in',
+          useLegacyJsonSearch: true,
+          fallbackToPersonWorks: false,
           fallbackToWebSearch: false,
         },
       })

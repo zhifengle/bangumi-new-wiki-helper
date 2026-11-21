@@ -23,6 +23,8 @@ function createRuntime(): Mocked<SubjectCreationRuntime> {
   return {
     bangumi: {
       host: 'https://bgm.tv',
+      useLegacyJsonSearch: true,
+      fallbackToPersonWorks: false,
       fallbackToWebSearch: false,
     },
     notify: vi.fn(),
@@ -81,6 +83,8 @@ describe('checkSubjectAndOpenEntry', () => {
       {
         host: 'https://bgm.tv',
         type: SubjectTypeId.game,
+        useLegacyJsonSearch: true,
+        fallbackToPersonWorks: false,
         fallbackToWebSearch: false,
       }
     );

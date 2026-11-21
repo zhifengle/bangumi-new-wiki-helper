@@ -24,8 +24,10 @@ import {
   AUTO_FILL_FORM,
   BGM_DOMAIN,
   BGM_ACCESS_TOKEN,
+  FALLBACK_TO_PERSON_WORKS,
   PROTOCOL,
   FALLBACK_TO_WEB_SEARCH,
+  USE_LEGACY_JSON_SEARCH,
 } from './constants';
 
 function getBangumiHost() {
@@ -109,6 +111,8 @@ function createUserScriptSubjectCreationRuntime(
     bangumi: {
       host,
       accessToken: GM_getValue<string>(BGM_ACCESS_TOKEN)?.trim(),
+      useLegacyJsonSearch: GM_getValue<boolean>(USE_LEGACY_JSON_SEARCH) !== false,
+      fallbackToPersonWorks: GM_getValue<boolean>(FALLBACK_TO_PERSON_WORKS) === true,
       fallbackToWebSearch:
         GM_getValue<boolean>(FALLBACK_TO_WEB_SEARCH) || false,
     },

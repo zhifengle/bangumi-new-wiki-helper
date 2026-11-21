@@ -26,9 +26,11 @@ function renderCandidate(candidate: SearchResult) {
   const alternateName = candidate.greyName?.trim();
   alias.hidden = !alternateName || alternateName === candidate.name.trim();
   alias.textContent = alternateName ?? '';
+  const credit = candidate.personCredit;
   row.querySelector('.candidate-details')!.textContent = [
     candidate.releaseDate,
     `#${candidate.url.split('/').pop()}`,
+    credit && `通过 ${credit.name} 的作品找到${credit.staff ? `（${credit.staff}）` : ''}`,
   ].filter(Boolean).join(' · ');
   return row;
 }

@@ -13,6 +13,8 @@ import type { DraftStore } from './draftStore';
 
 export type BangumiRuntimeConfig = {
   host: string;
+  useLegacyJsonSearch: boolean;
+  fallbackToPersonWorks: boolean;
   fallbackToWebSearch: boolean;
   accessToken?: string;
 };

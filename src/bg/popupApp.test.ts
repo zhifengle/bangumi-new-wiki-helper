@@ -10,16 +10,17 @@ function createBrowserMock(config: Record<string, unknown>) {
   return {
     storage: {
       local: {
-        get: vi.fn().mockResolvedValue({ config }),
-        set: vi.fn().mockResolvedValue(undefined),
+        get: vi.fn(async () => ({ config })),
+        set: vi.fn(async (update: { config?: Record<string, unknown> }) => {
+          config = update.config ?? config;
+        }),
       },
     },
   } as unknown as typeof browser;
 }
 
-async function flushMicrotasks() {
-  await Promise.resolve();
-  await Promise.resolve();
+async function flushStorage() {
+  await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 function renderPopupDom() {
@@ -41,6 +42,12 @@ function renderPopupDom() {
         </li>
         <li>
           <input name="autoFill" type="checkbox" />
+        </li>
+        <li>
+          <input name="useLegacyJsonSearch" type="checkbox" />
+        </li>
+        <li>
+          <input name="fallbackToPersonWorks" type="checkbox" />
         </li>
         <li>
           <input name="showExportButtons" type="checkbox" />
@@ -109,12 +116,12 @@ describe('popupApp', () => {
     );
     activeOpen!.checked = true;
     activeOpen!.dispatchEvent(new Event('click', { bubbles: true }));
-    await flushMicrotasks();
+    await flushStorage();
 
     const domain = document.querySelector<HTMLSelectElement>('select[name=domain]');
     domain!.value = '0';
     domain!.dispatchEvent(new Event('change', { bubbles: true }));
-    await flushMicrotasks();
+    await flushStorage();
 
     expect(browserMock.storage.local.set).toHaveBeenNthCalledWith(1, {
       config: {
@@ -122,6 +129,8 @@ describe('popupApp', () => {
         activeOpen: true,
         useHttps: true,
         autoFill: false,
+        useLegacyJsonSearch: true,
+        fallbackToPersonWorks: false,
         fallbackToWebSearch: false,
         showExportButtons: false,
         subjectId: 0,
@@ -130,9 +139,11 @@ describe('popupApp', () => {
     expect(browserMock.storage.local.set).toHaveBeenNthCalledWith(2, {
       config: {
         domain: BangumiDomain.bangumi,
-        activeOpen: false,
+        activeOpen: true,
         useHttps: true,
         autoFill: false,
+        useLegacyJsonSearch: true,
+        fallbackToPersonWorks: false,
         fallbackToWebSearch: false,
         showExportButtons: false,
         subjectId: 0,
@@ -143,9 +154,26 @@ describe('popupApp', () => {
       'input[name=showExportButtons]'
     )!;
     exportToggle.click();
-    await flushMicrotasks();
+    await flushStorage();
     expect(browserMock.storage.local.set).toHaveBeenLastCalledWith({
       config: expect.objectContaining({ showExportButtons: true }),
+    });
+  });
+
+  test('uses the search defaults and preserves both toggles when changed together', async () => {
+    const browserMock = createBrowserMock({});
+    await initPopupApp(document, browserMock);
+
+    const json = document.querySelector<HTMLInputElement>('input[name=useLegacyJsonSearch]')!;
+    const people = document.querySelector<HTMLInputElement>('input[name=fallbackToPersonWorks]')!;
+    expect(json.checked).toBe(true);
+    expect(people.checked).toBe(false);
+
+    json.click();
+    people.click();
+    await flushStorage();
+    expect(browserMock.storage.local.set).toHaveBeenLastCalledWith({
+      config: expect.objectContaining({ useLegacyJsonSearch: false, fallbackToPersonWorks: true }),
     });
   });
 
@@ -162,7 +190,7 @@ describe('popupApp', () => {
     document
       .querySelector<HTMLInputElement>('input[name=clearBtn]')!
       .dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    await flushMicrotasks();
+    await flushStorage();
 
     expect(browserMock.storage.local.set).toHaveBeenCalledWith({
       wikiData: null,

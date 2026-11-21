@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { vi } from 'vitest';
+import { FALLBACK_TO_PERSON_WORKS, USE_LEGACY_JSON_SEARCH } from './constants';
 import { showSettingsDialog } from './settingsDialog';
 
 const globalAny = globalThis as Record<string, unknown>;
@@ -61,5 +62,21 @@ describe('showSettingsDialog', () => {
     close?.click();
 
     expect(document.querySelector('.e-bnwh-config-host')).toBeNull();
+  });
+
+  test('defaults legacy title search on and person works off, and saves both changes', () => {
+    showSettingsDialog();
+
+    const shadow = document.querySelector('.e-bnwh-config-host')!.shadowRoot!;
+    const json = shadow.querySelector<HTMLInputElement>('#e-bnwh-legacy-json-search')!;
+    const people = shadow.querySelector<HTMLInputElement>('#e-bnwh-person-works-fallback')!;
+    expect(json.checked).toBe(true);
+    expect(people.checked).toBe(false);
+
+    json.click();
+    people.click();
+    expect(globalAny.GM_setValue).toHaveBeenCalledWith(USE_LEGACY_JSON_SEARCH, false);
+    expect(globalAny.GM_setValue).toHaveBeenCalledWith(FALLBACK_TO_PERSON_WORKS, true);
+    shadow.querySelector<HTMLButtonElement>('.e-bnwh-config-close')!.click();
   });
 });

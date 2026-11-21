@@ -6,6 +6,8 @@ export type BrowserConfig = {
   activeOpen: boolean;
   useHttps: boolean;
   autoFill: boolean;
+  useLegacyJsonSearch: boolean;
+  fallbackToPersonWorks: boolean;
   fallbackToWebSearch: boolean;
   showExportButtons: boolean;
   subjectId: string | number;
@@ -30,6 +32,8 @@ export const DEFAULT_BROWSER_CONFIG: BrowserConfig = {
   activeOpen: false,
   useHttps: true,
   autoFill: false,
+  useLegacyJsonSearch: true,
+  fallbackToPersonWorks: false,
   fallbackToWebSearch: false,
   showExportButtons: false,
   subjectId: 0,

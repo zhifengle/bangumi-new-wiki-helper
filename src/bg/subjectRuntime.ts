@@ -48,6 +48,8 @@ export function buildSubjectCreationRuntime(
   return {
     bangumi: {
       host,
+      useLegacyJsonSearch: userConfig.useLegacyJsonSearch,
+      fallbackToPersonWorks: userConfig.fallbackToPersonWorks,
       fallbackToWebSearch: userConfig.fallbackToWebSearch,
     },
     notify,

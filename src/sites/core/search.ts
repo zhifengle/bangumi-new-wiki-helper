@@ -1,5 +1,11 @@
 import Fuse, { type IFuseOptions } from 'fuse.js';
-import { SearchResult, SingleInfo, SubjectQueryInfo } from '../../interface/subjectInfo';
+import {
+  SearchResult,
+  SingleInfo,
+  SubjectCreator,
+  SubjectQueryInfo,
+  subjectCreatorRoles,
+} from '../../interface/subjectInfo';
 import { isEqualDate } from '../../utils/utils';
 
 export type FuseSearchOptions = IFuseOptions<SearchResult>;
@@ -82,7 +88,20 @@ function toStringValue(value: unknown) {
 
 export function getQueryInfo(items: SingleInfo[]): SubjectQueryInfo {
   const info: SubjectQueryInfo = {};
+  const creators: SubjectCreator[] = [];
   items.forEach((item) => {
+    const field = item.name === '表演者' ? '艺术家' : item.name;
+    const role = subjectCreatorRoles.find((role) => role === field);
+    if (role) {
+      const values = Array.isArray(item.value) ? item.value : [item.value];
+      for (const value of values) {
+        if (typeof value !== 'string') continue;
+        for (const part of value.split(/[,，、;；/／\r\n]+/)) {
+          const name = part.trim();
+          if (/[\p{L}\p{N}]/u.test(name)) creators.push({ role, name });
+        }
+      }
+    }
     const value = toStringValue(item.value);
     if (!value) {
       return;
@@ -100,6 +119,7 @@ export function getQueryInfo(items: SingleInfo[]): SubjectQueryInfo {
       info.isbn = value;
     }
   });
+  if (creators.length) info.creators = creators;
   return info;
 }
 

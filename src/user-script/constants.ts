@@ -8,5 +8,7 @@ export const PROTOCOL = SCRIPT_PREFIX + 'protocol';
 export const BGM_DOMAIN = SCRIPT_PREFIX + 'bgm_domain';
 export const BGM_ACCESS_TOKEN = SCRIPT_PREFIX + 'bgm_access_token';
 export const SUBJECT_ID = SCRIPT_PREFIX + 'subject_id';
+export const USE_LEGACY_JSON_SEARCH = SCRIPT_PREFIX + 'use_legacy_json_search';
+export const FALLBACK_TO_PERSON_WORKS = SCRIPT_PREFIX + 'fallback_to_person_works';
 export const FALLBACK_TO_WEB_SEARCH = SCRIPT_PREFIX + 'fallback_to_web_search';
 export const SHOW_EXPORT_BUTTONS = SCRIPT_PREFIX + 'show_export_buttons';

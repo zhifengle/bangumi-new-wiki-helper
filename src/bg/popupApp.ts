@@ -15,6 +15,8 @@ type BooleanConfigKey =
   | 'activeOpen'
   | 'useHttps'
   | 'autoFill'
+  | 'useLegacyJsonSearch'
+  | 'fallbackToPersonWorks'
   | 'fallbackToWebSearch'
   | 'showExportButtons';
 
@@ -29,6 +31,8 @@ function isBooleanConfigKey(key: string): key is BooleanConfigKey {
     'activeOpen',
     'useHttps',
     'autoFill',
+    'useLegacyJsonSearch',
+    'fallbackToPersonWorks',
     'fallbackToWebSearch',
     'showExportButtons',
   ].includes(key);
@@ -85,6 +89,13 @@ export function bindPopupEvents(
   browserApi: typeof browser = browser
 ) {
   const settingsList = getSettingsList(documentObj);
+  let pendingSave = Promise.resolve();
+
+  function saveConfig<K extends keyof BrowserConfig>(name: K, value: BrowserConfig[K]) {
+    pendingSave = pendingSave
+      .then(() => setConfigValue(name, value, browserApi))
+      .catch((error) => console.error('Could not save popup setting:', error));
+  }
 
   settingsList.addEventListener('click', (event) => {
     const target = getEventTarget(event);
@@ -94,7 +105,7 @@ export function bindPopupEvents(
       return;
     }
     if (target.type === 'checkbox' && isBooleanConfigKey(target.name)) {
-      void setConfigValue(target.name, target.checked, browserApi);
+      saveConfig(target.name, target.checked);
     }
   });
 
@@ -105,7 +116,7 @@ export function bindPopupEvents(
     if (target instanceof HTMLSelectElement && target.name === 'domain') {
       const nextDomain = popupSelectConfig.domain.options[Number(target.value)];
       if (nextDomain) {
-        void setConfigValue('domain', nextDomain, browserApi);
+        saveConfig('domain', nextDomain);
       }
       return;
     }
@@ -115,7 +126,7 @@ export function bindPopupEvents(
       ['number', 'text'].includes(target.type) &&
       target.name === 'subjectId'
     ) {
-      void setConfigValue('subjectId', target.value, browserApi);
+      saveConfig('subjectId', target.value);
     }
   });
 }

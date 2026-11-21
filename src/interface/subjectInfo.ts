@@ -21,11 +21,22 @@ export interface SearchResult extends BaseSubject {
   score?: number | string;
   count?: number | string;
   greyName?: string;
+  personCredit?: { name: string; staff?: string };
 }
+
+export const subjectCreatorRoles = [
+  '原画', '剧本', '作画', '作者', '原作', '插图', '艺术家', '作曲',
+] as const;
+
+export type SubjectCreator = {
+  role: (typeof subjectCreatorRoles)[number];
+  name: string;
+  bangumiPersonId?: number;
+};
 
 export type SubjectQueryInfo = Partial<
   Pick<BookSubject, 'name' | 'releaseDate' | 'isbn' | 'asin'>
->;
+> & { creators?: SubjectCreator[] };
 
 export type SingleInfoCoverValue = {
   url?: string;
