@@ -186,11 +186,11 @@ describe('subject duplicate matching', () => {
     })).toEqual({ candidates: candidates.slice(0, 2) });
   });
 
-  test('automatically accepts a unique exact title and date pair', () => {
-    expect(matchSubjectCandidates(candidates, {
+  test('ranks the matching date first when multiple exact titles need review', () => {
+    expect(matchSubjectCandidates([candidates[1], candidates[0]], {
       name: 'Ｔｅｓｔ Game',
       releaseDate: '2024/1/2',
-    })).toEqual(candidates[0]);
+    })).toEqual({ candidates: candidates.slice(0, 2) });
   });
 
   test('requires review when only the title agrees', () => {
@@ -232,10 +232,10 @@ describe('subject duplicate matching', () => {
   });
 
   test('does not let title and date override an unverified source ISBN', () => {
-    expect(matchSubjectCandidates(candidates, {
+    expect(matchSubjectCandidates([candidates[0]], {
       name: 'Test Game',
       releaseDate: '2024-01-02',
       isbn: '978-4-0000-0000-0',
-    })).toMatchObject({ candidates: expect.arrayContaining([candidates[0]]) });
+    })).toEqual({ candidates: [candidates[0]] });
   });
 });

@@ -89,7 +89,7 @@ test('uses the available v0 fallback when the initial legacy request fails', asy
   vi.stubGlobal('fetch', fetchMock);
 
   await expect(checkSubjectExit({ name: 'Test Game' }, { ...options, accessToken: 'test-token' }))
-    .resolves.toMatchObject({ candidates: [{ url: '/subject/42' }] });
+    .resolves.toMatchObject({ url: '/subject/42' });
   expect(fetchMock).toHaveBeenCalledTimes(2);
 });
 
@@ -104,7 +104,7 @@ test('uses one enabled web page after a legacy miss and stops when its title mat
   vi.stubGlobal('fetch', fetchMock);
 
   await expect(checkSubjectExit({ ...game, name: 'Test Game' }, { ...personFallback, fallbackToWebSearch: true }))
-    .resolves.toMatchObject({ candidates: [{ url: '/subject/42' }] });
+    .resolves.toMatchObject({ url: '/subject/42' });
   expect(fetchMock).toHaveBeenNthCalledWith(2, `${host}/subject_search/Test%20Game?cat=4`, { method: 'GET', body: null });
   expect(fetchMock).toHaveBeenCalledTimes(2);
 });

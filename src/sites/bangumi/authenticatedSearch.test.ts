@@ -219,14 +219,14 @@ test('looks on the next main-title page if the full-title search misses', async 
   expect(fetchMock).toHaveBeenCalledTimes(3);
 });
 
-test('finds a title even when the source release date differs', async () => {
+test('accepts the only result when its full title matches and the release date differs', async () => {
   const name = 'Test Game';
   const fetchMock = vi.fn()
     .mockResolvedValueOnce(Response.json({ data: [{ id: 1, type: 4, name, date: '2025-12-31' }] }));
   vi.stubGlobal('fetch', fetchMock);
 
   await expect(checkSubjectExit({ name, releaseDate: '2026-01-01' }, options))
-    .resolves.toMatchObject({ candidates: [{ url: '/subject/1' }] });
+    .resolves.toMatchObject({ url: '/subject/1' });
   expect(fetchMock).toHaveBeenCalledExactlyOnceWith(`${api}/search/subjects?limit=20`, expect.objectContaining({
     body: JSON.stringify({ keyword: name, sort: 'match', filter: { type: [4] } }),
   }));
